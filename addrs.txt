@@ -1,0 +1,11 @@
+03001530 max_missiles
+03001532 max_health
+03001534 current_health
+03001536 max_pbs
+03001537 max_supers
+03001538 current_pbs
+03001539 current_supers
+0300153A current_missiles
+0300153C major_items_enabled
+0300153D major_items_acquired
+03001541 suit_type
