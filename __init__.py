@@ -1,6 +1,8 @@
+from pathlib import Path
 from typing import Any, Dict, List
 
 from BaseClasses import Tutorial
+import settings
 from worlds.AutoWorld import WebWorld, World
 
 #from .client import MZMClient
@@ -8,10 +10,10 @@ from .items import item_data_table, MZMItem
 from .locations import full_location_table
 from .options import MZMOptions
 from .regions import create_regions
-from .rom import MZMDeltaPatch
+from .rom import LocalRom, MZMDeltaPatch, get_base_rom_path, patch_rom
 from .rules import set_rules
 
-"""
+
 class MZMSettings(settings.Group):
     class RomFile(settings.UserFilePath):
         #File name of the Metroid: Zero Mission ROM
@@ -20,7 +22,6 @@ class MZMSettings(settings.Group):
         md5s = [MZMDeltaPatch.hash]
 
     rom_file: RomFile = RomFile(RomFile.copy_to)
-"""
 
 
 class MZMWeb(WebWorld):
@@ -90,3 +91,27 @@ class MZMWorld(World):
         }
 
         return slot_data
+
+    def generate_output(self, output_directory: str):
+        output_path = Path(output_directory)
+
+        try:
+            world = self.multiworld
+            player = self.player
+            rom = LocalRom(get_base_rom_path())
+            patch_rom(rom, self)
+
+            rompath = output_path / f'{world.get_out_file_name_base(player)}.gba'
+            rom.write_to_file(rompath)
+            self.rom_name = rom.name
+
+            patch = MZMDeltaPatch(
+                rompath.with_suffix(MZMDeltaPatch.patch_file_ending),
+                player = player,
+                player_name = world.player_name[player],
+                patched_path = rompath
+            )
+            patch.write()
+        finally:
+            if rompath.exists():
+                rompath.unlink()
