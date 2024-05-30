@@ -31,6 +31,13 @@ _get_symbols()
 
 
 def get_rom_symbol(symbol: str, offset: int = 0) -> int:
-    """Convert a label name and offset to an address on GBA system bus."""
+    """Convert a label name and offset to an address in GBA ROM."""
 
     return rom_symbols[symbol] + offset
+
+
+def encode_str(msg: str) -> bytes:
+    """Encode a string into Zero Mission's text format."""
+
+    # TODO: Implement. Currently using UTF-16 LE as a placeholder
+    return msg.encode("utf-16-le")

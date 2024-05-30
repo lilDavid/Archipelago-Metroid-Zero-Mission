@@ -11,6 +11,7 @@ AP_MZM_ID_BASE = 261300  # TODO: double check if this is actually valid lol
 progression = ItemClassification.progression
 filler = ItemClassification.filler
 useful = ItemClassification.useful
+trap = ItemClassification.trap
 
 
 class ItemType(IntEnum):
@@ -62,5 +63,9 @@ item_data_table: Dict[str, ItemData] = {
     "Power Grip": ItemData("Power Grip", 17, progression, ItemType.major, 0x80),
     "Missile Tank": ItemData("Missile", 18, filler, ItemType.tank, None),
     "Super Missile Tank": ItemData("Super Missile", 19, filler, ItemType.tank, None),
-    "Power Bomb Tank": ItemData("Power Bomb", 20, filler, ItemType.tank, None)
+    "Power Bomb Tank": ItemData("Power Bomb", 20, filler, ItemType.tank, None),
+    "AP Item (Filler)": ItemData("AP Item", 21, filler, None, None),
+    "AP Item (Progression)": ItemData("AP Item", 22, progression, None, None),
+    "AP Item (Useful)": ItemData("AP Item", 23, useful, None, None),
+    "AP Item (Trap)": ItemData("AP Item", 24, trap, None, None),
 }

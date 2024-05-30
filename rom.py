@@ -12,7 +12,8 @@ from typing import TYPE_CHECKING, Iterable, Union
 import Utils
 from worlds.Files import APDeltaPatch
 
-from .data import data_path, get_rom_symbol
+from .data import data_path, encode_str, get_rom_symbol
+from .items import AP_MZM_ID_BASE
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -74,7 +75,7 @@ class LocalRom:
     def get_address(self, address: Union[int, str]):
         if isinstance(address, str):
             address = get_rom_symbol(address)
-        return address & ~0x8000000
+        return address & (0x8000000 - 1)
 
     def read_byte(self, address: Union[int, str]):
         return self.buffer[self.get_address(address)]
@@ -122,7 +123,39 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
     multiworld = world.multiworld
     player = world.player
 
+    # Basic information about the seed
     seed_info = (player,
                  multiworld.player_name[player].encode("utf-8")[:64],
                  multiworld.seed_name.encode("utf-8")[:64])
     rom.write_bytes("sRandoSeed", struct.pack("<H64s64s", *seed_info))
+
+    # Place items
+    next_name_address = get_rom_symbol("sRandoItemAndPlayerNames")
+    names = {None: 0}
+    for location in multiworld.get_locations(player):
+        item = location.item
+        if item.code is None or location.address is None:
+            continue
+
+        location_id = location.address - AP_MZM_ID_BASE
+        if location.native_item:
+            item_id = item.code - AP_MZM_ID_BASE
+            item_name = None
+        else:
+            item_id = 21 + item.classification.as_flag().bit_length()
+            item_name = item.name
+        if item.player == player:
+            player_name = None
+        else:
+            player_name = multiworld.player_name[item.player]
+
+        for name in (player_name, item_name):
+            if name not in names:
+                names[name] = next_name_address
+                encoded = encode_str(name) + b'\0\0'
+                rom.write_bytes(next_name_address, encoded)
+                next_name_address += len(encoded)
+
+        placement = names[player_name], names[item_name], item_id
+        address = get_rom_symbol("sPlacedItems", 12 * location_id)
+        rom.write_bytes(address, struct.pack("<IIB", *placement))
