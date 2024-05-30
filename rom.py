@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Iterable, Union
 import Utils
 from worlds.Files import APDeltaPatch
 
-from .data import data_path, get_symbol
+from .data import data_path, get_rom_symbol
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -73,7 +73,7 @@ class LocalRom:
 
     def get_address(self, address: Union[int, str]):
         if isinstance(address, str):
-            address = get_symbol(address)
+            address = get_rom_symbol(address)
         return address & ~0x8000000
 
     def read_byte(self, address: Union[int, str]):
@@ -125,4 +125,4 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
     seed_info = (player,
                  multiworld.player_name[player].encode("utf-8")[:64],
                  multiworld.seed_name.encode("utf-8")[:64])
-    rom.write_bytes("seed", struct.pack("<H64s64s", *seed_info))
+    rom.write_bytes("sRandoSeed", struct.pack("<H64s64s", *seed_info))
