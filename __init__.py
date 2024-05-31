@@ -6,7 +6,7 @@ import settings
 from worlds.AutoWorld import WebWorld, World
 
 #from .client import MZMClient
-from .items import item_data_table, MZMItem
+from .items import ItemType, item_data_table, MZMItem
 from .locations import full_location_table
 from .options import MZMOptions
 from .regions import create_regions
@@ -61,7 +61,7 @@ class MZMWorld(World):
 
     def create_items(self) -> None:
         item_pool: List[MZMItem] = []
-        for name, item in item_data_table.items():
+        for name, _ in filter(lambda item: item[1].type is not None, item_data_table.items()):
             item_pool.append(self.create_item(name))
 
         for item in range(0, 11):
