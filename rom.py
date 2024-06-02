@@ -124,10 +124,14 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
     player = world.player
 
     # Basic information about the seed
-    seed_info = (player,
-                 multiworld.player_name[player].encode("utf-8")[:64],
-                 multiworld.seed_name.encode("utf-8")[:64])
-    rom.write_bytes("sRandoSeed", struct.pack("<H64s64s", *seed_info))
+    seed_info = (
+        player,
+        multiworld.player_name[player].encode("utf-8")[:64],
+        multiworld.seed_name.encode("utf-8")[:64],
+
+        world.options.unknown_items_always_usable.value,
+    )
+    rom.write_bytes("sRandoSeed", struct.pack("<H64s64s2xB", *seed_info))
 
     # Place items
     next_name_address = get_rom_symbol("sRandoItemAndPlayerNames")
@@ -152,7 +156,7 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
         for name in (player_name, item_name):
             if name not in names:
                 names[name] = next_name_address
-                encoded = encode_str(name) + b'\0\0'
+                encoded = encode_str(name[:32]) + 0xFF00.to_bytes(2, "little")
                 rom.write_bytes(next_name_address, encoded)
                 next_name_address += len(encoded)
 
