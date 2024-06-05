@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from io import StringIO
 import itertools
+import json
 import pkgutil
 
 
@@ -11,23 +12,17 @@ def data_path(file_name: str):
 
 char_table = {}
 
-rom_symbols = {}
+ram_symbols = None
+rom_symbols = None
 
 
 def _get_symbols():
-    symbol_data = data_path("mzm_us_ap.map").decode("utf-8")
-    with StringIO(symbol_data) as stream:
-        while not next(stream).startswith(".rodata"):
-            pass
+    global ram_symbols, rom_symbols
 
-        while not (line := next(stream)).startswith("OUTPUT"):
-            splits = line.split()
-            if len(splits) != 2:
-                continue
-
-            address, name = splits
-            address = int(address[2:], base=16)
-            rom_symbols[name] = address
+    symbol_data = data_path("extracted_symbols.json").decode("utf-8")
+    symbols = json.loads(symbol_data)
+    ram_symbols = symbols["iwram"]
+    rom_symbols = symbols["rom"]
 
 
 def _get_charmap():
