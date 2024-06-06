@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Iterable, Union
 import Utils
 from worlds.Files import APDeltaPatch
 
-from .data import data_path, encode_str, get_rom_symbol
+from .data import data_path, encode_str, get_rom_symbol, get_width_of_encoded_string
 from .items import AP_MZM_ID_BASE
 
 if TYPE_CHECKING:
@@ -147,18 +147,20 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
             item_name = None
         else:
             item_id = 21 + item.classification.as_flag().bit_length()
-            item_name = item.name
+            item_name = encode_str(item.name[:32])
+            pad = ((224 - get_width_of_encoded_string(item_name)) // 2) & 0xFF
+            item_name = struct.pack("<HH", 0x8000 | pad, 0x8105) + item_name
         if item.player == player:
             player_name = None
         else:
-            player_name = multiworld.player_name[item.player]
+            player_name = encode_str(multiworld.player_name[item.player])
 
         for name in (player_name, item_name):
             if name not in names:
                 names[name] = next_name_address
-                encoded = encode_str(name[:32]) + 0xFF00.to_bytes(2, "little")
-                rom.write_bytes(next_name_address, encoded)
-                next_name_address += len(encoded)
+                terminated = name + 0xFF00.to_bytes(2, "little")
+                rom.write_bytes(next_name_address, terminated)
+                next_name_address += len(terminated)
 
         placement = names[player_name], names[item_name], item_id
         address = get_rom_symbol("sPlacedItems", 12 * location_id)
