@@ -1,7 +1,7 @@
 """
 Option definitions for Metroid: Zero Mission
 """
-from Options import DeathLink, DefaultOnToggle, Toggle, PerGameCommonOptions
+from Options import Choice, DeathLink, DefaultOnToggle, Toggle, PerGameCommonOptions
 from dataclasses import dataclass
 
 """
@@ -26,7 +26,23 @@ class UnknownItemsAlwaysUsable(DefaultOnToggle):
     display_name = "UnknownItemsAlwaysUsable"
 
 
+class DisplayNonLocalItems(Choice):
+    """
+    How to display items that will be sent to other players.
+
+    Match Series: Items from Super Metroid and SMZ3 display as their counterpart in Zero Mission
+    Match Game: Zero Mission items appear as the item that will be sent
+    None: All items for other players appear as AP logos
+    """
+    display_name = "Display Other Players' Items"
+    option_none = 0
+    option_match_game = 1
+    option_match_series = 2
+    default = option_match_series
+
+
 @dataclass
 class MZMOptions(PerGameCommonOptions):
     unknown_items_always_usable: UnknownItemsAlwaysUsable
+    display_nonlocal_items: DisplayNonLocalItems
     death_link: DeathLink
