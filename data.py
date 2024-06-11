@@ -123,12 +123,13 @@ def _get_charmap():
 
 _get_symbols()
 _get_charmap()
+symbols = ram_symbols | rom_symbols
 
 
-def get_rom_symbol(symbol: str, offset: int = 0) -> int:
-    """Convert a label name and offset to an address in GBA ROM."""
+def get_symbol(symbol: str, offset: int = 0) -> int:
+    """Convert a label name and offset to an address in GBA address space."""
 
-    return rom_symbols[symbol] + offset
+    return symbols[symbol] + offset
 
 
 def encode_str(msg: str) -> bytes:

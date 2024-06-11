@@ -15,7 +15,7 @@ from worlds import sm
 from worlds.smz3.TotalSMZ3.Item import ItemType as SMZ3Item, items_start_id as smz3_items_start_id
 from worlds.Files import APDeltaPatch
 
-from .data import data_path, encode_str, get_rom_symbol, get_width_of_encoded_string
+from .data import data_path, encode_str, get_symbol, get_width_of_encoded_string
 from .items import AP_MZM_ID_BASE
 from .options import DisplayNonLocalItems
 
@@ -78,7 +78,7 @@ class LocalRom:
 
     def get_address(self, address: Union[int, str]):
         if isinstance(address, str):
-            address = get_rom_symbol(address)
+            address = get_symbol(address)
         return address & (0x8000000 - 1)
 
     def read_byte(self, address: Union[int, str]):
@@ -212,7 +212,7 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
     rom.write_bytes("sRandoSeed", struct.pack("<H64s64s2xB", *seed_info))
 
     # Place items
-    next_name_address = get_rom_symbol("sRandoItemAndPlayerNames")
+    next_name_address = get_symbol("sRandoItemAndPlayerNames")
     names = {None: 0}
     for location in multiworld.get_locations(player):
         item = location.item
@@ -234,5 +234,5 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
 
         location_id = location.address - AP_MZM_ID_BASE
         placement = names[player_name], names[item_name], item_id
-        address = get_rom_symbol("sPlacedItems", 12 * location_id)
+        address = get_symbol("sPlacedItems", 12 * location_id)
         rom.write_bytes(address, struct.pack("<IIB", *placement))

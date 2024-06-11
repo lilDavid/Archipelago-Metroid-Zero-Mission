@@ -5,7 +5,7 @@ from BaseClasses import Tutorial
 import settings
 from worlds.AutoWorld import WebWorld, World
 
-#from .client import MZMClient
+from .client import MZMClient
 from .items import ItemType, item_data_table, MZMItem
 from .locations import full_location_table
 from .options import MZMOptions
