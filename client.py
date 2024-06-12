@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import itertools
 import struct
-from typing import TYPE_CHECKING, Iterator, List
+from typing import TYPE_CHECKING, Dict, Iterator, List
 
 from NetUtils import ClientStatus
 import Utils
@@ -69,6 +69,41 @@ def batched(iterable, n):
         yield batch
 
 
+# Potential future use to properly identify Deorem kill
+DEOREM_FLAGS = {
+        "EVENT_DEOREM_ENCOUNTERED_AT_FIRST_LOCATION_OR_KILLED": 0x19,
+        "EVENT_DEOREM_ENCOUNTERED_AT_SECOND_LOCATION_OR_KILLED": 0x1A,
+        "EVENT_DEOREM_KILLED_AT_SECOND_LOCATION": 0x1B,
+}
+
+EVENT_FLAGS = {
+    "EVENT_ACID_WORM_KILLED": 0x1C,
+    "EVENT_KRAID_GADORA_KILLED": 0x1D,
+    "EVENT_KRAID_KILLED": 0x1E,
+    "EVENT_CATERPILLAR_KILLED": 0x20,
+    "EVENT_IMAGO_COCOON_KILLED": 0x22,
+    "EVENT_IMAGO_KILLED": 0x23,
+    "EVENT_RIDLEY_GADORA_KILLED": 0x24,
+    "EVENT_RIDLEY_KILLED": 0x25,
+    "EVENT_MOTHER_BRAIN_KILLED": 0x27,
+    "EVENT_CROCOMIRE_KILLED": 0x28,
+    "EVENT_REPEL_MACHINE_KILLED": 0x29,
+    "EVENT_LONG_BEAM_DESSGEEGA_KILLED": 0x2B,
+    "EVENT_BUGS_KILLED": 0x2D,
+    "EVENT_KRAID_BARISTUTES_KILLED": 0x34,
+    "EVENT_ESCAPED_ZEBES": 0x41,
+    "EVENT_FULLY_POWERED_SUIT_OBTAINED": 0x43,
+    "EVENT_MECHA_RIDLEY_KILLED": 0x4A,
+    "EVENT_ESCAPED_CHOZODIA": 0x4B,
+}
+
+
+TRACKER_EVENT_FLAGS = [
+    "EVENT_DEOREM_KILLED",
+    *EVENT_FLAGS.keys(),
+]
+
+
 def cmd_deathlink(self):
     '''Toggle death link from client. Overrides default setting.'''
 
@@ -114,6 +149,7 @@ class ZMConstants:
     gGameModeSub1 = get_symbol("gGameModeSub1")
     gPreventMovementTimer = get_symbol("gPreventMovementTimer")
     gEquipment = get_symbol("gEquipment")
+    gEventsTriggered = get_symbol("gEventsTriggered");
     gRandoLocationBitfields = get_symbol("gRandoLocationBitfields")
     gIncomingItemId = get_symbol("gIncomingItemId")
     gMultiworldItemCount = get_symbol("gMultiworldItemCount")
@@ -125,6 +161,7 @@ class MZMClient(BizHawkClient):
     system = "GBA"
     patch_suffix = ".apmzm"
     local_checked_locations: List[int]
+    local_set_events: Dict[str, bool]
     rom_slot_name: str
 
     death_link: DeathLinkCtx
@@ -215,6 +252,7 @@ class MZMClient(BizHawkClient):
                 read16(ZMConstants.gMainGameMode),
                 read16(ZMConstants.gGameModeSub1),
                 read16(ZMConstants.gPreventMovementTimer),
+                read(ZMConstants.gEventsTriggered, 4 * 3),
                 read(ZMConstants.gRandoLocationBitfields, 4 * ZMConstants.AREA_MAX),
                 read8(ZMConstants.gMultiworldItemCount)
             ]))
@@ -224,6 +262,7 @@ class MZMClient(BizHawkClient):
         gMainGameMode = next_int(read_result)
         gGameModeSub1 = next_int(read_result)
         gPreventMovementTimer = next_int(read_result)
+        gEventsTriggered = struct.unpack(f"<3I", next(read_result))
         gRandoLocationBitfields = struct.unpack(f"<{ZMConstants.AREA_MAX}I", next(read_result))
         gMultiworldItemCount = next_int(read_result)
 
@@ -233,7 +272,7 @@ class MZMClient(BizHawkClient):
             return
 
         checked_locations = []
-        # events = {flag: False for flag in TRACKER_EVENT_FLAGS}
+        set_events = {flag: False for flag in TRACKER_EVENT_FLAGS}
 
         if gMainGameMode == ZMConstants.GM_INGAME:
             for location_flags, location_table in zip(
@@ -246,6 +285,16 @@ class MZMClient(BizHawkClient):
                     if location_flags & 1:
                         checked_locations.append(location)
                     location_flags >>= 1
+
+        # Deorem flags are in a weird arrangement, but he also drops Charge Beam so whatever just look for that check
+        if not self.local_set_events["EVENT_DEOREM_KILLED"] and brinstar_location_table["Brinstar Worm drop"] in checked_locations:
+            set_events["EVENT_DEOREM_KILLED"] = True
+
+        for name, number in EVENT_FLAGS.items():
+            block = gEventsTriggered[number // 32]
+            flag = 1 << (number & 31)
+            if block & flag:
+                set_events[name] = True
 
         if self.local_checked_locations != checked_locations:
             self.local_checked_locations = checked_locations
@@ -260,7 +309,19 @@ class MZMClient(BizHawkClient):
                 'status': ClientStatus.CLIENT_GOAL
             }])
 
-        # TODO: Event flags
+        if self.local_set_events != set_events and client_ctx.slot is not None:
+            event_bitfield = 0
+            for i, flag in enumerate(TRACKER_EVENT_FLAGS):
+                if set_events[flag]:
+                    event_bitfield |= 1 << i
+            await client_ctx.send_msgs([{
+                'cmd': 'Set',
+                'key': f'mzm_events_{client_ctx.team}_{client_ctx.slot}',
+                'default': 0,
+                'want_reply': False,
+                'operations': [{'operation': 'or', 'value': event_bitfield}]
+            }])
+            self.local_set_events = set_events
 
         if self.death_link.enabled:
             if (gameplay_state == (ZMConstants.GM_INGAME, ZMConstants.SUB_GAME_MODE_DYING)
