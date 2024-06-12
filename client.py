@@ -88,6 +88,7 @@ class DeathLinkCtx:
 
     def __repr__(self):
         return (f'{type(self)} {{ enabled: {self.enabled}, '
+                f'update_pending: {self.update_pending}, '
                 f'pending: {self.pending}, '
                 f'sent_this_death: {self.sent_this_death} }}')
 
