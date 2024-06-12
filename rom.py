@@ -11,12 +11,11 @@ from typing import TYPE_CHECKING, Iterable, Union
 
 from BaseClasses import Location
 import Utils
-from worlds import sm
-from worlds.smz3.TotalSMZ3.Item import ItemType as SMZ3Item, items_start_id as smz3_items_start_id
 from worlds.Files import APDeltaPatch
 
 from .data import data_path, encode_str, get_symbol, get_width_of_encoded_string
 from .items import AP_MZM_ID_BASE
+from .nonnative_items import get_zero_mission_sprite
 from .options import DisplayNonLocalItems
 
 if TYPE_CHECKING:
@@ -123,55 +122,6 @@ class LocalRom:
             stream.write(self.buffer)
 
 
-sm_id_to_mzm_id = {
-    0: 0,  # Energy Tank
-    1: 1,  # Missile Tank
-    2: 2,  # Super Missile Tank
-    3: 3,  # Power Bomb Tank
-    4: 9,  # Bomb
-    5: 5,  # Charge Beam
-    6: 6,  # Ice Beam
-    7: 14,  # Hi-Jump Boots
-    8: 13,  # Speed Booster
-    9: 7,  # Wave Beam
-    # 10:  # Spazer Beam
-    # 11:  # Spring Ball
-    12: 10,  # Varia Suit
-    15: 8,  # Plasma Beam
-    # 16:  # Grapple Beam
-    19: 12,  # Morph Ball
-    # 20:  # Reserve Tank
-    13: 11,  # Gravity Suit
-    # 14:  # X-Ray Scope
-    17: 16,  # Space Jump
-    18: 15,  # Screw Attack
-}
-
-smz3_id_to_mzm_id = {
-    SMZ3Item.Missile.value: 1,
-    SMZ3Item.Super.value: 2,
-    SMZ3Item.PowerBomb.value: 3,
-    # SMZ3Item.Grapple.value:
-    # SMZ3Item.XRay.value:
-    SMZ3Item.ETank.value: 0,
-    # SMZ3Item.ReserveTank:
-    SMZ3Item.Charge.value: 5,
-    SMZ3Item.Ice.value: 6,
-    SMZ3Item.Wave.value: 7,
-    # SMZ3Item.Spazer.value:
-    SMZ3Item.Plasma.value: 8,
-    SMZ3Item.Varia.value: 10,
-    SMZ3Item.Gravity.value: 11,
-    SMZ3Item.Morph.value: 12,
-    SMZ3Item.Bombs.value: 9,
-    # SMZ3Item.SpringBall.value:
-    SMZ3Item.ScrewAttack.value: 15,
-    SMZ3Item.HiJump.value: 14,
-    SMZ3Item.SpaceJump.value: 16,
-    SMZ3Item.SpeedBooster.value: 13,
-}
-
-
 def get_item_sprite_and_name(location: Location, world: MZMWorld):
     player = world.player
     nonlocal_item_handling = world.options.display_nonlocal_items
@@ -182,12 +132,8 @@ def get_item_sprite_and_name(location: Location, world: MZMWorld):
         return sprite, None
 
     if nonlocal_item_handling == DisplayNonLocalItems.option_match_series:
-        if item.game == "Super Metroid" and item.code - sm.items_start_id in sm_id_to_mzm_id:
-            sprite = sm_id_to_mzm_id[item.code - sm.items_start_id]
-            return sprite, None
-
-        if item.game == "SMZ3" and item.code - smz3_items_start_id in smz3_id_to_mzm_id:
-            sprite = smz3_id_to_mzm_id[item.code - smz3_items_start_id]
+        sprite = get_zero_mission_sprite(item)
+        if sprite is not None:
             return sprite, None
 
     sprite = 21 + item.classification.as_flag().bit_length()
