@@ -72,7 +72,6 @@ def cmd_deathlink(self):
     '''Toggle death link from client. Overrides default setting.'''
 
     client_handler = self.ctx.client_handler
-    client_handler.death_link.client_override = True
     client_handler.death_link.enabled = not client_handler.death_link.enabled
     Utils.async_start(
         self.ctx.update_death_link(client_handler.death_link.enabled),
@@ -82,13 +81,12 @@ def cmd_deathlink(self):
 
 class DeathLinkCtx:
     enabled: bool = False
-    client_override: bool = False
+    update_pending = False
     pending: bool = False
     sent_this_death: bool = False
 
     def __repr__(self):
         return (f'{type(self)} {{ enabled: {self.enabled}, '
-                f'client_override: {self.client_override}, '
                 f'pending: {self.pending}, '
                 f'sent_this_death: {self.sent_this_death} }}')
 
@@ -201,6 +199,10 @@ class MZMClient(BizHawkClient):
             await client_ctx.disconnect()
             return
 
+        if self.death_link.update_pending:
+            await client_ctx.update_death_link(self.death_link.enabled)
+            self.death_link.update_pending = False
+
         bizhawk_ctx = client_ctx.bizhawk_ctx
 
         try:
@@ -286,7 +288,6 @@ class MZMClient(BizHawkClient):
         if gMultiworldItemCount < len(client_ctx.items_received):
             next_item = client_ctx.items_received[gMultiworldItemCount]
             next_item_id = next_item.item - AP_MZM_ID_BASE
-            print(next_item_id)
             next_item_sender = encode_str(client_ctx.player_names[next_item.player]) + 0xFF00.to_bytes(2, "little")
 
             write_list += [
@@ -300,11 +301,15 @@ class MZMClient(BizHawkClient):
             return
 
     def on_package(self, ctx: BizHawkClientContext, cmd: str, args: dict) -> None:
-        if cmd == 'Bounced':
-            tags = args.get('tags', [])
-            if 'DeathLink' in tags and args['data']['source'] != ctx.auth:
-                self.death_link.pending = True
+        if cmd == 'Connected':
+            if args['slot_data'].get('death_link'):
+                self.death_link.enabled = True
+                self.death_link.update_pending = True
         if cmd == 'RoomInfo':
             if ctx.seed_name and ctx.seed_name != args['seed_name']:
                 # CommonClient's on_package displays an error to the user in this case, but connection is not cancelled.
                 self.dc_pending = True
+        if cmd == 'Bounced':
+            tags = args.get('tags', [])
+            if 'DeathLink' in tags and args['data']['source'] != ctx.auth:
+                self.death_link.pending = True
