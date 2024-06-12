@@ -8,6 +8,7 @@ import itertools
 import struct
 from typing import TYPE_CHECKING, Iterator, List
 
+from NetUtils import ClientStatus
 import Utils
 import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
@@ -99,6 +100,7 @@ class ZMConstants:
     GM_INGAME = 4
     GM_GAMEOVER = 6
     GM_CHOZODIA_ESCAPE = 7
+    GM_CREDITS = 8
     SUB_GAME_MODE_PLAYING = 2
     SUB_GAME_MODE_DYING = 5
     AREA_MAX = 7
@@ -192,6 +194,8 @@ class MZMClient(BizHawkClient):
     def is_state_read_safe(main_game_mode: int, game_mode_sub: int):
         if MZMClient.is_state_write_safe(main_game_mode, game_mode_sub):
             return True
+        if main_game_mode in (ZMConstants.GM_CHOZODIA_ESCAPE, ZMConstants.GM_CREDITS):
+            return True
         return (main_game_mode, game_mode_sub) == (ZMConstants.GM_INGAME, ZMConstants.SUB_GAME_MODE_DYING)
 
     async def game_watcher(self, client_ctx: BizHawkClientContext) -> None:
@@ -229,7 +233,6 @@ class MZMClient(BizHawkClient):
 
         checked_locations = []
         # events = {flag: False for flag in TRACKER_EVENT_FLAGS}
-        game_clear = False
 
         if gMainGameMode == ZMConstants.GM_INGAME:
             for location_flags, location_table in zip(
@@ -250,7 +253,11 @@ class MZMClient(BizHawkClient):
                 "locations": checked_locations
             }])
 
-        # TODO: Game clear
+        if gMainGameMode in (ZMConstants.GM_CHOZODIA_ESCAPE, ZMConstants.GM_CREDITS) and not client_ctx.finished_game:
+            await client_ctx.send_msgs([{
+                'cmd': 'StatusUpdate',
+                'status': ClientStatus.CLIENT_GOAL
+            }])
 
         # TODO: Event flags
 
