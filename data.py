@@ -98,7 +98,7 @@ def _get_symbols():
 
     symbol_data = data_path("extracted_symbols.json").decode("utf-8")
     symbols = json.loads(symbol_data)
-    ram_symbols = symbols["iwram"]
+    ram_symbols = symbols["ewram"] | symbols["iwram"]
     rom_symbols = symbols["rom"]
 
 

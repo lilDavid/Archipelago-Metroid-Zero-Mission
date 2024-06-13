@@ -149,7 +149,7 @@ class ZMConstants:
     gGameModeSub1 = get_symbol("gGameModeSub1")
     gPreventMovementTimer = get_symbol("gPreventMovementTimer")
     gEquipment = get_symbol("gEquipment")
-    gEventsTriggered = get_symbol("gEventsTriggered");
+    gEventsTriggered = get_symbol("gEventsTriggered")
     gRandoLocationBitfields = get_symbol("gRandoLocationBitfields")
     gIncomingItemId = get_symbol("gIncomingItemId")
     gMultiworldItemCount = get_symbol("gMultiworldItemCount")
