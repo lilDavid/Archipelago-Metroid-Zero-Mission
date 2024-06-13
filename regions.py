@@ -38,9 +38,6 @@ def create_regions(self): # TODO: later take "difficulty/tricks required" as a p
     chozodia.add_locations(chozodia_location_table, MZMLocation)
     self.multiworld.regions.append(chozodia)
 
-    mission_complete = Region("Mission Complete", self.player, self.multiworld)
-    self.multiworld.regions.append(mission_complete)
-
     menu.connect(brinstar)
 
     #TODO: finish logic
@@ -87,5 +84,3 @@ def create_regions(self): # TODO: later take "difficulty/tricks required" as a p
     crateria.connect(chozodia, "Crateria-Chozodia Lower Door", lambda state: (
         logic.mzm_has_power_bombs(state, self.multiworld, self.player)
     ))
-
-    chozodia.connect(mission_complete, "Mission Complete")

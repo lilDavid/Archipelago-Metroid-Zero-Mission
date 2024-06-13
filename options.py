@@ -1,7 +1,9 @@
+from schema import And, Schema
+
 """
 Option definitions for Metroid: Zero Mission
 """
-from Options import Choice, DeathLink, DefaultOnToggle, Toggle, PerGameCommonOptions
+from Options import Choice, DeathLink, DefaultOnToggle, OptionDict, Toggle, PerGameCommonOptions, Visibility
 from dataclasses import dataclass
 
 """
@@ -41,8 +43,26 @@ class DisplayNonLocalItems(Choice):
     default = option_match_series
 
 
+class JunkFillWeights(OptionDict):
+    """
+    Specify the distribution of extra capacity expansions that should be used to fill vacancies in the pool.
+    This option only has any effect if there are unfilled locations, e.g. when some items are removed.
+    """
+    display_name = "Junk Fill Weights"
+    visibility = Visibility.template | Visibility.complex_ui | Visibility.spoiler
+    schema = Schema({item_name: And(int, lambda n: n >= 0) for item_name in (
+        "Missile Tank", "Super Missile Tank", "Power Bomb Tank", "Nothing"
+    )})
+    default = {
+        "Missile Tank": 1,
+        "Super Missile Tank": 0,
+        "Power Bomb Tank": 0,
+        "Nothing": 0,
+    }
+
 @dataclass
 class MZMOptions(PerGameCommonOptions):
     unknown_items_always_usable: UnknownItemsAlwaysUsable
     display_nonlocal_items: DisplayNonLocalItems
     death_link: DeathLink
+    junk_fill_weights: JunkFillWeights

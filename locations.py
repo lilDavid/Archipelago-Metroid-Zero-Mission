@@ -12,6 +12,8 @@ class MZMLocation(Location):
 # room numbers lifted from Biospark's MZM Randomizer don't blame me
 # probably need to add more to this i.e. room #, clipdata addr and bg1data addr from mzmr
 
+# Events in any region must be at the end of its table for the client to work correctly
+
 brinstar_location_table = {
     "Brinstar Morph Ball": AP_MZM_ID_BASE + 0,
     "Brinstar Morph Ball Cannon": AP_MZM_ID_BASE + 1,
@@ -130,7 +132,8 @@ chozodia_location_table = {
     "Chozodia Workbot Super": AP_MZM_ID_BASE + 96,
     "Chozodia Ship Hull Super": AP_MZM_ID_BASE + 97,
     "Chozodia Space Jump E-Tank": AP_MZM_ID_BASE + 98,
-    "Chozodia Hull Power Bomb": AP_MZM_ID_BASE + 99
+    "Chozodia Hull Power Bomb": AP_MZM_ID_BASE + 99,
+    "Chozodia Space Pirate's Ship": None
 }
 
 full_location_table: dict[str, int] = {

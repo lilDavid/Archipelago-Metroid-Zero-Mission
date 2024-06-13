@@ -44,9 +44,9 @@ class ItemData:
 # assignments lifted from BioSpark's MZM Randomizer for now, may reorganize later
 item_data_table: Dict[str, ItemData] = {
     "Energy Tank": ItemData("Energy Tank", 0, progression, ItemType.tank, None),
-    "Missile": ItemData("Missile", 1, progression, ItemType.tank, None),
-    "Super Missile": ItemData("Super Missile", 2, progression, ItemType.tank, None),
-    "Power Bomb": ItemData("Power Bomb", 3, progression, ItemType.tank, None),
+    "Missile Tank": ItemData("Missile Tank", 1, filler, ItemType.tank, None),
+    "Super Missile Tank": ItemData("Super Missile Tank", 2, filler, ItemType.tank, None),
+    "Power Bomb Tank": ItemData("Power Bomb Tank", 3, filler, ItemType.tank, None),
     "Long Beam": ItemData("Long Beam", 4, progression, ItemType.beam, 0x1),
     "Charge Beam": ItemData("Charge Beam", 5, useful, ItemType.beam, 0x10),
     "Ice Beam": ItemData("Ice Beaam", 6, progression, ItemType.beam, 0x2),
@@ -61,11 +61,12 @@ item_data_table: Dict[str, ItemData] = {
     "Screw Attack": ItemData("Screw Attack", 15, progression, ItemType.major, 0x8),
     "Space Jump": ItemData("Space Jump", 16, progression, ItemType.major, 0x4),
     "Power Grip": ItemData("Power Grip", 17, progression, ItemType.major, 0x80),
-    "Missile Tank": ItemData("Missile", 18, filler, ItemType.tank, None),
-    "Super Missile Tank": ItemData("Super Missile", 19, filler, ItemType.tank, None),
-    "Power Bomb Tank": ItemData("Power Bomb", 20, filler, ItemType.tank, None),
-    "AP Item (Filler)": ItemData("AP Item", 21, filler, None, None),
-    "AP Item (Progression)": ItemData("AP Item", 22, progression, None, None),
-    "AP Item (Useful)": ItemData("AP Item", 23, useful, None, None),
-    "AP Item (Trap)": ItemData("AP Item", 24, trap, None, None),
+    "Nothing": ItemData("Nothing", 18, filler, None, None),
+    "AP Item (Filler)": ItemData("AP Item", 19, filler, None, None),
+    "AP Item (Progression)": ItemData("AP Item", 20, progression, None, None),
+    "AP Item (Useful)": ItemData("AP Item", 21, useful, None, None),
+    "AP Item (Trap)": ItemData("AP Item", 22, trap, None, None),
 }
+
+def get_major_items():
+    return (name for name, data in item_data_table.items() if data.type in (ItemType.beam, ItemType.major))
