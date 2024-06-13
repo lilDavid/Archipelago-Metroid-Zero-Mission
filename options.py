@@ -3,7 +3,7 @@ from schema import And, Schema
 """
 Option definitions for Metroid: Zero Mission
 """
-from Options import Choice, DeathLink, DefaultOnToggle, OptionDict, Toggle, PerGameCommonOptions, Visibility
+from Options import Choice, DeathLink, DefaultOnToggle, OptionDict, StartInventoryPool, Toggle, PerGameCommonOptions, Visibility
 from dataclasses import dataclass
 
 """
@@ -62,6 +62,7 @@ class JunkFillWeights(OptionDict):
 
 @dataclass
 class MZMOptions(PerGameCommonOptions):
+    start_inventory_from_pool: StartInventoryPool
     unknown_items_always_usable: UnknownItemsAlwaysUsable
     display_nonlocal_items: DisplayNonLocalItems
     death_link: DeathLink

@@ -14,7 +14,7 @@ import Utils
 from worlds.Files import APDeltaPatch
 
 from .data import data_path, encode_str, get_symbol, get_width_of_encoded_string
-from .items import AP_MZM_ID_BASE
+from .items import AP_MZM_ID_BASE, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
 from .options import DisplayNonLocalItems
 
@@ -182,3 +182,20 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
         placement = names[player_name], names[item_name], item_id
         address = get_symbol("sPlacedItems", 12 * location_id)
         rom.write_bytes(address, struct.pack("<IIB", *placement))
+
+    # Create starting inventory
+    pickups = [0, 0, 0, 0]
+    beams = misc = 0
+    for item in multiworld.precollected_items[player]:
+        data = item_data_table[item.name]
+        if data.type == ItemType.beam:
+            beams |= data.bits
+        if data.type == ItemType.major:
+            misc |= data.bits
+        if data.type == ItemType.tank and (
+            data.id == 1 and pickups[1] < 999
+            or pickups[data.id] < 99
+        ):
+            pickups[data.id] += 1
+    address = get_symbol("sRandoStartingInventory")
+    rom.write_bytes(address, struct.pack("<BxHBBBB", *pickups, beams, misc))
