@@ -24,8 +24,8 @@ if TYPE_CHECKING:
 
 
 def read(address: int, length: int, *, align: int = 1):
-    assert address % align == 0, f'address: 0x{address:07x}, align: {align}'
-    return (address, length, 'System Bus')
+    assert address % align == 0, f"address: 0x{address:07x}, align: {align}"
+    return (address, length, "System Bus")
 
 def read8(address: int):
     return read(address, 1)
@@ -38,17 +38,17 @@ def read32(address: int):
 
 
 def write(address: int, value: bytes, *, align: int = 1):
-    assert address % align == 0, f'address: 0x{address:07x}, align: {align}'
-    return (address, value, 'System Bus')
+    assert address % align == 0, f"address: 0x{address:07x}, align: {align}"
+    return (address, value, "System Bus")
 
 def write8(address: int, value: int):
-    return write(address, value.to_bytes(1, 'little'))
+    return write(address, value.to_bytes(1, "little"))
 
 def write16(address: int, value: int):
-    return write(address, value.to_bytes(2, 'little'), align=2)
+    return write(address, value.to_bytes(2, "little"), align=2)
 
 def write32(address: int, value: int):
-    return write(address, value.to_bytes(4, 'little'), align=4)
+    return write(address, value.to_bytes(4, "little"), align=4)
 
 
 guard8 = write8
@@ -56,14 +56,14 @@ guard16 = write16
 
 
 def next_int(iterator: Iterator[bytes]) -> int:
-    return int.from_bytes(next(iterator), 'little')
+    return int.from_bytes(next(iterator), "little")
 
 
 # itertools.batched from Python 3.12
 # https://docs.python.org/3.11/library/itertools.html#itertools-recipes
 def batched(iterable, n):
     if n < 1:
-        raise ValueError('n must be at least 1')
+        raise ValueError("n must be at least 1")
     it = iter(iterable)
     while batch := tuple(itertools.islice(it, n)):
         yield batch
@@ -105,13 +105,13 @@ TRACKER_EVENT_FLAGS = [
 
 
 def cmd_deathlink(self):
-    '''Toggle death link from client. Overrides default setting.'''
+    """Toggle death link from client. Overrides default setting."""
 
     client_handler = self.ctx.client_handler
     client_handler.death_link.enabled = not client_handler.death_link.enabled
     Utils.async_start(
         self.ctx.update_death_link(client_handler.death_link.enabled),
-        name='Update Death Link'
+        name="Update Death Link"
     )
 
 
@@ -122,10 +122,10 @@ class DeathLinkCtx:
     sent_this_death: bool = False
 
     def __repr__(self):
-        return (f'{type(self)} {{ enabled: {self.enabled}, '
-                f'update_pending: {self.update_pending}, '
-                f'pending: {self.pending}, '
-                f'sent_this_death: {self.sent_this_death} }}')
+        return (f"{type(self)} {{ enabled: {self.enabled}, "
+                f"update_pending: {self.update_pending}, "
+                f"pending: {self.pending}, "
+                f"sent_this_death: {self.sent_this_death} }}")
 
     def __str__(self):
         return repr(self)
@@ -187,8 +187,8 @@ class MZMClient(BizHawkClient):
             return False  # Should verify on the next pass
 
         game_name = next(read_result).decode("ascii")
-        slot_name_bytes = next(read_result).rstrip(b'\0')
-        seed_name_bytes = next(read_result).rstrip(b'\0')
+        slot_name_bytes = next(read_result).rstrip(b"\0")
+        seed_name_bytes = next(read_result).rstrip(b"\0")
 
         if game_name != "ZEROMISSIONE":
             return False
@@ -196,7 +196,7 @@ class MZMClient(BizHawkClient):
         # Check if we can read the slot name. Doing this here instead of set_auth as a protection against
         # validating a ROM where there's no slot name to read.
         try:
-            self.rom_slot_name = slot_name_bytes.decode('utf-8')
+            self.rom_slot_name = slot_name_bytes.decode("utf-8")
         except UnicodeDecodeError:
             logger.info("Could not read slot name from ROM. Are you sure this ROM matches this client version?")
             return False
@@ -205,12 +205,12 @@ class MZMClient(BizHawkClient):
         client_ctx.items_handling = 0b001
         client_ctx.want_slot_data = True
         try:
-            client_ctx.seed_name = seed_name_bytes.decode('utf-8')
+            client_ctx.seed_name = seed_name_bytes.decode("utf-8")
         except UnicodeDecodeError:
-            logger.info('Could not determine seed name from ROM. Are you sure this ROM matches this client version?')
+            logger.info("Could not determine seed name from ROM. Are you sure this ROM matches this client version?")
             return False
 
-        client_ctx.command_processor.commands['deathlink'] = cmd_deathlink
+        client_ctx.command_processor.commands["deathlink"] = cmd_deathlink
         self.death_link = DeathLinkCtx()
 
         self.dc_pending = False
@@ -305,8 +305,8 @@ class MZMClient(BizHawkClient):
 
         if gMainGameMode in (ZMConstants.GM_CHOZODIA_ESCAPE, ZMConstants.GM_CREDITS) and not client_ctx.finished_game:
             await client_ctx.send_msgs([{
-                'cmd': 'StatusUpdate',
-                'status': ClientStatus.CLIENT_GOAL
+                "cmd": "StatusUpdate",
+                "status": ClientStatus.CLIENT_GOAL
             }])
 
         if self.local_set_events != set_events and client_ctx.slot is not None:
@@ -315,11 +315,11 @@ class MZMClient(BizHawkClient):
                 if set_events[flag]:
                     event_bitfield |= 1 << i
             await client_ctx.send_msgs([{
-                'cmd': 'Set',
-                'key': f'mzm_events_{client_ctx.team}_{client_ctx.slot}',
-                'default': 0,
-                'want_reply': False,
-                'operations': [{'operation': 'or', 'value': event_bitfield}]
+                "cmd": "Set",
+                "key": f"mzm_events_{client_ctx.team}_{client_ctx.slot}",
+                "default": 0,
+                "want_reply": False,
+                "operations": [{"operation": "or", "value": event_bitfield}]
             }])
             self.local_set_events = set_events
 
@@ -370,15 +370,15 @@ class MZMClient(BizHawkClient):
             return
 
     def on_package(self, ctx: BizHawkClientContext, cmd: str, args: dict) -> None:
-        if cmd == 'Connected':
-            if args['slot_data'].get('death_link'):
+        if cmd == "Connected":
+            if args["slot_data"].get("death_link"):
                 self.death_link.enabled = True
                 self.death_link.update_pending = True
-        if cmd == 'RoomInfo':
-            if ctx.seed_name and ctx.seed_name != args['seed_name']:
+        if cmd == "RoomInfo":
+            if ctx.seed_name and ctx.seed_name != args["seed_name"]:
                 # CommonClient's on_package displays an error to the user in this case, but connection is not cancelled.
                 self.dc_pending = True
-        if cmd == 'Bounced':
-            tags = args.get('tags', [])
-            if 'DeathLink' in tags and args['data']['source'] != ctx.auth:
+        if cmd == "Bounced":
+            tags = args.get("tags", [])
+            if "DeathLink" in tags and args["data"]["source"] != ctx.auth:
                 self.death_link.pending = True
