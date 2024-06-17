@@ -171,6 +171,7 @@ class MZMClient(BizHawkClient):
     def __init__(self) -> None:
         super().__init__()
         self.local_checked_locations = []
+        self.local_set_events = {flag: False for flag in TRACKER_EVENT_FLAGS}
         self.rom_slot_name = None
 
     async def validate_rom(self, client_ctx: BizHawkClientContext) -> bool:
