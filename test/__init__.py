@@ -8,4 +8,3 @@ class MZMTestBase(WorldTestBase):
 
     def test_always_accessible(self) -> None:
         self.assertTrue(self.can_reach_location("Brinstar Morph Ball"))
-        self.assertTrue(self.can_reach_location("Brinstar First Missile"))

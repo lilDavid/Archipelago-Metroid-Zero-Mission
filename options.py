@@ -6,15 +6,6 @@ Option definitions for Metroid: Zero Mission
 from Options import Choice, DeathLink, DefaultOnToggle, OptionDict, StartInventoryPool, Toggle, PerGameCommonOptions, Visibility
 from dataclasses import dataclass
 
-"""
-- copy options from MZMR, add others such as disable IBJs/progressive bombs (so you eventually can),
-  power bomb jumping, and probably add some others as decided on by input in game-suggestions.
-  might need some tweaks to vanilla/some tricks/everything "difficulties"
-- for starters i'm just going to stick to Unknowns activation, a simple one-byte change.
-- next one to add would be forcing vanilla Morph, which should be the default. however, it is useful to
-  leave out for now for testing generation.
-"""
-
 
 class UnknownItemsAlwaysUsable(DefaultOnToggle):
     """
@@ -23,17 +14,45 @@ class UnknownItemsAlwaysUsable(DefaultOnToggle):
 
     When this option is disabled, the player will need to defeat the Chozo Ghost in Chozodia in order
     to unlock Samus' fully-powered suit, after which they may then use the Plasma Beam, Space Jump,
-    and Gravity Suit, as in vanilla.
+    and Gravity Suit, as in the original game.
     """
-    display_name = "UnknownItemsAlwaysUsable"
+    display_name = "Unknown Items Always Usable"
 
+class IBJInLogic(Toggle):
+    """
+    Allows for using IBJ (infinite bomb jumping) in logic.
+
+    This option may require you to traverse long vertical or horizontal distances using only bombs.
+
+    If disabled, this option does not disable performing IBJ, but it will never be logically required.
+    """
+    display_name = "IBJ In Logic"
+
+class HeatRunsAndLavaDives(Toggle):
+    """
+    Allows for traversing heated rooms and acid/lava dives without the appropriate suit(s) in logic.
+
+    When enabled, logic will ensure you have a reasonable amount of energy before requiring an environmental damage
+    run. When disabled, you will not be required to endure any environmental damage before receiving the appropriate
+    mitigating suit.
+    """
+    display_name = "Heat Runs/Lava Dives"
+
+class WalljumpsInLogic(DefaultOnToggle):
+    """
+    Allows for using walljumps in logic. As the game does not teach nor require walljumping to complete the game
+    while acquiring all items, all items will be accessible using other means regardless of this setting.
+
+    Disabling this option will not remove the ability to walljump, but it will never be logically required.
+    """
+    display_name = "Wall Jumps In Logic"
 
 class DisplayNonLocalItems(Choice):
     """
     How to display items that will be sent to other players.
 
     Match Series: Items from Super Metroid and SMZ3 display as their counterpart in Zero Mission
-    Match Game: Zero Mission items appear as the item that will be sent
+    Match Game: Items for other Zero Mission worlds appear as the item that will be sent
     None: All items for other players appear as AP logos
     """
     display_name = "Display Other Players' Items"
@@ -64,6 +83,9 @@ class JunkFillWeights(OptionDict):
 class MZMOptions(PerGameCommonOptions):
     start_inventory_from_pool: StartInventoryPool
     unknown_items_always_usable: UnknownItemsAlwaysUsable
+    ibj_in_logic: IBJInLogic
+    heatruns_lavadives: HeatRunsAndLavaDives
+    walljumps_in_logic: WalljumpsInLogic
     display_nonlocal_items: DisplayNonLocalItems
     death_link: DeathLink
     junk_fill_weights: JunkFillWeights

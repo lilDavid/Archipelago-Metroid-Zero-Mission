@@ -6,7 +6,7 @@ from enum import IntEnum
 from BaseClasses import Item, ItemClassification
 from typing import Dict
 
-AP_MZM_ID_BASE = 261300  # TODO: double check if this is actually valid lol
+AP_MZM_ID_BASE = 261300
 
 progression = ItemClassification.progression
 filler = ItemClassification.filler
@@ -49,15 +49,15 @@ item_data_table: Dict[str, ItemData] = {
     "Power Bomb Tank": ItemData("Power Bomb Tank", 3, filler, ItemType.tank, None),
     "Long Beam": ItemData("Long Beam", 4, progression, ItemType.beam, 0x1),
     "Charge Beam": ItemData("Charge Beam", 5, useful, ItemType.beam, 0x10),
-    "Ice Beam": ItemData("Ice Beaam", 6, progression, ItemType.beam, 0x2),
+    "Ice Beam": ItemData("Ice Beam", 6, progression, ItemType.beam, 0x2),
     "Wave Beam": ItemData("Wave Beam", 7, progression, ItemType.beam, 0x4),
-    "Plasma Beam": ItemData("Plasma Beam", 8, useful, ItemType.beam, 0x8),
+    "Plasma Beam": ItemData("Plasma Beam", 8, progression, ItemType.beam, 0x8),
     "Bomb": ItemData("Bomb", 9, progression, ItemType.beam, 0x20),  # regular bomb is stored with beams
     "Varia Suit": ItemData("Varia Suit", 10, progression, ItemType.major, 0x10),
     "Gravity Suit": ItemData("Gravity Suit", 11, progression, ItemType.major, 0x20),
     "Morph Ball": ItemData("Morph Ball", 12, progression, ItemType.major, 0x40),
     "Speed Booster": ItemData("Speed Booster", 13, progression, ItemType.major, 0x2),
-    "Hi-Jump Boots": ItemData("Hi-Jump Boots", 14, progression, ItemType.major, 0x1),
+    "Hi-Jump": ItemData("Hi-Jump", 14, progression, ItemType.major, 0x1),
     "Screw Attack": ItemData("Screw Attack", 15, progression, ItemType.major, 0x8),
     "Space Jump": ItemData("Space Jump", 16, progression, ItemType.major, 0x4),
     "Power Grip": ItemData("Power Grip", 17, progression, ItemType.major, 0x80),

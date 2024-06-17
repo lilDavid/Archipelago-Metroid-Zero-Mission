@@ -1,3 +1,4 @@
+import typing
 from pathlib import Path
 from collections import Counter
 from typing import Any, Dict, List, Mapping, Optional
@@ -17,13 +18,19 @@ from .rules import set_rules
 
 class MZMSettings(settings.Group):
     class RomFile(settings.UserFilePath):
-        #File name of the Metroid: Zero Mission ROM
+        """File name of the Metroid: Zero Mission ROM."""
         description = "Metroid: Zero Mission (U) ROM file"
         copy_to = "Metroid - Zero Mission (USA).gba"
         md5s = [MZMDeltaPatch.hash]
 
+    class RomStart(str):
+        """
+        Set this to false to never autostart a rom (such as after patching),
+        Set it to true to have the operating system default program open the rom
+        Alternatively, set it to a path to a program to open the .gba file with
+        """
     rom_file: RomFile = RomFile(RomFile.copy_to)
-
+    rom_start: typing.Union[RomStart, bool] = True
 
 class MZMWeb(WebWorld):
     theme = "ice"
@@ -33,7 +40,7 @@ class MZMWeb(WebWorld):
         "English",
         "multiworld_en.md",
         "multiworld/en",
-        ["NoiseCrush"]
+        ["lil David, NoiseCrush"]
     )
 
     tutorials = [setup]
@@ -47,6 +54,7 @@ class MZMWorld(World):
     options_dataclass = MZMOptions
     options: MZMOptions
     topology_present = True
+    settings: MZMSettings
 
     web = MZMWeb()
 
@@ -64,6 +72,10 @@ class MZMWorld(World):
     def create_regions(self) -> None:
         create_regions(self)
 
+        self.place_event("EVENT_KRAID_DEFEATED", "Kraid Defeated")
+        self.place_event("EVENT_RIDLEY_DEFEATED", "Ridley Defeated")
+        self.place_event("EVENT_MOTHER_BRAIN_DEFEATED", "Mother Brain Defeated")
+        self.place_event("EVENT_CHOZO_GHOST_DEFEATED", "Chozo Ghost Defeated")
         self.place_event("Mission Complete", "Chozodia Space Pirate's Ship")
 
     def create_items(self) -> None:
@@ -72,7 +84,7 @@ class MZMWorld(World):
         for name in items.get_major_items():
             item_pool.append(self.create_item(name))
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks
-        item_pool.extend(self.create_tanks("Missile Tank", 50, 5))  # First 25/250 missiles
+        item_pool.extend(self.create_tanks("Missile Tank", 50, 7))  # First 35/250 missiles
         item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3))  # First 6/30 supers
         item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 2))  # First 4/18 power bombs
         while len(item_pool) < 100:
@@ -89,6 +101,9 @@ class MZMWorld(World):
 
         slot_data: Dict[str, Any] = {
             "unknown_items": self.options.unknown_items_always_usable.value,
+            "ibj_logic": self.options.ibj_in_logic.value,
+            "heatruns": self.options.heatruns_lavadives.value,
+            "walljump_logic": self.options.walljumps_in_logic.value,
             "death_link": self.options.death_link.value
         }
 
@@ -148,4 +163,4 @@ class MZMWorld(World):
         location = self.multiworld.get_location(location_name, self.player)
         assert location.address is None
         location.place_locked_item(item)
-        location.show_in_spoiler = False
+        location.show_in_spoiler = True
