@@ -57,4 +57,4 @@ def get_zero_mission_sprite(item: Item):
     if item.game not in compatible_games:
         return None
 
-    return compatible_games[item.game].get(item.code)
+    return compatible_games[item.game].get(item.name)
