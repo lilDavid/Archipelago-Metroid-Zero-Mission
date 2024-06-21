@@ -33,24 +33,8 @@ class MZMDeltaPatch(APDeltaPatch):
 
     @classmethod
     def get_source_data(cls) -> bytes:
-        return get_base_rom_bytes()
-
-
-def get_base_rom_bytes(file_name: str = "") -> bytes:
-    base_rom_bytes = getattr(get_base_rom_bytes, "base_rom_bytes", None)
-    if not base_rom_bytes:
-        file_path = get_base_rom_path(file_name)
-        base_rom_bytes = bytes(open(file_path, "rb").read())
-
-        basemd5 = hashlib.md5()
-        basemd5.update(base_rom_bytes)
-        if basemd5.hexdigest() != MD5_MZMUS:
-            raise Exception("Supplied base ROM does not match the US version of "
-                            "Metroid Zero Mission. Please provide the correct "
-                            "ROM version")
-
-        get_base_rom_bytes.base_rom_bytes = base_rom_bytes
-    return base_rom_bytes
+        with open(get_base_rom_path(), "rb") as stream:
+            return stream.read()
 
 
 def get_base_rom_path(file_name: str = "") -> Path:

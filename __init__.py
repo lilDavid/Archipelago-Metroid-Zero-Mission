@@ -1,3 +1,4 @@
+import hashlib
 import typing
 from pathlib import Path
 from collections import Counter
@@ -12,7 +13,7 @@ from .items import item_data_table, MZMItem
 from .locations import full_location_table
 from .options import MZMOptions
 from .regions import create_regions
-from .rom import LocalRom, MZMDeltaPatch, get_base_rom_path, patch_rom
+from .rom import MD5_MZMUS, LocalRom, MZMDeltaPatch, get_base_rom_path, patch_rom
 from .rules import set_rules
 
 
@@ -108,6 +109,12 @@ class MZMWorld(World):
         }
 
         return slot_data
+
+    @classmethod
+    def stage_assert_generate(cls, _) -> None:
+        rom_file = get_base_rom_path()
+        if not rom_file.exists():
+            raise FileNotFoundError(rom_file)
 
     def generate_output(self, output_directory: str):
         output_path = Path(output_directory)
