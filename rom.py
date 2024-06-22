@@ -9,9 +9,10 @@ from typing import TYPE_CHECKING
 
 from BaseClasses import Location
 import Utils
-from worlds.Files import APProcedurePatch, APTokenMixin, APTokenTypes
+from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes
 
-from .data import data_path, encode_str, get_symbol, get_width_of_encoded_string
+from . import rom_data
+from .data import encode_str, get_symbol, get_width_of_encoded_string
 from .items import AP_MZM_ID_BASE, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
 from .options import DisplayNonLocalItems
@@ -23,6 +24,21 @@ if TYPE_CHECKING:
 MD5_MZMUS = "ebbce58109988b6da61ebb06c7a432d5"
 
 
+def get_rom_address(name, offset=0):
+    address = get_symbol(name, offset)
+    if not address & 0x8000000:
+        raise ValueError(f"{name}+{offset} is not in ROM (address: {address:07x})")
+    return address & 0x8000000 - 1
+
+
+class MZMPatchExtensions(APPatchExtension):
+    game = "Metroid Zero Mission"
+
+    @staticmethod
+    def add_decompressed_graphics(caller: APProcedurePatch, rom: bytes) -> bytes:
+        return rom_data.add_item_sprites(rom)
+
+
 class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     game = "Metroid Zero Mission"
     hash = MD5_MZMUS
@@ -32,6 +48,7 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     procedure = [
         ("apply_bsdiff4", ["basepatch.bsdiff"]),
         ("apply_tokens", ["token_data.bin"]),
+        ("add_decompressed_graphics", []),
     ]
 
     @classmethod
@@ -71,13 +88,6 @@ def get_item_sprite_and_name(location: Location, world: MZMWorld):
     pad = ((224 - get_width_of_encoded_string(name)) // 2) & 0xFF
     name = struct.pack("<HH", 0x8000 | pad, 0x8105) + name
     return sprite, name
-
-
-def get_rom_address(name, offset=0):
-    address = get_symbol(name, offset)
-    if not address & 0x8000000:
-        raise ValueError(f"{name}+{offset} is not in ROM (address: {address:07x})")
-    return address & 0x8000000 - 1
 
 
 def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
