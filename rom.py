@@ -3,15 +3,13 @@ Classes and functions related to creating a ROM patch
 """
 from __future__ import annotations
 
-import bsdiff4
-import hashlib
 from pathlib import Path
 import struct
-from typing import TYPE_CHECKING, Iterable, Union
+from typing import TYPE_CHECKING
 
 from BaseClasses import Location
 import Utils
-from worlds.Files import APDeltaPatch
+from worlds.Files import APProcedurePatch, APTokenMixin, APTokenTypes
 
 from .data import data_path, encode_str, get_symbol, get_width_of_encoded_string
 from .items import AP_MZM_ID_BASE, ItemType, item_data_table
@@ -25,11 +23,16 @@ if TYPE_CHECKING:
 MD5_MZMUS = "ebbce58109988b6da61ebb06c7a432d5"
 
 
-class MZMDeltaPatch(APDeltaPatch):
+class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     game = "Metroid Zero Mission"
     hash = MD5_MZMUS
     patch_file_ending = ".apmzm"
     result_file_ending = ".gba"
+
+    procedure = [
+        ("apply_bsdiff4", ["basepatch.bsdiff"]),
+        ("apply_tokens", ["token_data.bin"]),
+    ]
 
     @classmethod
     def get_source_data(cls) -> bytes:
@@ -47,63 +50,6 @@ def get_base_rom_path(file_name: str = "") -> Path:
         return file_path
     else:
         return Path(Utils.user_path(file_name))
-
-
-class LocalRom:
-    def __init__(self, file: Path, name=None, hash=None):
-        self.name = name
-        self.hash = hash
-
-        with open(file, "rb") as rom_file:
-            rom_bytes = rom_file.read()
-        patch_bytes = data_path("basepatch.bsdiff")
-        self.buffer = bytearray(bsdiff4.patch(rom_bytes, patch_bytes))
-
-    def get_address(self, address: Union[int, str]):
-        if isinstance(address, str):
-            address = get_symbol(address)
-        return address & (0x8000000 - 1)
-
-    def read_byte(self, address: Union[int, str]):
-        return self.buffer[self.get_address(address)]
-
-    def read_bytes(self, address: Union[int, str], length: int, align: int = 1):
-        address = self.get_address(address)
-        if address % align != 0:
-            raise ValueError(f"Misaligned address {address:06x} for alignment {align}")
-        return self.buffer[address:address + length]
-
-    def read_int(self, address: Union[int, str], size: int, align: int = 1):
-        value = self.read_bytes(address, size, align)
-        return int.from_bytes(value, "little")
-
-    def read_halfword(self, address: Union[int, str]):
-        return self.read_int(address, 2, 2)
-
-    def read_word(self, address: Union[int, str]):
-        return self.read_int(address, 4, 4)
-
-    def write_byte(self, address: Union[int, str], value: int):
-        self.buffer[self.get_address(address)] = value
-
-    def write_bytes(self, address: Union[int, str], values: Iterable[int], align: int = 1):
-        address = self.get_address(address)
-        if address % align != 0:
-            raise ValueError(f"Misaligned address {address:06x} for alignment {align}")
-        self.buffer[address:address + len(values)] = values
-
-    def write_int(self, address: Union[int, str], value: int, size: int, align: int = 1):
-        self.write_bytes(address, value.to_bytes(size, "little"), align)
-
-    def write_halfword(self, address: Union[int, str], value: int):
-        self.write_int(self, address, value, 2, 2)
-
-    def write_word(self, address: Union[int, str], value: int):
-        self.write_int(self, address, value, 4, 4)
-
-    def write_to_file(self, file: Path):
-        with open(file, "wb") as stream:
-            stream.write(self.buffer)
 
 
 def get_item_sprite_and_name(location: Location, world: MZMWorld):
@@ -127,7 +73,14 @@ def get_item_sprite_and_name(location: Location, world: MZMWorld):
     return sprite, name
 
 
-def patch_rom(rom: LocalRom, world: MZMWorld):
+def get_rom_address(name, offset=0):
+    address = get_symbol(name, offset)
+    if not address & 0x8000000:
+        raise ValueError(f"{name}+{offset} is not in ROM (address: {address:07x})")
+    return address & 0x8000000 - 1
+
+
+def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
     multiworld = world.multiworld
     player = world.player
 
@@ -139,10 +92,14 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
 
         world.options.unknown_items_always_usable.value,
     )
-    rom.write_bytes("sRandoSeed", struct.pack("<H64s64s2xB", *seed_info))
+    patch.write_token(
+        APTokenTypes.WRITE,
+        get_rom_address("sRandoSeed"),
+        struct.pack("<H64s64s2xB", *seed_info)
+    )
 
     # Place items
-    next_name_address = get_symbol("sRandoItemAndPlayerNames")
+    next_name_address = get_rom_address("sRandoItemAndPlayerNames")
     names = {None: 0}
     for location in multiworld.get_locations(player):
         item = location.item
@@ -157,15 +114,22 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
 
         for name in (player_name, item_name):
             if name not in names:
-                names[name] = next_name_address
+                names[name] = next_name_address | 0x8000000
                 terminated = name + 0xFF00.to_bytes(2, "little")
-                rom.write_bytes(next_name_address, terminated)
+                patch.write_token(
+                    APTokenTypes.WRITE,
+                    next_name_address,
+                    terminated
+                )
                 next_name_address += len(terminated)
 
         location_id = location.address - AP_MZM_ID_BASE
         placement = names[player_name], names[item_name], item_id
-        address = get_symbol("sPlacedItems", 12 * location_id)
-        rom.write_bytes(address, struct.pack("<IIB", *placement))
+        patch.write_token(
+            APTokenTypes.WRITE,
+            get_rom_address("sPlacedItems", 12 * location_id),
+            struct.pack("<IIB", *placement),
+        )
 
     # Create starting inventory
     pickups = [0, 0, 0, 0]
@@ -181,5 +145,10 @@ def patch_rom(rom: LocalRom, world: MZMWorld):
             or pickups[data.id] < 99
         ):
             pickups[data.id] += 1
-    address = get_symbol("sRandoStartingInventory")
-    rom.write_bytes(address, struct.pack("<BxHBBBB", *pickups, beams, misc))
+    patch.write_token(
+        APTokenTypes.WRITE,
+        get_rom_address("sRandoStartingInventory"),
+        struct.pack("<BxHBBBB", *pickups, beams, misc)
+    )
+
+    patch.write_file("token_data.bin", patch.get_token_binary())

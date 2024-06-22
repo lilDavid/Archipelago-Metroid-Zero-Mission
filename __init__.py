@@ -9,11 +9,12 @@ import settings
 from worlds.AutoWorld import WebWorld, World
 
 from .client import MZMClient
+from .data import data_path
 from .items import item_data_table, MZMItem
 from .locations import full_location_table
 from .options import MZMOptions
 from .regions import create_regions
-from .rom import MD5_MZMUS, LocalRom, MZMDeltaPatch, get_base_rom_path, patch_rom
+from .rom import MZMProcedurePatch, write_tokens
 from .rules import set_rules
 
 
@@ -22,7 +23,7 @@ class MZMSettings(settings.Group):
         """File name of the Metroid: Zero Mission ROM."""
         description = "Metroid: Zero Mission (U) ROM file"
         copy_to = "Metroid - Zero Mission (USA).gba"
-        md5s = [MZMDeltaPatch.hash]
+        md5s = [MZMProcedurePatch.hash]
 
     class RomStart(str):
         """
@@ -110,35 +111,15 @@ class MZMWorld(World):
 
         return slot_data
 
-    @classmethod
-    def stage_assert_generate(cls, _) -> None:
-        rom_file = get_base_rom_path()
-        if not rom_file.exists():
-            raise FileNotFoundError(rom_file)
-
     def generate_output(self, output_directory: str):
         output_path = Path(output_directory)
 
-        try:
-            world = self.multiworld
-            player = self.player
-            rom = LocalRom(get_base_rom_path())
-            patch_rom(rom, self)
+        patch = MZMProcedurePatch()
+        patch.write_file("basepatch.bsdiff", data_path("basepatch.bsdiff"))
+        write_tokens(self, patch)
 
-            rompath = output_path / f'{world.get_out_file_name_base(player)}.gba'
-            rom.write_to_file(rompath)
-            self.rom_name = rom.name
-
-            patch = MZMDeltaPatch(
-                rompath.with_suffix(MZMDeltaPatch.patch_file_ending),
-                player = player,
-                player_name = world.player_name[player],
-                patched_path = rompath
-            )
-            patch.write()
-        finally:
-            if rompath.exists():
-                rompath.unlink()
+        output_filename = self.multiworld.get_out_file_name_base(self.player)
+        patch.write(output_path / f"{output_filename}{patch.patch_file_ending}")
 
     def fill_slot_data(self) -> Mapping[str, Any]:
         return self.options.as_dict(
