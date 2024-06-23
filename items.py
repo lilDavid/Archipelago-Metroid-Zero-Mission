@@ -52,7 +52,7 @@ item_data_table: Dict[str, ItemData] = {
     "Ice Beam": ItemData("Ice Beam", 6, progression, ItemType.beam, 0x2),
     "Wave Beam": ItemData("Wave Beam", 7, progression, ItemType.beam, 0x4),
     "Plasma Beam": ItemData("Plasma Beam", 8, progression, ItemType.beam, 0x8),
-    "Bomb": ItemData("Bomb", 9, progression, ItemType.beam, 0x20),  # regular bomb is stored with beams
+    "Bomb": ItemData("Bomb", 9, progression, ItemType.beam, 0x80),  # regular bomb is stored with beams
     "Varia Suit": ItemData("Varia Suit", 10, progression, ItemType.major, 0x10),
     "Gravity Suit": ItemData("Gravity Suit", 11, progression, ItemType.major, 0x20),
     "Morph Ball": ItemData("Morph Ball", 12, progression, ItemType.major, 0x40),

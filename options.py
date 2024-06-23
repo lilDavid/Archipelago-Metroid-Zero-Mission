@@ -18,6 +18,11 @@ class UnknownItemsAlwaysUsable(DefaultOnToggle):
     """
     display_name = "Unknown Items Always Usable"
 
+
+class SkipChozodiaStealth(DefaultOnToggle):
+    """When escaping Tourian, place Samus in the save room just outside of the Chozo Ghost's room in Chozodia."""
+    display_name = "Skip Chozodia Stealth"
+
 class IBJInLogic(Toggle):
     """
     Allows for using IBJ (infinite bomb jumping) in logic.
@@ -82,6 +87,7 @@ class JunkFillWeights(OptionDict):
 @dataclass
 class MZMOptions(PerGameCommonOptions):
     start_inventory_from_pool: StartInventoryPool
+    skip_chozodia_stealth: SkipChozodiaStealth
     unknown_items_always_usable: UnknownItemsAlwaysUsable
     ibj_in_logic: IBJInLogic
     heatruns_lavadives: HeatRunsAndLavaDives

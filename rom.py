@@ -101,11 +101,12 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         multiworld.seed_name.encode("utf-8")[:64],
 
         world.options.unknown_items_always_usable.value,
+        world.options.skip_chozodia_stealth.value,
     )
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2xB", *seed_info)
+        struct.pack("<H64s64s2xBB", *seed_info)
     )
 
     # Place items
