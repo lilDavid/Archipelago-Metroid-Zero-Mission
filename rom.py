@@ -38,6 +38,9 @@ class MZMPatchExtensions(APPatchExtension):
     def add_decompressed_graphics(caller: APProcedurePatch, rom: bytes) -> bytes:
         return rom_data.add_item_sprites(rom)
 
+    @staticmethod
+    def add_unknown_item_graphics(caller: APProcedurePatch, rom: bytes) -> bytes:
+        return rom_data.use_unknown_item_sprites(rom)
 
 class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     game = "Metroid Zero Mission"

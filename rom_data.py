@@ -88,10 +88,18 @@ def extract_unknown_chozo_statue_sprite(statue: bytes, y_offset: int):
     return 4 * shifted
 
 
+def write_palette_pointer(rombuffer: bytearray, palette_name: str, index: int):
+    palette = get_symbol(palette_name)
+    write_data(rombuffer,
+               palette.to_bytes(4, "little"),
+               get_symbol("sItemGfxPointers", 8 * index + 4))  # sItemGfxPointers[index].palette
+
+
 def add_item_sprites(rom: bytes) -> bytes:
     rombuffer = bytearray(rom)
 
     # Tanks are already in needed format
+    # Plasma Beam, Gravity Suit, and Space Jump are by default custom and already in ROM
 
     # Long Beam
     long_statue = lzss_decompress(rom, "sChozoStatueLongBeamGfx")
@@ -116,11 +124,6 @@ def add_item_sprites(rom: bytes) -> bytes:
     wave = extract_chozo_statue_sprite(wave_statue)
     write_data(rombuffer, wave, "sRandoWaveBeamGfx")
 
-    # Plasma Beam
-    plasma_statue = lzss_decompress(rom, "sChozoStatuePlasmaBeamGfx")
-    plasma = extract_unknown_chozo_statue_sprite(plasma_statue, 4)
-    write_data(rombuffer, plasma, "sRandoPlasmaBeamUnknownGfx")
-
     # Bomb
     bomb_statue = lzss_decompress(rom, "sChozoStatueBombsGfx")
     bomb = extract_chozo_statue_sprite(bomb_statue)
@@ -130,11 +133,6 @@ def add_item_sprites(rom: bytes) -> bytes:
     varia_statue = lzss_decompress(rom, "sChozoStatueVariaGfx")
     varia = extract_chozo_statue_sprite(varia_statue)
     write_data(rombuffer, varia, "sRandoVariaSuitGfx")
-
-    # Gravity Suit
-    gravity_statue = lzss_decompress(rom, "sChozoStatueGravitySuitGfx")
-    gravity = extract_unknown_chozo_statue_sprite(gravity_statue, 2)
-    write_data(rombuffer, gravity, "sRandoGravitySuitUnknownGfx")
 
     # Morph Ball
     morph = lzss_decompress(rom, "sMorphBallGfx")
@@ -171,14 +169,32 @@ def add_item_sprites(rom: bytes) -> bytes:
     screw = extract_chozo_statue_sprite(screw_statue)
     write_data(rombuffer, screw, "sRandoScrewAttackGfx")
 
-    # Space Jump
-    space_statue = lzss_decompress(rom, "sChozoStatueSpaceJumpGfx")
-    spacejump = extract_unknown_chozo_statue_sprite(space_statue, 2)
-    write_data(rombuffer, spacejump, "sRandoSpaceJumpUnknownGfx")
-
     # Power Grip
     powergrip = lzss_decompress(rom, "sPowerGripGfx")
     powergrip = get_sprites(powergrip, 0, 0, 3)
     write_data(rombuffer, make_4_frame_animation(powergrip), "sRandoPowerGripGfx")
+
+    return bytes(rombuffer)
+
+def use_unknown_item_sprites(rom: bytes) -> bytes:
+    rombuffer = bytearray(rom)
+
+    # Plasma Beam
+    plasma_statue = lzss_decompress(rom, "sChozoStatuePlasmaBeamGfx")
+    plasma = extract_unknown_chozo_statue_sprite(plasma_statue, 4)
+    write_data(rombuffer, plasma, "sRandoPlasmaBeamGfx")
+    write_palette_pointer(rombuffer, "sChozoStatuePlasmaBeamPal", 8)
+
+    # Gravity Suit
+    gravity_statue = lzss_decompress(rom, "sChozoStatueGravitySuitGfx")
+    gravity = extract_unknown_chozo_statue_sprite(gravity_statue, 2)
+    write_data(rombuffer, gravity, "sRandoGravitySuitGfx")
+    write_palette_pointer(rombuffer, "sChozoStatueGravitySuitPal", 11)
+
+    # Space Jump
+    space_statue = lzss_decompress(rom, "sChozoStatueSpaceJumpGfx")
+    spacejump = extract_unknown_chozo_statue_sprite(space_statue, 2)
+    write_data(rombuffer, spacejump, "sRandoSpaceJumpGfx")
+    write_palette_pointer(rombuffer, "sChozoStatueSpaceJumpPal", 16)
 
     return bytes(rombuffer)

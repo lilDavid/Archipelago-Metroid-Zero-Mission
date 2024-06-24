@@ -117,6 +117,8 @@ class MZMWorld(World):
         patch = MZMProcedurePatch()
         patch.write_file("basepatch.bsdiff", data_path("basepatch.bsdiff"))
         write_tokens(self, patch)
+        if not self.options.unknown_items_always_usable:
+            patch.procedure.append(("add_unknown_item_graphics", []))
 
         output_filename = self.multiworld.get_out_file_name_base(self.player)
         patch.write(output_path / f"{output_filename}{patch.patch_file_ending}")
