@@ -7,13 +7,13 @@ from pathlib import Path
 import struct
 from typing import TYPE_CHECKING
 
-from BaseClasses import Location
+from BaseClasses import ItemClassification, Location
 import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes
 
 from . import rom_data
 from .data import encode_str, get_rom_address, get_width_of_encoded_string
-from .items import AP_MZM_ID_BASE, ItemType, item_data_table
+from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
 from .options import DisplayNonLocalItems
 
@@ -79,7 +79,9 @@ def get_item_sprite_and_name(location: Location, world: MZMWorld):
         if sprite is not None:
             return sprite, None
 
-    sprite = 19 + item.classification.as_flag().bit_length()
+    sprite = (ItemID.APItemProgression  # Traps appear as fake AP progression items for now
+              if item.classification == ItemClassification.trap
+              else ItemID.APItemFiller + item.classification.as_flag().bit_length())
     name = encode_str(item.name[:32])
     pad = ((224 - get_width_of_encoded_string(name)) // 2) & 0xFF
     name = struct.pack("<HH", 0x8000 | pad, 0x8105) + name

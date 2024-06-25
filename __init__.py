@@ -10,7 +10,7 @@ from worlds.AutoWorld import WebWorld, World
 
 from .client import MZMClient
 from .data import data_path
-from .items import item_data_table, MZMItem
+from .items import item_data_table, major_item_data_table, MZMItem
 from .locations import full_location_table
 from .options import MZMOptions
 from .regions import create_regions
@@ -83,7 +83,7 @@ class MZMWorld(World):
     def create_items(self) -> None:
         item_pool: List[MZMItem] = []
 
-        for name in items.get_major_items():
+        for name in major_item_data_table:
             item_pool.append(self.create_item(name))
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks
         item_pool.extend(self.create_tanks("Missile Tank", 50, 7))  # First 35/250 missiles

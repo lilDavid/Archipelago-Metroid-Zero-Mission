@@ -2,53 +2,71 @@ from typing import Mapping
 
 from BaseClasses import Item
 
+from .items import ItemID
+
 
 compatible_games: Mapping[str, Mapping[str, int]] = {
     "Super Metroid": {
-        "Energy Tank": 0,
-        "Missile": 1,
-        "Super Missile": 2,
-        "Power Bomb": 3,
-        "Bomb": 9,
-        "Charge Beam": 5,
-        "Ice Beam": 6,
-        "Hi-Jump Boots": 14,
-        "Speed Booster": 13,
-        "Wave Beam": 7,
+        "Energy Tank": ItemID.EnergyTank,
+        "Missile": ItemID.MissileTank,
+        "Super Missile": ItemID.SuperMissileTank,
+        "Power Bomb": ItemID.PowerBombTank,
+        "Bomb": ItemID.Bomb,
+        "Charge Beam": ItemID.ChargeBeam,
+        "Ice Beam": ItemID.IceBeam,
+        "Hi-Jump Boots": ItemID.HiJump,
+        "Speed Booster": ItemID.SpeedBooster,
+        "Wave Beam": ItemID.WaveBeam,
         # "Spazer Beam":
         # "Spring Ball":
-        "Varia Suit": 10,
-        "Plasma Beam": 8,
+        "Varia Suit": ItemID.VariaSuit,
+        "Plasma Beam": ItemID.PlasmaBeam,
         # "Grappling Beam":
-        "Morph Ball": 12,
+        "Morph Ball": ItemID.MorphBall,
         # "Reserve Tank":
-        "Gravity Suit": 11,
+        "Gravity Suit": ItemID.GravitySuit,
         # "X-Ray Scope":
-        "Space Jump": 16,
-        "Screw Attack": 15,
+        "Space Jump": ItemID.SpaceJump,
+        "Screw Attack": ItemID.ScrewAttack,
     },
     "SMZ3": {
-        "Missile": 1,
-        "Super": 2,
-        "PowerBomb": 3,
+        "Missile": ItemID.MissileTank,
+        "Super": ItemID.SuperMissileTank,
+        "PowerBomb": ItemID.PowerBombTank,
         # "Grapple":
         # "XRay":
-        "ETank": 0,
+        "ETank": ItemID.EnergyTank,
         # "ReserveTank":
-        "Charge": 5,
-        "Ice": 6,
-        "Wave": 7,
+        "Charge": ItemID.ChargeBeam,
+        "Ice": ItemID.IceBeam,
+        "Wave": ItemID.WaveBeam,
         # "Spazer":
-        "Plasma": 8,
-        "Varia": 10,
-        "Gravity": 11,
-        "Morph": 12,
-        "Bombs": 9,
+        "Plasma": ItemID.PlasmaBeam,
+        "Varia": ItemID.VariaSuit,
+        "Gravity": ItemID.GravitySuit,
+        "Morph": ItemID.MorphBall,
+        "Bombs": ItemID.Bomb,
         # "SpringBall":
-        "ScrewAttack": 15,
-        "HiJump": 14,
-        "SpaceJump": 16,
-        "SpeedBooster": 13,
+        "ScrewAttack": ItemID.ScrewAttack,
+        "HiJump": ItemID.HiJump,
+        "SpaceJump": ItemID.SpaceJump,
+        "SpeedBooster": ItemID.SpeedBooster,
+        # "CardCrateriaL1":
+        # "CardCrateriaL2":
+        # "CardCrateriaBoss":
+        # "CardBrinstarL1":
+        # "CardBrinstarL2":
+        # "CardBrinstarBoss":
+        # "CardNorfairL1":
+        # "CardNorfairL2":
+        # "CardNorfairBoss":
+        # "CardMaridiaL1":
+        # "CardMaridiaL2":
+        # "CardMaridiaBoss":
+        # "CardWreckedShipL1":
+        # "CardWreckedShipBoss":
+        # "CardLowerNorfairL1":
+        # "CardLowerNorfairBoss":
     },
 }
 
