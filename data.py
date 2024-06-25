@@ -135,7 +135,7 @@ def get_symbol(symbol: str, offset: int = 0) -> int:
 def encode_str(msg: str) -> bytes:
     """Encode a string into Zero Mission's text format."""
 
-    return bytes(itertools.chain.from_iterable(char_table.get(c, " ") for c in msg))
+    return bytes(itertools.chain.from_iterable(char_table.get(c, char_table[" "]) for c in msg))
 
 
 def get_width_of_encoded_character(char: int):

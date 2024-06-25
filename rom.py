@@ -86,7 +86,7 @@ def get_item_sprite_and_name(location: Location, world: MZMWorld):
         if sprite is not None:
             return sprite, None
 
-    sprite = 21 + item.classification.as_flag().bit_length()
+    sprite = 19 + item.classification.as_flag().bit_length()
     name = encode_str(item.name[:32])
     pad = ((224 - get_width_of_encoded_string(name)) // 2) & 0xFF
     name = struct.pack("<HH", 0x8000 | pad, 0x8105) + name
