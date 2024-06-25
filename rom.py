@@ -105,11 +105,12 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
 
         world.options.unknown_items_always_usable.value,
         world.options.skip_chozodia_stealth.value,
+        True,  # Make Power Bombs usable without Bomb
     )
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2xBB", *seed_info)
+        struct.pack("<H64s64s2xBBB", *seed_info)
     )
 
     # Place items
