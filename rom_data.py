@@ -1,57 +1,23 @@
 from typing import Union
 
-from .data import get_symbol
+from .data import get_rom_address, get_symbol
+from .lz10 import gba_decompress
 
 
-# Direct implementation of https://problemkaputt.de/gbatek-lz-decompression-functions.htm
-# Taking only the typ = 0x10 (LZ77) path
-def lzss_decompress(rom: bytes, src: Union[int, str]):
+def decompress_data(rom: bytes, src: Union[str, int]):
     if isinstance(src, str):
-        src = get_symbol(src)
-    src &= 0x8000000 - 1
-
-    if rom.startswith(b"LZ77", src) or rom.startswith(b"CMPR", src):
-        src += 4
-    typ = rom[src]
-    if typ != 0x10:
-        raise ValueError("Data not in LZSS format")
-    decompressed = bytearray(int.from_bytes(rom[src:src+4], "little") // 0x100)
-    src += 4
-    dst = 0
-
-    while True:
-        flagbits = rom[src]
-        src += 1
-        numflags = 8
-
-        while True:
-            if dst >= len(decompressed):
-                return bytes(decompressed)
-            if numflags == 0:
-                break
-
-            numflags -= 1
-            flagbits *= 2
-            if flagbits & 0x100 == 0:
-                decompressed[dst] = rom[src]
-                dst += 1
-                src += 1
-            else:
-                length = 3 + rom[src] // 0x10
-                disp = 1 + (rom[src] & 0xF) * 0x100 + rom[src + 1]
-                src += 2
-
-                for _ in range(length):
-                    decompressed[dst] = decompressed[dst - disp]
-                    dst += 1
+        address = get_rom_address(src)
+    else:
+        address = src
+    decompressed_size = int.from_bytes(rom[address + 1:address + 4], "little")
+    return bytes(gba_decompress(rom[address:address + decompressed_size]))
 
 
 def write_data(rombuffer: bytearray, data: bytes, dst: Union[str, int]):
     if isinstance(dst, str):
-        address = get_symbol(dst)
+        address = get_rom_address(dst)
     else:
         address = dst
-    address &= 0x8000000 - 1
     rombuffer[address:address + len(data)] = data
 
 
@@ -102,12 +68,12 @@ def add_item_sprites(rom: bytes) -> bytes:
     # Plasma Beam, Gravity Suit, and Space Jump are by default custom and already in ROM
 
     # Long Beam
-    long_statue = lzss_decompress(rom, "sChozoStatueLongBeamGfx")
+    long_statue = decompress_data(rom, "sChozoStatueLongBeamGfx")
     long = extract_chozo_statue_sprite(long_statue)
     write_data(rombuffer, long, "sRandoLongBeamGfx")
 
     # Charge Beam
-    charge = lzss_decompress(rom, "sChargeBeamGfx")
+    charge = decompress_data(rom, "sChargeBeamGfx")
     charge1 = get_sprites(charge, 18, 0, 1)
     charge2 = get_sprites(charge, 20, 0, 1)
     charge3 = bytearray(charge1)
@@ -115,27 +81,27 @@ def add_item_sprites(rom: bytes) -> bytes:
     write_data(rombuffer, bytes(charge1 + charge2 + charge3 + charge2), "sRandoChargeBeamGfx")
 
     # Ice Beam
-    ice_statue = lzss_decompress(rom, "sChozoStatueIceBeamGfx")
+    ice_statue = decompress_data(rom, "sChozoStatueIceBeamGfx")
     ice = extract_chozo_statue_sprite(ice_statue)
     write_data(rombuffer, ice, "sRandoIceBeamGfx")
 
     # Wave Beam
-    wave_statue = lzss_decompress(rom, "sChozoStatueWaveBeamGfx")
+    wave_statue = decompress_data(rom, "sChozoStatueWaveBeamGfx")
     wave = extract_chozo_statue_sprite(wave_statue)
     write_data(rombuffer, wave, "sRandoWaveBeamGfx")
 
     # Bomb
-    bomb_statue = lzss_decompress(rom, "sChozoStatueBombsGfx")
+    bomb_statue = decompress_data(rom, "sChozoStatueBombsGfx")
     bomb = extract_chozo_statue_sprite(bomb_statue)
     write_data(rombuffer, bomb, "sRandoBombGfx")
 
     # Varia Suit
-    varia_statue = lzss_decompress(rom, "sChozoStatueVariaGfx")
+    varia_statue = decompress_data(rom, "sChozoStatueVariaGfx")
     varia = extract_chozo_statue_sprite(varia_statue)
     write_data(rombuffer, varia, "sRandoVariaSuitGfx")
 
     # Morph Ball
-    morph = lzss_decompress(rom, "sMorphBallGfx")
+    morph = decompress_data(rom, "sMorphBallGfx")
     morph_core = get_sprites(morph, 0, 0, 3)
     morph_glass = get_sprites(morph, 6, 0, 1)
     morph_composited = bytearray(len(morph_core))
@@ -155,22 +121,22 @@ def add_item_sprites(rom: bytes) -> bytes:
     write_data(rombuffer, make_4_frame_animation(morph_composited), "sRandoMorphBallGfx")
 
     # Speed Booster
-    speed_statue = lzss_decompress(rom, "sChozoStatueSpeedboosterGfx")
+    speed_statue = decompress_data(rom, "sChozoStatueSpeedboosterGfx")
     speed = extract_chozo_statue_sprite(speed_statue)
     write_data(rombuffer, speed, "sRandoSpeedBoosterGfx")
 
     # Hi-Jump Boots
-    hijump_statue = lzss_decompress(rom, "sChozoStatueHighJumpGfx")
+    hijump_statue = decompress_data(rom, "sChozoStatueHighJumpGfx")
     hijump = extract_chozo_statue_sprite(hijump_statue)
     write_data(rombuffer, hijump, "sRandoHiJumpGfx")
 
     # Screw Attack
-    screw_statue = lzss_decompress(rom, "sChozoStatueScrewAttackGfx")
+    screw_statue = decompress_data(rom, "sChozoStatueScrewAttackGfx")
     screw = extract_chozo_statue_sprite(screw_statue)
     write_data(rombuffer, screw, "sRandoScrewAttackGfx")
 
     # Power Grip
-    powergrip = lzss_decompress(rom, "sPowerGripGfx")
+    powergrip = decompress_data(rom, "sPowerGripGfx")
     powergrip = get_sprites(powergrip, 0, 0, 3)
     write_data(rombuffer, make_4_frame_animation(powergrip), "sRandoPowerGripGfx")
 
@@ -180,19 +146,19 @@ def use_unknown_item_sprites(rom: bytes) -> bytes:
     rombuffer = bytearray(rom)
 
     # Plasma Beam
-    plasma_statue = lzss_decompress(rom, "sChozoStatuePlasmaBeamGfx")
+    plasma_statue = decompress_data(rom, "sChozoStatuePlasmaBeamGfx")
     plasma = extract_unknown_chozo_statue_sprite(plasma_statue, 4)
     write_data(rombuffer, plasma, "sRandoPlasmaBeamGfx")
     write_palette_pointer(rombuffer, "sChozoStatuePlasmaBeamPal", 8)
 
     # Gravity Suit
-    gravity_statue = lzss_decompress(rom, "sChozoStatueGravitySuitGfx")
+    gravity_statue = decompress_data(rom, "sChozoStatueGravitySuitGfx")
     gravity = extract_unknown_chozo_statue_sprite(gravity_statue, 2)
     write_data(rombuffer, gravity, "sRandoGravitySuitGfx")
     write_palette_pointer(rombuffer, "sChozoStatueGravitySuitPal", 11)
 
     # Space Jump
-    space_statue = lzss_decompress(rom, "sChozoStatueSpaceJumpGfx")
+    space_statue = decompress_data(rom, "sChozoStatueSpaceJumpGfx")
     spacejump = extract_unknown_chozo_statue_sprite(space_statue, 2)
     write_data(rombuffer, spacejump, "sRandoSpaceJumpGfx")
     write_palette_pointer(rombuffer, "sChozoStatueSpaceJumpPal", 16)

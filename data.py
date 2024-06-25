@@ -132,6 +132,13 @@ def get_symbol(symbol: str, offset: int = 0) -> int:
     return symbols[symbol] + offset
 
 
+def get_rom_address(name, offset=0):
+    address = get_symbol(name, offset)
+    if not address & 0x8000000:
+        raise ValueError(f"{name}+{offset} is not in ROM (address: {address:07x})")
+    return address & 0x8000000 - 1
+
+
 def encode_str(msg: str) -> bytes:
     """Encode a string into Zero Mission's text format."""
 
