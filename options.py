@@ -23,6 +23,7 @@ class SkipChozodiaStealth(DefaultOnToggle):
     """When escaping Tourian, place Samus in the save room just outside of the Chozo Ghost's room in Chozodia."""
     display_name = "Skip Chozodia Stealth"
 
+
 class IBJInLogic(Toggle):
     """
     Allows for using IBJ (infinite bomb jumping) in logic.
@@ -51,6 +52,13 @@ class WalljumpsInLogic(DefaultOnToggle):
     Disabling this option will not remove the ability to walljump, but it will never be logically required.
     """
     display_name = "Wall Jumps In Logic"
+
+
+class LayoutTweaks(DefaultOnToggle):
+    """
+    Modify the layout of a few rooms to reduce softlocks
+    """
+    display_name = "Layout Tweaks"
 
 class DisplayNonLocalItems(Choice):
     """
@@ -92,6 +100,7 @@ class MZMOptions(PerGameCommonOptions):
     ibj_in_logic: IBJInLogic
     heatruns_lavadives: HeatRunsAndLavaDives
     walljumps_in_logic: WalljumpsInLogic
+    layout_tweaks: LayoutTweaks
     display_nonlocal_items: DisplayNonLocalItems
     death_link: DeathLink
     junk_fill_weights: JunkFillWeights

@@ -35,6 +35,10 @@ class MZMPatchExtensions(APPatchExtension):
     def add_unknown_item_graphics(caller: APProcedurePatch, rom: bytes) -> bytes:
         return rom_data.use_unknown_item_sprites(rom)
 
+    @staticmethod
+    def apply_layout_patches(caller: APProcedurePatch, rom: bytes) -> bytes:
+        return rom_data.apply_layout_patches(rom)
+
 class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     game = "Metroid Zero Mission"
     hash = MD5_MZMUS

@@ -119,6 +119,8 @@ class MZMWorld(World):
         write_tokens(self, patch)
         if not self.options.unknown_items_always_usable:
             patch.procedure.append(("add_unknown_item_graphics", []))
+        if self.options.layout_tweaks:
+            patch.procedure.append(("apply_layout_patches", []))
 
         output_filename = self.multiworld.get_out_file_name_base(self.player)
         patch.write(output_path / f"{output_filename}{patch.patch_file_ending}")

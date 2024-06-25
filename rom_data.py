@@ -1,7 +1,10 @@
-from typing import Union
+from enum import IntEnum
+import itertools
+import struct
+from typing import Optional, Sequence, Union
 
+from . import lz10, rle, iterators
 from .data import get_rom_address, get_symbol
-from .lz10 import gba_decompress
 
 
 def decompress_data(rom: bytes, src: Union[str, int]):
@@ -9,7 +12,7 @@ def decompress_data(rom: bytes, src: Union[str, int]):
         address = get_rom_address(src)
     else:
         address = src
-    return bytes(gba_decompress(memoryview(rom)[address:]))
+    return bytes(lz10.decompress(memoryview(rom)[address:]))
 
 
 def write_data(rombuffer: bytearray, data: bytes, dst: Union[str, int]):
@@ -141,6 +144,7 @@ def add_item_sprites(rom: bytes) -> bytes:
 
     return bytes(rombuffer)
 
+
 def use_unknown_item_sprites(rom: bytes) -> bytes:
     rombuffer = bytearray(rom)
 
@@ -161,5 +165,78 @@ def use_unknown_item_sprites(rom: bytes) -> bytes:
     spacejump = extract_unknown_chozo_statue_sprite(space_statue, 2)
     write_data(rombuffer, spacejump, "sRandoSpaceJumpGfx")
     write_palette_pointer(rombuffer, "sChozoStatueSpaceJumpPal", 16)
+
+    return bytes(rombuffer)
+
+
+class Area(IntEnum):
+    BRINSTAR = 0
+    KRAID = 1
+    NORFAIR = 2
+    RIDLEY = 3
+    TOURIAN = 4
+    CRATERIA = 5
+    CHOZODIA = 6
+
+
+class Clipdata(IntEnum):
+    BEAM_BLOCK_NEVER_REFORM = 0x52
+    BEAM_BLOCK_NO_REFORM = 0x55
+
+
+class RoomTilemap:
+    width: int
+    height: int
+    decompressed: bytearray
+    max_compressed_size: int
+
+    def __init__(self, compressed_data: memoryview, max_compressed_size: Optional[int] = None):
+        self.width = compressed_data[0]
+        self.height = compressed_data[1]
+        self.decompressed = rle.decompress(compressed_data[2:])
+        self.max_compressed_size = max_compressed_size
+
+    def set(self, x: int, y: int, tile: int, original_tile: Optional[int] = None):
+        index = (y * self.width + x) * 2
+        if original_tile is not None:
+            found_tile = int.from_bytes(self.decompressed[index:index + 2], "little")
+            if found_tile != original_tile:
+                raise ValueError(f"Unexpected tile at ({x}, {y}) (expected {original_tile:04x}, found {found_tile:04x})")
+        self.decompressed[index:index + 2] = tile.to_bytes(2, "little")
+
+    def to_compressed_data(self) -> bytes:
+        compressed_data = bytes((self.width, self.height)) + rle.compress(self.decompressed)
+        if self.max_compressed_size is not None and len(compressed_data) > self.max_compressed_size:
+            raise ValueError(f"Compressed size over limit (size: {len(compressed_data)}, limit: {self.max_compressed_size})")
+        return compressed_data
+
+    def to_halfword_matrix(self) -> Sequence[Sequence[int]]:
+        return tuple(iterators.batched(itertools.chain.from_iterable(struct.iter_unpack("<H", self.decompressed)), self.width))
+
+
+def print_room_data(room: RoomTilemap):
+    print(*room.to_halfword_matrix(), sep="\n")
+
+
+def apply_layout_patches(rom: bytes) -> bytes:
+    rom = memoryview(rom)
+    rombuffer = bytearray(rom)
+
+    def read_u32(addr):
+        return int.from_bytes(rom[addr:addr + 4], "little")
+
+    def get_bg1_and_clipdata_address(area, room):
+        room_entry_pointer_array_addr = get_rom_address("sAreaRoomEntryPointers")
+        room_entry_array_addr = read_u32((room_entry_pointer_array_addr + 4 * area) & (0x8000000 - 1))
+        room_entry_addr = (room_entry_array_addr + 60 * room) & (0x8000000 - 1)
+        bg1_addr = read_u32(room_entry_addr + 12) & (0x8000000 - 1)
+        clipdata_addr = read_u32(room_entry_addr + 20) & (0x8000000 - 1)
+        return bg1_addr, clipdata_addr
+
+    _, long_beam_hall_clipdata_addr = get_bg1_and_clipdata_address(Area.BRINSTAR, 4)
+    long_beam_hall_clipdata = RoomTilemap(rom[long_beam_hall_clipdata_addr:], 142)
+    for x in range(29, 32):
+        long_beam_hall_clipdata.set(x, 8, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.BEAM_BLOCK_NO_REFORM)
+    write_data(rombuffer, long_beam_hall_clipdata.to_compressed_data(), long_beam_hall_clipdata_addr)
 
     return bytes(rombuffer)

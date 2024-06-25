@@ -13,7 +13,7 @@ LZ11 functionality has been removed since it is not necessary for Zero Mission.
 https://github.com/magical/nlzss
 """
 
-def gba_decompress(data: ByteString):
+def decompress(data: ByteString):
     """Decompress LZSS-compressed bytes. Returns a bytearray containing the decompressed data."""
     header = data[:4]
     if header[0] == 0x10:
@@ -27,7 +27,7 @@ def gba_decompress(data: ByteString):
     return decompress_raw(data, decompressed_size)
 
 
-def gba_compress(data: bytearray):
+def compress(data: bytearray):
     byteOut = bytearray()
     # header
     byteOut.extend(struct.pack("<L", (len(data) << 8) + 0x10))
