@@ -1,6 +1,10 @@
 from collections import defaultdict
 from operator import itemgetter
 import struct
+from typing import Union
+
+ByteString = Union[bytes, bytearray, memoryview]
+
 
 """
 Tweaked version of nlzss modified to work with raw data and return bytes instead of operating on whole files.
@@ -9,15 +13,15 @@ LZ11 functionality has been removed since it is not necessary for Zero Mission.
 https://github.com/magical/nlzss
 """
 
-def gba_decompress(data: bytearray):
-    """Decompress LZSS-compressed bytes. Returns a bytearray."""
+def gba_decompress(data: ByteString):
+    """Decompress LZSS-compressed bytes. Returns a bytearray containing the decompressed data."""
     header = data[:4]
     if header[0] == 0x10:
         decompress_raw = decompress_raw_lzss10
     else:
         raise DecompressionError("not as lzss-compressed file")
 
-    decompressed_size, = struct.unpack("<L", header[1:] + b'\x00')
+    decompressed_size = int.from_bytes(header[1:], "little")
 
     data = data[4:]
     return decompress_raw(data, decompressed_size)

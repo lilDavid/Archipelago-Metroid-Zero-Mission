@@ -9,8 +9,7 @@ def decompress_data(rom: bytes, src: Union[str, int]):
         address = get_rom_address(src)
     else:
         address = src
-    decompressed_size = int.from_bytes(rom[address + 1:address + 4], "little")
-    return bytes(gba_decompress(rom[address:address + decompressed_size]))
+    return bytes(gba_decompress(memoryview(rom)[address:]))
 
 
 def write_data(rombuffer: bytearray, data: bytes, dst: Union[str, int]):
