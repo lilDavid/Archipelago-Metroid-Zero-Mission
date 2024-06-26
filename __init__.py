@@ -1,8 +1,7 @@
-import hashlib
 import typing
 from pathlib import Path
 from collections import Counter
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Optional
 
 from BaseClasses import ItemClassification, Tutorial
 import settings
@@ -99,18 +98,6 @@ class MZMWorld(World):
         self.multiworld.completion_condition[self.player] = lambda state: (
             state.has("Mission Complete", self.player))
 
-    def fill_slot_data(self) -> Dict[str, Any]:
-
-        slot_data: Dict[str, Any] = {
-            "unknown_items": self.options.unknown_items_always_usable.value,
-            "ibj_logic": self.options.ibj_in_logic.value,
-            "heatruns": self.options.heatruns_lavadives.value,
-            "walljump_logic": self.options.walljumps_in_logic.value,
-            "death_link": self.options.death_link.value
-        }
-
-        return slot_data
-
     def generate_output(self, output_directory: str):
         output_path = Path(output_directory)
 
@@ -125,11 +112,15 @@ class MZMWorld(World):
         output_filename = self.multiworld.get_out_file_name_base(self.player)
         patch.write(output_path / f"{output_filename}{patch.patch_file_ending}")
 
-    def fill_slot_data(self) -> Mapping[str, Any]:
-        return self.options.as_dict(
-            "unknown_items_always_usable",
-            "death_link",
-        )
+    def fill_slot_data(self) -> Dict[str, Any]:
+        return {
+            "unknown_items": self.options.unknown_items_always_usable.value,
+            "layout_tweaks": self.options.layout_tweaks.value,
+            "ibj_logic": self.options.ibj_in_logic.value,
+            "heatruns": self.options.heatruns_lavadives.value,
+            "walljump_logic": self.options.walljumps_in_logic.value,
+            "death_link": self.options.death_link.value
+        }
 
     def get_filler_item_name(self) -> str:
         return self.multiworld.random.choice(self.junk_fill)
