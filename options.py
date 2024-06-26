@@ -1,10 +1,11 @@
-from schema import And, Schema
-
 """
 Option definitions for Metroid: Zero Mission
 """
-from Options import Choice, DeathLink, DefaultOnToggle, OptionDict, StartInventoryPool, Toggle, PerGameCommonOptions, Visibility
+
+from schema import And, Schema
 from dataclasses import dataclass
+
+from Options import Choice, DeathLink, DefaultOnToggle, OptionDict, StartInventoryPool, Toggle, PerGameCommonOptions, Visibility
 
 
 class UnknownItemsAlwaysUsable(DefaultOnToggle):

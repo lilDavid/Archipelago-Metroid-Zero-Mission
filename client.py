@@ -12,9 +12,9 @@ from NetUtils import ClientStatus
 import Utils
 import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
-from worlds.mzm.items import AP_MZM_ID_BASE
 
 from .data import encode_str, get_symbol
+from .items import AP_MZM_ID_BASE
 from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table)

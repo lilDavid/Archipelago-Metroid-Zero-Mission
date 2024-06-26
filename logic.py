@@ -2,9 +2,9 @@
 Functions used for dictating logic made for making rules in rules.py
 """
 
-from BaseClasses import MultiWorld
 from worlds.AutoWorld import LogicMixin
-from worlds.mzm import MZMOptions
+
+from .options import MZMOptions
 
 
 # TODO: Add missing logic options
