@@ -95,7 +95,7 @@ class MZMWorld(World):
         self.multiworld.itempool += item_pool
 
     def set_rules(self) -> None:
-        set_rules(self.multiworld, self.player, full_location_table)
+        set_rules(self, full_location_table)
         self.multiworld.completion_condition[self.player] = lambda state: (
             state.has("Mission Complete", self.player))
 

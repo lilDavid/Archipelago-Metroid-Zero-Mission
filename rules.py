@@ -4,16 +4,27 @@ Logic rule definitions for Metroid: Zero Mission.
 Logic based on MZM Randomizer, by Biospark and dragonfangs.
 """
 
-from worlds.generic.Rules import add_rule, set_rule
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from worlds.generic.Rules import add_rule
+
 from .logic import MZMLogic as logic
-from BaseClasses import MultiWorld
+
+if TYPE_CHECKING:
+    from . import MZMWorld
 
 
 # Logic pass 1. Probably scuffed in edge cases but it seems to work.
-def set_rules(multiworld: MultiWorld, player, locations):
+def set_rules(world: MZMWorld, locations):
+    player = world.player
+
     brinstar_access_rules = {
         "Brinstar Morph Ball Cannon": lambda state: logic.mzm_can_regular_bomb(state, player),
-        "Brinstar Long Beam": lambda state: state.has("Morph Ball", player) and logic.mzm_can_long_beam(state, player),
+        "Brinstar Long Beam": lambda state: (state.has("Morph Ball", player)
+                                             and (logic.mzm_can_long_beam(state, player))
+                                                  or world.options.layout_tweaks.value),
         "Brinstar Ceiling E-Tank":
             lambda state: (state.has("Ice Beam", player) and state.has("EVENT_RIDLEY_DEFEATED", player)) or
                           logic.mzm_can_space_jump(state, player)
@@ -535,7 +546,7 @@ def set_rules(multiworld: MultiWorld, player, locations):
     }
 
     for i in locations:
-        location = multiworld.get_location(i, player)
+        location = world.multiworld.get_location(i, player)
         try:
             add_rule(location, access_rules[i])
         except KeyError:
