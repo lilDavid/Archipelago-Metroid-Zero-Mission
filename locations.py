@@ -48,7 +48,7 @@ kraid_location_table = {
     "Kraid Worm E-Tank": AP_MZM_ID_BASE + 29,
     "Kraid Speed Jump": AP_MZM_ID_BASE + 30,
     "Kraid Upper Right Morph Ball Cannon": AP_MZM_ID_BASE + 31,
-    "Kraid Defeated": None
+    "Kraid": None
 }
 
 norfair_location_table = {
@@ -96,13 +96,13 @@ ridley_location_table = {
     "Ridley Northeast corner Missile": AP_MZM_ID_BASE + 70,
     "Ridley Bomb Puzzle": AP_MZM_ID_BASE + 71,
     "Ridley Speed Jump": AP_MZM_ID_BASE + 72,
-    "Ridley Defeated": None
+    "Ridley": None
 }
 
 tourian_location_table = {
     "Tourian Left of Mother Brain": AP_MZM_ID_BASE + 73,
     "Tourian Under Mother Brain ": AP_MZM_ID_BASE + 74,
-    "Mother Brain Defeated": None
+    "Mother Brain": None
 }
 
 crateria_location_table = {
@@ -134,7 +134,8 @@ chozodia_location_table = {
     "Chozodia Mothership Ceiling Near ZSS Start": AP_MZM_ID_BASE + 97,
     "Chozodia Under Mecha Ridley Hallway": AP_MZM_ID_BASE + 98,
     "Chozodia Southeast Corner In Hull": AP_MZM_ID_BASE + 99,
-    "Chozo Ghost Defeated": None,
+    "Chozo Ghost": None,
+    "Mecha Ridley": None,
     "Chozodia Space Pirate's Ship": None
 }
 

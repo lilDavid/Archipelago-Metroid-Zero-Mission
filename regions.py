@@ -70,7 +70,7 @@ def create_regions(world: MZMWorld):
     ))
 
     brinstar.connect(tourian, "Brinstar-Tourian elevator", lambda state:
-       state.has_all({"EVENT_KRAID_DEFEATED", "EVENT_RIDLEY_DEFEATED"}, world.player))
+       state.has_all({"Kraid Defeated", "Ridley Defeated"}, world.player))
 
     norfair.connect(crateria, "Norfair-Crateria elevator",
                     lambda state: logic.mzm_can_long_beam(state, world.player))
@@ -95,8 +95,8 @@ def create_regions(world: MZMWorld):
             and (logic.mzm_can_ibj(state, world.player)
                  or logic.mzm_can_space_jump(state, world.player)
                  or (state.has("Speed Booster", world.player) and logic.mzm_can_walljump(state, world.player)))
-            and (state.has("EVENT_MOTHER_BRAIN_DEFEATED", world.player) or not world.options.chozodia_access.value)))
+            and (state.has("Mother Brain Defeated", world.player) or not world.options.chozodia_access.value)))
 
     crateria.connect(chozodia, "Crateria-Chozodia Lower Door", lambda state: (
         logic.mzm_has_power_bombs(state, world.player)
-        and (state.has("EVENT_MOTHER_BRAIN_DEFEATED", world.player) or not world.options.chozodia_access.value)))
+        and (state.has("Mother Brain Defeated", world.player) or not world.options.chozodia_access.value)))

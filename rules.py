@@ -26,7 +26,7 @@ def set_rules(world: MZMWorld, locations):
                                              and (logic.mzm_can_long_beam(state, player))
                                                   or world.options.layout_tweaks.value),
         "Brinstar Ceiling E-Tank":
-            lambda state: (state.has("Ice Beam", player) and state.has("EVENT_RIDLEY_DEFEATED", player)) or
+            lambda state: (state.has("Ice Beam", player) and state.has("Ridley Defeated", player)) or
                           logic.mzm_can_space_jump(state, player)
                           or logic.mzm_can_ibj(state, player),
         "Brinstar Missile Above Super":
@@ -136,7 +136,7 @@ def set_rules(world: MZMWorld, locations):
                 and (logic.mzm_can_gravity_suit(state, player)
                      and logic.mzm_can_ballspark(state, player))
         ),
-        "Kraid Speed Booster": lambda state: state.can_reach("Kraid Defeated", "Location", player),
+        "Kraid Speed Booster": lambda state: state.has("Kraid Defeated", player),
         "Kraid Worm Missile": lambda state: (
                 logic.mzm_kraid_upper_right(state, player)
                 and logic.mzm_has_missile_count(state, player, 30)
@@ -403,9 +403,9 @@ def set_rules(world: MZMWorld, locations):
 
     tourian_access_rules = {
         "Tourian Left of Mother Brain": lambda state: (
-                state.has_all({"EVENT_CHOZO_GHOST_DEFEATED", "Speed Booster"}, player)
+                state.has_all({"Chozo Ghost Defeated", "Speed Booster"}, player)
                 and logic.mzm_can_space_jump(state, player)),
-        "Tourian Under Mother Brain ": lambda state: (state.has("EVENT_MOTHER_BRAIN_DEFEATED", player)
+        "Tourian Under Mother Brain ": lambda state: (state.has("Mother Brain Defeated", player)
                                                       and logic.mzm_has_super_missiles(state, player)),
         "Mother Brain Defeated": lambda state: (
                 state.has("Ice Beam", player)
@@ -465,15 +465,15 @@ def set_rules(world: MZMWorld, locations):
                 and state.has("Power Bomb Tank", player)
         ),
         "Chozodia Chozo Ghost Area Morph Tunnel Above Water": lambda state: ( # The room leading to this item is inaccessible until the Chozo Ghost is defeated
-                state.has("EVENT_CHOZO_GHOST_DEFEATED", player) and state.has_any({"Hi-Jump", "Bomb"}, player)
+                state.has("Chozo Ghost Defeated", player) and state.has_any({"Hi-Jump", "Bomb"}, player)
         ),
         "Chozodia Chozo Ghost Area Underwater": lambda state: ( # This item does not really exist until the Chozo Ghost is defeated
-                state.has("EVENT_CHOZO_GHOST_DEFEATED", player)
+                state.has("Chozo Ghost Defeated", player)
                 and logic.mzm_can_gravity_suit(state, player) and state.has("Speed Booster", player)
         ),
         "Chozodia Under Chozo Ghost Area Water": lambda state: (
                 logic.mzm_chozodia_ghost_from_upper_crateria_door(state, player)
-                or state.has("EVENT_MOTHER_BRAIN_DEFEATED", player)),
+                or state.has("Mother Brain Defeated", player)),
         "Chozodia Glass Tube E-Tank": lambda state: (
                 (logic.mzm_can_ibj(state, player) or logic.mzm_can_ballspark(state, player)
                  or (state.has("Power Grip", player)
@@ -482,7 +482,7 @@ def set_rules(world: MZMWorld, locations):
                 and state.has("Speed Booster", player)
         ),
         "Chozodia Lava Super": lambda state: ( # This room is inaccessible until the Chozo Ghost is defeated
-                state.has("EVENT_CHOZO_GHOST_DEFEATED", player)
+                state.has("Chozo Ghost Defeated", player)
                 and ((logic.mzm_can_gravity_suit(state, player)
                       and ((state.has("Power Grip", player) and state.has_any({"Hi-Jump", "Bomb"}, player))
                            or logic.mzm_can_ibj(state, player)))
@@ -501,7 +501,7 @@ def set_rules(world: MZMWorld, locations):
         ),
         "Chozodia Glass Tube Power Bomb": lambda state: logic.mzm_chozodia_glass_tube_from_crateria_door(state, player),
         "Chozodia Chozo Ghost Area Long Shinespark": lambda state: ( # The room leading to this item is inaccessible until the Chozo Ghost is defeated
-                state.has_all({"EVENT_CHOZO_GHOST_DEFEATED", "Speed Booster"}, player)
+                state.has_all({"Chozo Ghost Defeated", "Speed Booster"}, player)
                 and logic.mzm_can_gravity_suit(state, player)
         ),
         "Chozodia Shortcut Super": lambda state: (  # you can also do this with screw and not need ibj/wj/sj but that's for advanced logic later
@@ -527,12 +527,13 @@ def set_rules(world: MZMWorld, locations):
         "Chozodia Southeast Corner In Hull":
             lambda state: logic.mzm_chozodia_tube_to_mothership_central(state, player)
                           or state.has_all({"Chozo Ghost Defeated", "Power Bomb"}, player),
-        "Chozo Ghost Defeated": lambda state: state.can_reach("Mother Brain Defeated", "Location", player),
-        "Chozodia Space Pirate's Ship": lambda state: (
+        "Chozo Ghost Defeated": lambda state: state.has("Mother Brain Defeated", player),
+        "Mecha Ridley Defeated": lambda state: (
                 logic.mzm_chozodia_to_cockpit(state, player)
                 and logic.mzm_has_missile_count(state, player, 40)
-                and state.has_all({"Power Bomb Tank", "Plasma Beam"}, player)
-        )
+                and state.has("Power Bomb Tank", player)  # Or can skip them by flying to the tunnel
+        ),
+        "Chozodia Space Pirate's Ship": lambda state: state.has_all({"Mecha Ridley Defeated", "Plasma Beam"}, player)
     }
 
     access_rules = {

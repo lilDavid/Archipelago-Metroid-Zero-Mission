@@ -73,10 +73,11 @@ class MZMWorld(World):
     def create_regions(self) -> None:
         create_regions(self)
 
-        self.place_event("EVENT_KRAID_DEFEATED", "Kraid Defeated")
-        self.place_event("EVENT_RIDLEY_DEFEATED", "Ridley Defeated")
-        self.place_event("EVENT_MOTHER_BRAIN_DEFEATED", "Mother Brain Defeated")
-        self.place_event("EVENT_CHOZO_GHOST_DEFEATED", "Chozo Ghost Defeated")
+        self.place_event("Kraid Defeated", "Kraid")
+        self.place_event("Ridley Defeated", "Ridley")
+        self.place_event("Mother Brain Defeated", "Mother Brain")
+        self.place_event("Chozo Ghost Defeated", "Chozo Ghost")
+        self.place_event("Mecha Ridley Defeated", "Mecha Ridley")
         self.place_event("Mission Complete", "Chozodia Space Pirate's Ship")
 
     def create_items(self) -> None:

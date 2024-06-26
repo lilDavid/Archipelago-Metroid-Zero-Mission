@@ -63,7 +63,7 @@ class MZMLogic(LogicMixin):
         return self.has_all({"Morph Ball", "Hi-Jump", "Speed Booster"}, player)
 
     def mzm_can_space_jump(self, player: int) -> bool:
-        return ((self.has("EVENT_CHOZO_GHOST_DEFEATED", player)
+        return ((self.has("Chozo Ghost Defeated", player)
                  or bool(self.mzm_options(player).unknown_items_always_usable.value))
                 and self.has("Space Jump", player))
 
@@ -76,7 +76,7 @@ class MZMLogic(LogicMixin):
                 and (self.count("Energy Tank", player) >= required_etanks))
 
     def mzm_can_gravity_suit(self, player: int) -> bool:
-        return ((self.has("EVENT_CHOZO_GHOST_DEFEATED", player)
+        return ((self.has("Chozo Ghost Defeated", player)
                  or bool(self.mzm_options(player).unknown_items_always_usable.value))
                 and self.has("Gravity Suit", player))
 
