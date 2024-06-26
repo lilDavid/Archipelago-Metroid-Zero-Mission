@@ -94,7 +94,9 @@ def create_regions(world: MZMWorld):
             logic.mzm_has_power_bombs(state, world.player)
             and (logic.mzm_can_ibj(state, world.player)
                  or logic.mzm_can_space_jump(state, world.player)
-                 or (state.has("Speed Booster", world.player) and logic.mzm_can_walljump(state, world.player)))))
+                 or (state.has("Speed Booster", world.player) and logic.mzm_can_walljump(state, world.player)))
+            and (state.has("EVENT_MOTHER_BRAIN_DEFEATED", world.player) or not world.options.chozodia_access.value)))
 
     crateria.connect(chozodia, "Crateria-Chozodia Lower Door", lambda state: (
-        logic.mzm_has_power_bombs(state, world.player)))
+        logic.mzm_has_power_bombs(state, world.player)
+        and (state.has("EVENT_MOTHER_BRAIN_DEFEATED", world.player) or not world.options.chozodia_access.value)))

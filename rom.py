@@ -15,7 +15,7 @@ from . import rom_data
 from .data import encode_str, get_rom_address, get_width_of_encoded_string
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
-from .options import DisplayNonLocalItems
+from .options import ChozodiaAccess, DisplayNonLocalItems
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -164,5 +164,12 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         get_rom_address("sRandoStartingInventory"),
         struct.pack("<BxHBBBB", *pickups, beams, misc)
     )
+
+    if world.options.chozodia_access == ChozodiaAccess.option_closed:
+        patch.write_token(
+            APTokenTypes.WRITE,
+            get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * 5),
+            struct.pack("<H", 4)  # Acknowledge Mother Brain event locks
+        )
 
     patch.write_file("token_data.bin", patch.get_token_binary())

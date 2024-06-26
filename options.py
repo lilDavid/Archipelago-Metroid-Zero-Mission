@@ -8,6 +8,17 @@ from dataclasses import dataclass
 from Options import Choice, DeathLink, DefaultOnToggle, OptionDict, StartInventoryPool, Toggle, PerGameCommonOptions, Visibility
 
 
+class ChozodiaAccess(Choice):
+    """
+    Open: You can access Chozodia by using a Power Bomb to open the doors
+    Closed: You must defeat Mother Brain to access Chozodia
+    """
+    display_name = "Chozodia Access"
+    option_open = 0
+    option_closed = 1
+    default = option_open
+
+
 class UnknownItemsAlwaysUsable(DefaultOnToggle):
     """
     Unknown Items (Plasma Beam, Space Jump, and Gravity Suit) are activated and usable as soon as
@@ -96,6 +107,7 @@ class JunkFillWeights(OptionDict):
 @dataclass
 class MZMOptions(PerGameCommonOptions):
     start_inventory_from_pool: StartInventoryPool
+    chozodia_access: ChozodiaAccess
     skip_chozodia_stealth: SkipChozodiaStealth
     unknown_items_always_usable: UnknownItemsAlwaysUsable
     ibj_in_logic: IBJInLogic
