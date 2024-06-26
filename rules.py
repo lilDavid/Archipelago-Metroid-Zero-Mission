@@ -24,7 +24,7 @@ def set_rules(world: MZMWorld, locations):
         "Brinstar Morph Ball Cannon": lambda state: logic.mzm_can_regular_bomb(state, player),
         "Brinstar Long Beam": lambda state: (state.has("Morph Ball", player)
                                              and (logic.mzm_can_long_beam(state, player))
-                                                  or world.options.layout_tweaks.value),
+                                                  or world.options.layout_patches.value),
         "Brinstar Ceiling E-Tank":
             lambda state: (state.has("Ice Beam", player) and state.has("Ridley Defeated", player)) or
                           logic.mzm_can_space_jump(state, player)

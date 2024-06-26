@@ -107,7 +107,7 @@ class MZMWorld(World):
         write_tokens(self, patch)
         if not self.options.unknown_items_always_usable:
             patch.procedure.append(("add_unknown_item_graphics", []))
-        if self.options.layout_tweaks:
+        if self.options.layout_patches:
             patch.procedure.append(("apply_layout_patches", []))
 
         output_filename = self.multiworld.get_out_file_name_base(self.player)
@@ -116,7 +116,7 @@ class MZMWorld(World):
     def fill_slot_data(self) -> Dict[str, Any]:
         return {
             "unknown_items": self.options.unknown_items_always_usable.value,
-            "layout_tweaks": self.options.layout_tweaks.value,
+            "layout_patches": self.options.layout_patches.value,
             "ibj_logic": self.options.ibj_in_logic.value,
             "heatruns": self.options.heatruns_lavadives.value,
             "walljump_logic": self.options.walljumps_in_logic.value,

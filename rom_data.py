@@ -182,6 +182,10 @@ class Area(IntEnum):
 class Clipdata(IntEnum):
     BEAM_BLOCK_NEVER_REFORM = 0x52
     BEAM_BLOCK_NO_REFORM = 0x55
+    PITFALL_BLOCK = 0x56
+    BOMB_BLOCK_NEVER_REFORM = 0x57
+    BEAM_BLOCK_REFORM = 0x62
+    SCREW_ATTACK_BLOCK_NO_REFORM = 0x6B
 
 
 class RoomTilemap:
@@ -215,7 +219,8 @@ class RoomTilemap:
 
 
 def print_room_data(room: RoomTilemap):
-    print(*room.to_halfword_matrix(), sep="\n")
+    for row in room.to_halfword_matrix():
+        print(*(format(tile, "04x") for tile in row))
 
 
 def apply_layout_patches(rom: bytes) -> bytes:
@@ -238,5 +243,15 @@ def apply_layout_patches(rom: bytes) -> bytes:
     for x in range(29, 32):
         long_beam_hall_clipdata.set(x, 8, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.BEAM_BLOCK_NO_REFORM)
     write_data(rombuffer, long_beam_hall_clipdata.to_compressed_data(), long_beam_hall_clipdata_addr)
+
+    _, norfair_brinstar_elevator_clipdata_addr = get_bg1_and_clipdata_address(Area.NORFAIR, 0)
+    norfair_brinstar_elevator_clipdata = RoomTilemap(rom[norfair_brinstar_elevator_clipdata_addr:], 238)
+    for x in (4, 5, 13, 14):
+        norfair_brinstar_elevator_clipdata.set(x, 20, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.SCREW_ATTACK_BLOCK_NO_REFORM)
+        norfair_brinstar_elevator_clipdata.set(x, 21, Clipdata.BOMB_BLOCK_NEVER_REFORM, Clipdata.SCREW_ATTACK_BLOCK_NO_REFORM)
+    for x in (6, 12):
+        norfair_brinstar_elevator_clipdata.set(x, 20, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.BOMB_BLOCK_NEVER_REFORM)
+        norfair_brinstar_elevator_clipdata.set(x, 21, Clipdata.SCREW_ATTACK_BLOCK_NO_REFORM, Clipdata.PITFALL_BLOCK)
+    write_data(rombuffer, norfair_brinstar_elevator_clipdata.to_compressed_data(), norfair_brinstar_elevator_clipdata_addr)
 
     return bytes(rombuffer)

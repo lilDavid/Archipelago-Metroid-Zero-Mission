@@ -66,11 +66,11 @@ class WalljumpsInLogic(DefaultOnToggle):
     display_name = "Wall Jumps In Logic"
 
 
-class LayoutTweaks(DefaultOnToggle):
+class LayoutPatches(DefaultOnToggle):
     """
     Modify the layout of a few rooms to reduce softlocks
     """
-    display_name = "Layout Tweaks"
+    display_name = "Layout Patches"
 
 class DisplayNonLocalItems(Choice):
     """
@@ -113,7 +113,7 @@ class MZMOptions(PerGameCommonOptions):
     ibj_in_logic: IBJInLogic
     heatruns_lavadives: HeatRunsAndLavaDives
     walljumps_in_logic: WalljumpsInLogic
-    layout_tweaks: LayoutTweaks
+    layout_patches: LayoutPatches
     display_nonlocal_items: DisplayNonLocalItems
     death_link: DeathLink
     junk_fill_weights: JunkFillWeights
