@@ -36,6 +36,10 @@ class MZMPatchExtensions(APPatchExtension):
         return rom_data.use_unknown_item_sprites(rom)
 
     @staticmethod
+    def apply_background_patches(caller: APProcedurePatch, rom: bytes) -> bytes:
+        return rom_data.apply_always_background_patches(rom)
+
+    @staticmethod
     def apply_layout_patches(caller: APProcedurePatch, rom: bytes) -> bytes:
         return rom_data.apply_layout_patches(rom)
 
@@ -49,6 +53,7 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
         ("apply_bsdiff4", ["basepatch.bsdiff"]),
         ("apply_tokens", ["token_data.bin"]),
         ("add_decompressed_graphics", []),
+        ("apply_background_patches", []),
     ]
 
     @classmethod
