@@ -23,8 +23,8 @@ def set_rules(world: MZMWorld, locations):
     brinstar_access_rules = {
         "Brinstar Morph Ball Cannon": lambda state: logic.mzm_can_regular_bomb(state, player),
         "Brinstar Long Beam": lambda state: (state.has("Morph Ball", player)
-                                             and (logic.mzm_can_long_beam(state, player))
-                                                  or world.options.layout_patches.value),
+                                             and (logic.mzm_can_long_beam(state, player)
+                                                  or world.options.layout_patches.value)),
         "Brinstar Ceiling E-Tank":
             lambda state: (state.has("Ice Beam", player) and state.has("Ridley Defeated", player)) or
                           logic.mzm_can_space_jump(state, player)
@@ -154,7 +154,7 @@ def set_rules(world: MZMWorld, locations):
                                            and state.has("Speed Booster", player)),
         "Kraid Upper Right Morph Ball Cannon": lambda state: logic.mzm_has_missiles(state, player)
                                                              and logic.mzm_can_ballcannon(state, player),
-        "Kraid Defeated": lambda state: (
+        "Kraid": lambda state: (
                 state.can_reach("Kraid Space Jump/Unknown Item 2", "Location", player)
                 and logic.mzm_has_missile_count(state, player, 30)
                 and (state.count("Energy Tank", player) >= 1)
@@ -398,7 +398,7 @@ def set_rules(world: MZMWorld, locations):
                  or logic.mzm_ridley_shortcut_right_shaft_access(state, player))
                 and state.has_all({"Wave Beam", "Speed Booster"}, player)
         ),
-        "Ridley Defeated": lambda state: state.can_reach("Ridley Gravity Suit/Unknown Item 3", "Location", player)
+        "Ridley": lambda state: state.can_reach("Ridley Gravity Suit/Unknown Item 3", "Location", player)
     }
 
     tourian_access_rules = {
@@ -407,7 +407,7 @@ def set_rules(world: MZMWorld, locations):
                 and logic.mzm_can_space_jump(state, player)),
         "Tourian Under Mother Brain ": lambda state: (state.has("Mother Brain Defeated", player)
                                                       and logic.mzm_has_super_missiles(state, player)),
-        "Mother Brain Defeated": lambda state: (
+        "Mother Brain": lambda state: (
                 state.has("Ice Beam", player)
                 and (logic.mzm_can_space_jump(state, player) or logic.mzm_can_ibj(state, player)
                      or state.has_all({"Hi-Jump", "Power Grip", "Speed Booster"}, player))
@@ -527,8 +527,8 @@ def set_rules(world: MZMWorld, locations):
         "Chozodia Southeast Corner In Hull":
             lambda state: logic.mzm_chozodia_tube_to_mothership_central(state, player)
                           or state.has_all({"Chozo Ghost Defeated", "Power Bomb"}, player),
-        "Chozo Ghost Defeated": lambda state: state.has("Mother Brain Defeated", player),
-        "Mecha Ridley Defeated": lambda state: (
+        "Chozo Ghost": lambda state: state.has("Mother Brain Defeated", player),
+        "Mecha Ridley": lambda state: (
                 logic.mzm_chozodia_to_cockpit(state, player)
                 and logic.mzm_has_missile_count(state, player, 40)
                 and state.has("Power Bomb Tank", player)  # Or can skip them by flying to the tunnel
