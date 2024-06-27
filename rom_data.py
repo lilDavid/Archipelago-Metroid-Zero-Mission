@@ -180,11 +180,13 @@ class Area(IntEnum):
 
 
 class Clipdata(IntEnum):
+    SOLID = 0x10
     BEAM_BLOCK_NEVER_REFORM = 0x52
     BEAM_BLOCK_NO_REFORM = 0x55
     PITFALL_BLOCK = 0x56
     BOMB_BLOCK_NEVER_REFORM = 0x57
     BEAM_BLOCK_REFORM = 0x62
+    SPEED_BOOSTER_BLOCK_REFORM = 0x6A
     SCREW_ATTACK_BLOCK_NO_REFORM = 0x6B
 
 
@@ -238,12 +240,14 @@ def apply_layout_patches(rom: bytes) -> bytes:
         clipdata_addr = read_u32(room_entry_addr + 20) & (0x8000000 - 1)
         return bg1_addr, clipdata_addr
 
+    # Change the three beam blocks to never reform
     _, long_beam_hall_clipdata_addr = get_bg1_and_clipdata_address(Area.BRINSTAR, 4)
     long_beam_hall_clipdata = RoomTilemap(rom[long_beam_hall_clipdata_addr:], 142)
     for x in range(29, 32):
         long_beam_hall_clipdata.set(x, 8, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.BEAM_BLOCK_NO_REFORM)
     write_data(rombuffer, long_beam_hall_clipdata.to_compressed_data(), long_beam_hall_clipdata_addr)
 
+    # Rework Norfair elevator
     _, norfair_brinstar_elevator_clipdata_addr = get_bg1_and_clipdata_address(Area.NORFAIR, 0)
     norfair_brinstar_elevator_clipdata = RoomTilemap(rom[norfair_brinstar_elevator_clipdata_addr:], 238)
     for x in (4, 5, 13, 14):
@@ -253,5 +257,17 @@ def apply_layout_patches(rom: bytes) -> bytes:
         norfair_brinstar_elevator_clipdata.set(x, 20, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.BOMB_BLOCK_NEVER_REFORM)
         norfair_brinstar_elevator_clipdata.set(x, 21, Clipdata.SCREW_ATTACK_BLOCK_NO_REFORM, Clipdata.PITFALL_BLOCK)
     write_data(rombuffer, norfair_brinstar_elevator_clipdata.to_compressed_data(), norfair_brinstar_elevator_clipdata_addr)
+
+    # Add beam blocks to escape softlock
+    # Change visual to not leave floating dirt when breaking the blocks
+    crateria_near_plasma_bg1_addr, crateria_near_plasma_clipdata_addr = get_bg1_and_clipdata_address(Area.CRATERIA, 9)
+    crateria_near_plasma_clipdata = RoomTilemap(rom[crateria_near_plasma_clipdata_addr:], 645)
+    for x in range(9, 12):
+        crateria_near_plasma_clipdata.set(x, 39, Clipdata.BEAM_BLOCK_NO_REFORM, Clipdata.SOLID)
+    write_data(rombuffer, crateria_near_plasma_clipdata.to_compressed_data(), crateria_near_plasma_clipdata_addr)
+    crateria_near_plasma_bg1 = RoomTilemap(rom[crateria_near_plasma_bg1_addr:], 1539)
+    crateria_near_plasma_bg1.set(10, 38, 0x0000, 0x0064)
+    crateria_near_plasma_bg1.set(10, 39, 0x0072, 0x0074)
+    write_data(rombuffer, crateria_near_plasma_bg1.to_compressed_data(), crateria_near_plasma_bg1_addr)
 
     return bytes(rombuffer)
