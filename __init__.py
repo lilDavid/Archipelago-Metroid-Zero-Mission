@@ -11,7 +11,7 @@ from .client import MZMClient
 from .data import data_path
 from .items import item_data_table, major_item_data_table, MZMItem
 from .locations import full_location_table
-from .options import MZMOptions
+from .options import MZMOptions, MorphBallPlacement
 from .regions import create_regions
 from .rom import MZMProcedurePatch, write_tokens
 from .rules import set_rules
@@ -67,8 +67,11 @@ class MZMWorld(World):
     def generate_early(self):
         self.junk_fill = list(Counter(self.options.junk_fill_weights).elements())
 
+        if self.options.morph_ball == MorphBallPlacement.option_early:
+            self.multiworld.local_early_items[self.player]["Morph Ball"] = 1
+
         # Only this player should have effectively empty locations if they so choose.
-        self.options.local_items.value.add('Nothing')
+        self.options.local_items.value.add("Nothing")
 
     def create_regions(self) -> None:
         create_regions(self)
@@ -89,6 +92,7 @@ class MZMWorld(World):
         item_pool.extend(self.create_tanks("Missile Tank", 50, 7))  # First 35/250 missiles
         item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3))  # First 6/30 supers
         item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 2))  # First 4/18 power bombs
+
         while len(item_pool) < 100:
             item_pool.append(self.create_filler())
 

@@ -72,6 +72,17 @@ class LayoutPatches(DefaultOnToggle):
     """
     display_name = "Layout Patches"
 
+
+class MorphBallPlacement(Choice):
+    """
+    Influences where the Morph Ball will be placed.
+    """
+    display_name = "Morph Ball Placement"
+    option_normal = 0
+    option_early = 1
+    default = option_early
+
+
 class DisplayNonLocalItems(Choice):
     """
     How to display items that will be sent to other players.
@@ -114,6 +125,7 @@ class MZMOptions(PerGameCommonOptions):
     heatruns_lavadives: HeatRunsAndLavaDives
     walljumps_in_logic: WalljumpsInLogic
     layout_patches: LayoutPatches
+    morph_ball: MorphBallPlacement
     display_nonlocal_items: DisplayNonLocalItems
     death_link: DeathLink
     junk_fill_weights: JunkFillWeights
