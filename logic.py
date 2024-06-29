@@ -1,259 +1,286 @@
 """
-Functions used for dictating logic made for making rules in rules.py
+Functions used to describe Metroid: Zero Mission logic rules in rules.py
 """
 
-from worlds.AutoWorld import LogicMixin
-
+from BaseClasses import CollectionState
 from .options import MZMOptions
 
 
 # TODO: Add missing logic options
 # TODO: Fine tune boss logic
-# TODO: rewrite without LogixMixin
 
-class MZMLogic(LogicMixin):
+def _get_options(state: CollectionState, player: int) -> MZMOptions:
+    return state.multiworld.worlds[player].options
 
-    def mzm_options(self, player: int) -> MZMOptions:
-        return self.multiworld.worlds[player].options
 
-    def mzm_has_missiles(self, player: int) -> bool:
-        return self.has_any({"Missile Tank", "Super Missile Tank"}, player)
+def has_missiles(state: CollectionState, player: int) -> bool:
+    return state.has_any({"Missile Tank", "Super Missile Tank"}, player)
 
-    def mzm_has_missile_count(self, player: int, required_missiles: int) -> int:
-        # TODO: somehow account for Hard mode
-        missilecount = (self.count("Missile Tank", player) * 5) + (self.count("Super Missile Tank", player) * 2)
-        return missilecount >= required_missiles
 
-    def mzm_has_super_missiles(self, player: int) -> bool:
-        return self.has("Super Missile Tank", player)
+def has_missile_count(state: CollectionState, player: int, required_missiles: int) -> int:
+    # TODO: somehow account for Hard mode
+    missilecount = (state.count("Missile Tank", player) * 5) + (state.count("Super Missile Tank", player) * 2)
+    return missilecount >= required_missiles
 
-    def mzm_has_power_bombs(self, player: int):
-        return self.has("Power Bomb Tank", player)
 
-    def mzm_power_bomb_count(self, player: int, required_pbs: int):
-        pbcount = 0
-        pbcount += (self.count("Power Bomb Tank", player) * 2)
-        return pbcount >= required_pbs
+def has_super_missiles(state: CollectionState, player: int) -> bool:
+    return state.has("Super Missile Tank", player)
 
-    def mzm_can_regular_bomb(self, player: int):
-        return self.has_all({"Morph Ball", "Bomb"}, player)
 
-    # this may be different from can_regular_bomb later and also just reads easier in some rules
-    def mzm_can_ballcannon(self, player: int):
-        return self.has_all({"Morph Ball", "Bomb"}, player)
+def has_power_bombs(state: CollectionState, player: int):
+    return state.has("Power Bomb Tank", player)
 
-    def mzm_can_bomb_block(self, player: int) -> bool:
-        return (self.has("Morph Ball", player)
-                and self.has_any({"Bomb","Power Bomb Tank"}, player))
 
-    # checked for ability to clear blocks that would require long beam to hit
-    def mzm_can_long_beam(self, player: int) -> bool:
-        return (self.has("Long Beam", player)
-                or self.mzm_has_missile_count(player, 3)
-                or self.mzm_can_bomb_block(player))
+def power_bomb_count(state: CollectionState, player: int, required_pbs: int):
+    pbcount = (state.count("Power Bomb Tank", player) * 2)
+    return pbcount >= required_pbs
 
-    def mzm_can_hi_jump(self, player: int) -> bool:
-        return self.has("Hi-Jump", player) or self.mzm_can_space_jump(player) or self.mzm_can_ibj(player)
 
-    # this particular combination is extremely common
-    def mzm_can_hj_sj_ibj_or_grip(self, player: int) -> bool:
-        return self.mzm_can_hi_jump(player) or self.has("Power Grip", player)
+def can_regular_bomb(state: CollectionState, player: int):
+    return state.has_all({"Morph Ball", "Bomb"}, player)
 
-    def mzm_can_ballspark(self, player: int) -> bool:
-        return self.has_all({"Morph Ball", "Hi-Jump", "Speed Booster"}, player)
 
-    def mzm_can_space_jump(self, player: int) -> bool:
-        return ((self.has("Chozo Ghost Defeated", player)
-                 or bool(self.mzm_options(player).unknown_items_always_usable.value))
-                and self.has("Space Jump", player))
+# this may be different from can_regular_bomb later and also just reads easier in some rules
+def can_ballcannon(state: CollectionState, player: int):
+    return state.has_all({"Morph Ball", "Bomb"}, player)
 
-    def mzm_can_traverse_heat(self, player: int) -> bool:
-        return self.has("Varia Suit", player) or self.mzm_can_gravity_suit(player)
 
-    # currently used for both heated rooms AND lava dives
-    def mzm_hellrun(self, player: int, required_etanks: int) -> bool:
-        return (bool(self.mzm_options(player).heatruns_lavadives.value)
-                and (self.count("Energy Tank", player) >= required_etanks))
+def can_bomb_block(state: CollectionState, player: int) -> bool:
+    return (state.has("Morph Ball", player)
+            and state.has_any({"Bomb", "Power Bomb Tank"}, player))
 
-    def mzm_can_gravity_suit(self, player: int) -> bool:
-        return ((self.has("Chozo Ghost Defeated", player)
-                 or bool(self.mzm_options(player).unknown_items_always_usable.value))
-                and self.has("Gravity Suit", player))
 
-    def mzm_can_ibj(self, player: int) -> bool:
-        return bool(self.mzm_options(player).ibj_in_logic.value) and self.mzm_can_regular_bomb(player)
+# checked for ability to clear blocks that would require long beam to hit
+def can_long_beam(state: CollectionState, player: int) -> bool:
+    return (state.has("Long Beam", player)
+            or has_missile_count(state, player, 3)
+            or can_bomb_block(state, player))
 
-    def mzm_can_walljump(self, player: int) -> bool:
-        return bool(self.mzm_options(player).walljumps_in_logic.value)
 
-    def mzm_can_tricky_sparks(self, player: int) -> bool:
-        return False and self.has("Speed Booster", player)  # TODO: add option
+def can_hi_jump(state: CollectionState, player: int) -> bool:
+    return state.has("Hi-Jump", player) or can_space_jump(state, player) or can_ibj(state, player)
 
-    def mzm_brinstar_past_hives(self, player: int) -> bool:
-        return self.has("Morph Ball", player) and self.mzm_has_missile_count(player, 10)
 
-    # used for the items in this area as well as determining whether the ziplines can be activated
-    # it's technically possible to do the climb after ballcannon with just hi-jump using tight morph jumps
-    # TODO: add solo hi-jump logic once an option for advanced tricks is added
-    def mzm_kraid_upper_right(self, player: int) -> bool:
-        return (self.mzm_has_missiles(player)
-                and self.mzm_can_ballcannon(player)
-                and (self.mzm_can_walljump(player)
-                     or self.mzm_can_space_jump(player)
-                     or self.has("Power Grip", player))
-                ) and (self.mzm_can_ibj(player)
-                       or self.has("Power Grip", player)
-                       or (self.has("Ice Beam", player) and self.has_any({"Bomb", "Hi-Jump"}, player)))
+# this particular combination is extremely common
+def can_hj_sj_ibj_or_grip(state: CollectionState, player: int) -> bool:
+    return can_hi_jump(state, player) or state.has("Power Grip", player)
 
-    # access to lower kraid via left shaft
-    # TODO: add logic for acid worm skip
-    def mzm_kraid_left_shaft_access(self, player: int) -> bool:
-        return (
-                (self.mzm_can_ibj(player)
-                 or self.has_any({"Power Grip", "Hi-Jump"}, player)
+
+def can_ballspark(state: CollectionState, player: int) -> bool:
+    return state.has_all({"Morph Ball", "Hi-Jump", "Speed Booster"}, player)
+
+
+def can_space_jump(state: CollectionState, player: int) -> bool:
+    return (state.has("Space Jump", player)
+            and (state.has("Chozo Ghost Defeated", player)
+                 or _get_options(state, player).unknown_items_always_usable.value)
+            )
+
+
+def can_traverse_heat(state: CollectionState, player: int) -> bool:
+    return state.has("Varia Suit", player) or can_gravity_suit(state, player)
+
+
+def can_gravity_suit(state: CollectionState, player: int) -> bool:
+    return (state.has("Gravity Suit", player)
+            and (state.has("Chozo Ghost Defeated", player)
+                 or _get_options(state, player).unknown_items_always_usable.value)
+            )
+
+
+# currently used for both heated rooms AND lava dives
+def hellrun(state: CollectionState, player: int, required_etanks: int) -> bool:
+    return (_get_options(state, player).heatruns_lavadives.value
+            and (state.count("Energy Tank", player) >= required_etanks))
+
+
+def can_ibj(state: CollectionState, player: int) -> bool:
+    return _get_options(state, player).ibj_in_logic.value and can_regular_bomb(state, player)
+
+
+def can_walljump(state: CollectionState, player: int) -> bool:
+    return _get_options(state, player).walljumps_in_logic.value
+
+
+def can_tricky_sparks(state: CollectionState, player: int) -> bool:
+    return False and state.has("Speed Booster", player)  # TODO: add option
+
+
+def brinstar_past_hives(state: CollectionState, player: int) -> bool:
+    return state.has("Morph Ball", player) and has_missile_count(state, player, 10)
+
+
+# used for the items in this area as well as determining whether the ziplines can be activated
+# it's technically possible to do the climb after ballcannon with just hi-jump using tight morph jumps
+# TODO: add solo hi-jump logic once an option for advanced tricks is added
+def kraid_upper_right(state: CollectionState, player: int) -> bool:
+    return (has_missiles(state, player)
+            and can_ballcannon(state, player)
+            and (can_walljump(state, player)
+                 or can_space_jump(state, player)
+                 or state.has("Power Grip", player))
+            ) and (can_ibj(state, player)
+                   or state.has("Power Grip", player)
+                   or (state.has("Ice Beam", player) and state.has_any({"Bomb", "Hi-Jump"}, player)))
+
+
+# access to lower kraid via left shaft
+# TODO: add logic for acid worm skip
+def kraid_left_shaft_access(state: CollectionState, player: int) -> bool:
+    return ((can_ibj(state, player) or state.has_any({"Power Grip", "Hi-Jump"}, player))
+            and can_bomb_block(state, player)
+            and (can_regular_bomb(state, player) or state.has("Hi-Jump", player))
+            and (kraid_upper_right(state, player)
+                 or can_space_jump(state, player)
+                 or (can_gravity_suit(state, player) and can_tricky_sparks(state, player))
                  )
-                and self.mzm_can_bomb_block(player)
-                and (self.mzm_can_regular_bomb(player) or self.has("Hi-Jump", player))
-                and (self.mzm_kraid_upper_right(player)
-                     or self.mzm_can_space_jump(player)
-                     or (self.mzm_can_gravity_suit(player)
-                         and (self.mzm_can_ibj(player) or self.mzm_can_tricky_sparks(player)))
+            )
+
+
+def norfair_right_shaft_access(state: CollectionState, player: int) -> bool:
+    return can_hj_sj_ibj_or_grip(state, player) or state.has("Speed Booster", player)
+
+
+def norfair_upper_right_shaft(state: CollectionState, player: int) -> bool:
+    return (norfair_right_shaft_access(state, player)
+            and (can_hj_sj_ibj_or_grip(state, player)
+                 or state.has("Ice Beam", player)
+                 or can_walljump(state, player))
+            )
+
+
+# used for one item and the ridley shortcut
+def norfair_behind_ice_beam(state: CollectionState, player: int) -> bool:
+    return (norfair_upper_right_shaft(state, player)
+            and (can_long_beam(state, player) or state.has("Wave Beam", player))
+            and ((state.has("Ice Beam", player) and state.has_any({"Hi-Jump", "Power Grip"},
+                                                                  player))  # to get up the rippers
+                 or can_ibj(state, player)
+                 or (can_walljump(state, player) and state.has("Power Grip", player)))
+            )
+
+
+def norfair_lower_right_shaft(state: CollectionState, player: int) -> bool:
+    return (norfair_right_shaft_access(state, player)
+            and (state.has("Screw Attack", player)
+                 or (state.has("Speed Booster", player) and can_ballcannon(state, player)))
+            )
+
+
+def norfair_to_save_behind_hijump(state: CollectionState, player: int) -> bool:
+    return (norfair_lower_right_shaft(state, player)
+            and has_missiles(state, player)
+            and can_bomb_block(state, player)
+            and (can_ibj(state, player)
+                 or (has_power_bombs(state, player) and state.has("Hi-Jump", player))
+                 or (state.has("Bomb", player) and state.has_any({"Hi-Jump", "Power Grip"}, player))
+                 )
+            and (can_hj_sj_ibj_or_grip(state, player) or can_walljump(state, player)
+                 or state.has("Ice Beam", player))
+            and (can_traverse_heat(state, player)
+                 or hellrun(state, player, 6))
+            and (can_ibj(state, player) or can_space_jump(state, player)
+                 or (state.has("Speed Booster", player)
+                     and (can_bomb_block(state, player) or state.has("Screw Attack", player))
                      )
-        )
-
-    def mzm_norfair_right_shaft_access(self, player: int) -> bool:
-        return self.mzm_can_hj_sj_ibj_or_grip(player) or self.has("Speed Booster", player)
-
-    def mzm_norfair_upper_right_shaft(self, player: int) -> bool:
-        return (self.mzm_norfair_right_shaft_access(player)
-                and (self.mzm_can_hj_sj_ibj_or_grip(player)
-                     or self.has("Ice Beam", player)
-                     or self.mzm_can_walljump(player))
-                )
-
-    # used for one item and the ridley shortcut
-    def mzm_norfair_behind_ice_beam(self, player: int) -> bool:
-        return (self.mzm_norfair_upper_right_shaft(player)
-                and (self.mzm_can_long_beam(player) or self.has("Wave Beam", player))
-                and ((self.has("Ice Beam", player) and self.has_any({"Hi-Jump", "Power Grip"},
-                                                                    player))  # to get up the rippers
-                     or self.mzm_can_ibj(player)
-                     or (self.mzm_can_walljump(player) and self.has("Power Grip", player)))
-                )
-
-    def mzm_norfair_lower_right_shaft(self, player: int) -> bool:
-        return (self.mzm_norfair_right_shaft_access(player)
-                and (self.has("Screw Attack", player)
-                     or (self.has("Speed Booster", player) and self.mzm_can_ballcannon(player)))
-                )
-
-    def mzm_norfair_to_save_behind_hijump(self, player: int) -> bool:
-        return (self.mzm_norfair_lower_right_shaft(player)
-                and self.mzm_has_missiles(player)
-                and self.mzm_can_bomb_block(player)
-                and (self.mzm_can_ibj(player)
-                     or (self.mzm_has_power_bombs(player) and self.has("Hi-Jump", player))
-                     or (self.has("Bomb", player) and self.has_any({"Hi-Jump", "Power Grip"}, player))
-                )
-                and (self.mzm_can_hj_sj_ibj_or_grip(player) or self.mzm_can_walljump(player)
-                     or self.has("Ice Beam", player))
-                and (self.mzm_can_traverse_heat(player)
-                     or self.mzm_hellrun(player, 6))
-                and (self.mzm_can_ibj(player) or self.mzm_can_space_jump(player)
-                     or (self.has("Speed Booster", player)
-                         and (self.mzm_can_bomb_block(player) or self.has("Screw Attack"), player))
-                )
-        )
-
-    # TODO: double check this
-    def mzm_norfair_shortcut(self, player: int) -> bool:
-        return (self.mzm_norfair_behind_ice_beam(player)
-                and self.mzm_has_missiles(player)
-                and (self.mzm_can_ibj(player)
-                     or (self.has("Power Grip", player)
-                         and (self.mzm_can_space_jump(player) or self.mzm_can_walljump(player))
-                         and self.mzm_can_bomb_block(player)))
-                )
-
-    def mzm_norfair_bottom_right_shaft(self, player: int) -> bool:
-        return (
-                (self.mzm_norfair_to_save_behind_hijump(player)
-                 and self.mzm_has_missile_count(player, 4)
-                 and self.has_all({"Wave Beam", "Speed Booster"}, player)
                  )
-                or (self.mzm_norfair_shortcut(player)))
+            )
 
-    def mzm_ridley_left_shaft_access(self, player: int) -> bool:
-        return (
-                self.mzm_has_super_missiles(player)
-                and (self.mzm_can_hj_sj_ibj_or_grip(player) or self.mzm_can_walljump(player)
-                     or self.has("Ice Beam", player) or self.mzm_can_bomb_block(player))
-                and (self.mzm_can_traverse_heat(player) or self.mzm_hellrun(player, 1))
-        )
 
-    # going the "intended" way, to the left of the elevator, down, and back to the right to get to the right shaft
-    def mzm_ridley_longway_right_shaft_access(self, player: int) -> bool:
-        return (self.mzm_ridley_left_shaft_access(player)
-                and (self.has("Power Grip", player)
-                     and (self.mzm_can_hj_sj_ibj_or_grip(player) or self.mzm_can_walljump(player)))
-                )
+# TODO: double check this
+def norfair_shortcut(state: CollectionState, player: int) -> bool:
+    return (norfair_behind_ice_beam(state, player)
+            and has_missiles(state, player)
+            and (can_ibj(state, player)
+                 or (state.has("Power Grip", player)
+                     and (can_space_jump(state, player) or can_walljump(state, player))
+                     and can_bomb_block(state, player)))
+            )
 
-    # taking the shortcut, to the right of the elevator and up the hole
-    def mzm_ridley_shortcut_right_shaft_access(self, player: int) -> bool:
-        return (
-                self.mzm_has_missiles(player)
-                and (self.mzm_can_ibj(player)
-                     or (self.has("Power Grip", player) and self.mzm_has_power_bombs(player)
-                         and self.has_any({"Ice Beam", "Hi-Jump"}, player)))
-                and (self.mzm_can_bomb_block(player) or self.has("Screw Attack", player))
-        )
 
-    # getting into the gap at the start of "ball room" and subsequently into the general area of ridley himself
-    def mzm_ridley_central_access(self, player: int) -> bool:
-        return (
-                (self.mzm_ridley_shortcut_right_shaft_access(player) or self.mzm_ridley_longway_right_shaft_access(
-                    player))
-                and (self.mzm_can_ibj(player) or self.has_any({"Hi-Jump", "Power Grip"}, player))
-        )
+def norfair_bottom_right_shaft(state: CollectionState, player: int) -> bool:
+    return ((norfair_to_save_behind_hijump(state, player)
+             and has_missile_count(state, player, 4)
+             and state.has_all({"Wave Beam", "Speed Booster"}, player)
+             )
+            or (norfair_shortcut(state, player)))
 
-    # ice beam makes dealing with the pirates a ton easier. etanks keeps you from needing to go too deep before you have
-    # a decent chance to survive. the rest is the strictest requirement to get in and back out of the chozo ghost area
-    def mzm_chozodia_ghost_from_upper_crateria_door(self, player: int) -> bool:
-        return (
-            self.has("Ice Beam", player) and (self.count("Energy Tank", player) >= 4)
-            and self.mzm_has_missiles(player)
-            and (self.mzm_can_walljump(player) or self.mzm_can_ibj(player)
-                 or self.mzm_can_space_jump(player))
-            and self.count("Power Bomb Tank", player) >= 2
-        )
 
-    def mzm_chozodia_glass_tube_from_crateria_door(self, player: int) -> bool:
-        return (
-            # from upper door
-            (self.has("Ice Beam", player) and (self.count("Energy Tank", player) >= 2)
-                and self.mzm_has_missiles(player) and self.has("Power Bomb Tank", player)
-                and (self.mzm_can_space_jump(player) or self.mzm_can_ibj(player)))
+def ridley_left_shaft_access(state: CollectionState, player: int) -> bool:
+    return (has_super_missiles(state, player)
+            and (can_hj_sj_ibj_or_grip(state, player) or can_walljump(state, player)
+                 or state.has("Ice Beam", player) or can_bomb_block(state, player))
+            and (can_traverse_heat(state, player) or hellrun(state, player, 1))
+            )
+
+
+# going the "intended" way, to the left of the elevator, down, and back to the right to get to the right shaft
+def ridley_longway_right_shaft_access(state: CollectionState, player: int) -> bool:
+    return (ridley_left_shaft_access(state, player)
+            and (state.has("Power Grip", player)
+                 and (can_hj_sj_ibj_or_grip(state, player) or can_walljump(state, player)))
+            )
+
+
+# taking the shortcut, to the right of the elevator and up the hole
+def ridley_shortcut_right_shaft_access(state: CollectionState, player: int) -> bool:
+    return (has_missiles(state, player)
+            and ((state.has("Power Grip", player) and has_power_bombs(state, player)
+                  and state.has_any({"Ice Beam", "Hi-Jump"}, player))
+                 or can_ibj(state, player))
+            and (can_bomb_block(state, player) or state.has("Screw Attack", player))
+            )
+
+
+# getting into the gap at the start of "ball room" and subsequently into the general area of ridley himself
+def ridley_central_access(state: CollectionState, player: int) -> bool:
+    return (
+            (ridley_shortcut_right_shaft_access(state, player) or ridley_longway_right_shaft_access(state, player))
+            and (can_ibj(state, player) or state.has_any({"Hi-Jump", "Power Grip"}, player))
+    )
+
+
+# ice beam makes dealing with the pirates a ton easier. etanks keeps you from needing to go too deep before you have
+# a decent chance to survive. the rest is the strictest requirement to get in and back out of the chozo ghost area
+def chozodia_ghost_from_upper_crateria_door(state: CollectionState, player: int) -> bool:
+    return (
+            state.has("Ice Beam", player) and (state.count("Energy Tank", player) >= 4)
+            and has_missiles(state, player)
+            and (can_walljump(state, player) or can_ibj(state, player)
+                 or can_space_jump(state, player))
+            and state.count("Power Bomb Tank", player) >= 2
+    )
+
+
+def chozodia_glass_tube_from_crateria_door(state: CollectionState, player: int) -> bool:
+    return (
+        # from upper door
+            (state.has("Ice Beam", player) and (state.count("Energy Tank", player) >= 2)
+             and has_missiles(state, player) and state.has("Power Bomb Tank", player)
+             and (can_space_jump(state, player) or can_ibj(state, player)))
             # from lower door
-            or (self.has("Ice Beam", player) and (self.count("Energy Tank", player) >= 2)
-                and (self.mzm_can_ibj(player) or self.mzm_can_space_jump(player) or self.has("Speed Booster", player))
-                and self.mzm_has_missile_count(player, 6)
-                and self.has("Power Bomb Tank", player)
+            or (state.has("Ice Beam", player) and (state.count("Energy Tank", player) >= 2)
+                and (can_ibj(state, player) or can_space_jump(state, player) or state.has("Speed Booster", player))
+                and has_missile_count(state, player, 6)
+                and state.has("Power Bomb Tank", player)
                 )
-        )
+    )
 
-    # from the ruins to the save station next to the big room with all the tripwires
-    def mzm_chozodia_tube_to_mothership_central(self, player: int) -> bool:
-        return (self.mzm_chozodia_glass_tube_from_crateria_door(player)
-                and self.count("Energy Tank", player) >= 6
-                and ((self.has("Hi-Jump", player) and (self.mzm_can_walljump(player) or self.has("Power Grip", player)))
-                    or self.mzm_can_ibj(player) or self.mzm_can_space_jump(player)
-                )
-        )
 
-    def mzm_chozodia_to_cockpit(self, player: int) -> bool:
-        return (((self.mzm_can_walljump(player) and self.has("Hi-Jump", player)) or self.mzm_can_ibj(player)
-                 or self.mzm_can_space_jump(player))
-                and self.count("Energy Tank", player) >= 6
-                and self.has("Ice Beam", player)
-                and self.mzm_has_missiles(player)
-                and (self.has("Bomb", player) or self.count("Power Bomb Tank", player) >= 2))
+# from the ruins to the save station next to the big room with all the tripwires
+def chozodia_tube_to_mothership_central(state: CollectionState, player: int) -> bool:
+    return (chozodia_glass_tube_from_crateria_door(state, player)
+            and state.count("Energy Tank", player) >= 6
+            and ((state.has("Hi-Jump", player) and (can_walljump(state, player) or state.has("Power Grip", player)))
+                 or can_ibj(state, player) or can_space_jump(state, player)
+                 )
+            )
+
+
+def chozodia_to_cockpit(state: CollectionState, player: int) -> bool:
+    return (((can_walljump(state, player) and state.has("Hi-Jump", player)) or can_ibj(state, player)
+             or can_space_jump(state, player))
+            and state.count("Energy Tank", player) >= 6
+            and state.has("Ice Beam", player)
+            and has_missiles(state, player)
+            and (state.has("Bomb", player) or state.count("Power Bomb Tank", player) >= 2))
