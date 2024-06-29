@@ -140,6 +140,7 @@ class ZMConstants:
     SUB_GAME_MODE_PLAYING = 2
     SUB_GAME_MODE_DYING = 5
     AREA_MAX = 7
+    ITEM_NONE = 0xFF
 
     # Structs
     Equipment = "<HHBBHHBBBBBBBBBB"
@@ -363,6 +364,9 @@ class MZMClient(BizHawkClient):
             write_list += [
                 write8(ZMConstants.gIncomingItemId, next_item_id),
                 write(ZMConstants.gMultiworldItemSenderName, next_item_sender),
+            ]
+            guard_list += [
+                guard8(ZMConstants.gIncomingItemId, ZMConstants.ITEM_NONE),
             ]
 
         try:
