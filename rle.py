@@ -56,7 +56,7 @@ def compress(data: ByteString):
         # Try each read length
         buffers = (bytearray(), bytearray())
         for read_length, buffer in enumerate(buffers):
-            min_run_length = 3 + read_length  # The game data is compressed like this, but 2 + read_length seems to be more efficient?
+            min_run_length = 3 + read_length
             flag = 0x80 << (8 * read_length)
             max_run_length = flag - 1
             unique = bytearray()

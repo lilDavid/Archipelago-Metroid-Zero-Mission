@@ -1,7 +1,7 @@
 from enum import IntEnum
 import itertools
 import struct
-from typing import Callable, NamedTuple, Optional, Sequence, Union
+from typing import Callable, ClassVar, List, NamedTuple, Optional, Sequence, Tuple, Union
 
 from . import lz10, rle, iterators
 from .data import get_rom_address, get_symbol
@@ -195,25 +195,55 @@ class BackgroundInfo(NamedTuple):
         return self.rom[self.rom_address():]
 
 
-class RoomBackgrounds(NamedTuple):
+class SpriteData(NamedTuple):
+    y: int
+    x: int
+    spriteset_index: int
+
+    @classmethod
+    def terminator(cls):
+        return cls(255, 255, 255 - 17)
+
+    @classmethod
+    def unpack(cls, data: ByteString):
+        y, x, i = struct.unpack("<BBB", data)
+        return cls(y, x, i - 17)
+
+    @classmethod
+    def iter_unpack(cls, data: ByteString):
+        for i in itertools.count(0, 3):
+            packed = data[i:i + 3]
+            self = cls.unpack(packed)
+            yield self
+            if self == cls.terminator():
+                return
+
+    def pack(self):
+        return struct.pack("<BBB", self.y, self.x, 17 + self.spriteset_index)
+
+
+class RoomInfo(NamedTuple):
     bg0: BackgroundInfo
     bg1: BackgroundInfo
     bg2: BackgroundInfo
     bg3: BackgroundInfo
     clipdata: BackgroundInfo
+    default_sprite_data_address: int
 
     @classmethod
     def from_pointer(cls, rom: ByteString, ptr: int):
         ptr &= (0x8000000 - 1)
-        bg0_prop, bg1_prop, bg2_prop, bg3_prop, bg0_ptr, bg1_ptr, bg2_ptr, clipdata_ptr, bg3_ptr = (
-            struct.unpack_from("<xBBBBxxxIIIII", rom, ptr)
-        )
+        (bg0_prop, bg1_prop, bg2_prop, bg3_prop,
+         bg0_ptr, bg1_ptr, bg2_ptr, clipdata_ptr, bg3_ptr,
+         default_sprite_ptr
+        ) = struct.unpack_from("<xBBBBxxxIIIIIxxxxI", rom, ptr)
         bg0 = BackgroundInfo.from_data(rom, bg0_prop, bg0_ptr)
         bg1 = BackgroundInfo.from_data(rom, bg1_prop, bg1_ptr)
         bg2 = BackgroundInfo.from_data(rom, bg2_prop, bg2_ptr)
         bg3 = BackgroundInfo.from_data(rom, bg3_prop, bg3_ptr)
         clipdata = BackgroundInfo.from_data(rom, BackgroundProperties.RLE_COMPRESSED, clipdata_ptr)
-        return cls(bg0, bg1, bg2, bg3, clipdata)
+        default_sprites = default_sprite_ptr & (0x8000000 - 1)
+        return cls(bg0, bg1, bg2, bg3, clipdata, default_sprites)
 
 
 class Area(IntEnum):
@@ -227,7 +257,9 @@ class Area(IntEnum):
 
 
 class Clipdata(IntEnum):
+    AIR = 0x00
     SOLID = 0x10
+    ELEVATOR_UP = 0x29
     BEAM_BLOCK_NEVER_REFORM = 0x52
     BEAM_BLOCK_NO_REFORM = 0x55
     PITFALL_BLOCK = 0x56
@@ -298,12 +330,12 @@ def read_u32(rom, addr):
     return int.from_bytes(rom[addr:addr + 4], "little")
 
 
-def background_extraction_function(rom: ByteString) -> Callable[[int, int], RoomBackgrounds]:
+def background_extraction_function(rom: ByteString) -> Callable[[int, int], RoomInfo]:
     def get_backgrounds(area, room):
         room_entry_pointer_array_addr = get_rom_address("sAreaRoomEntryPointers")
         room_entry_array_addr = read_u32(rom, (room_entry_pointer_array_addr + 4 * area) & (0x8000000 - 1))
         room_entry_addr = (room_entry_array_addr + 60 * room) & (0x8000000 - 1)
-        return RoomBackgrounds.from_pointer(rom, room_entry_addr)
+        return RoomInfo.from_pointer(rom, room_entry_addr)
     return get_backgrounds
 
 
@@ -335,27 +367,44 @@ def apply_layout_patches(rom: bytes) -> bytes:
         long_beam_hall_clipdata.set(x, 8, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.BEAM_BLOCK_NO_REFORM)
     write_data(rombuffer, long_beam_hall_clipdata.to_compressed_data(), long_beam_hall.clipdata.rom_address())
 
-    # Rework Norfair elevator
+    # Move Norfair elevator to the bottom of the room
     norfair_brinstar_elevator = get_backgrounds(Area.NORFAIR, 0)
     norfair_brinstar_elevator_clipdata = BackgroundTilemap.from_info(norfair_brinstar_elevator.clipdata, 238)
-    for x in (4, 5, 13, 14):
-        norfair_brinstar_elevator_clipdata.set(x, 20, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.SCREW_ATTACK_BLOCK_NO_REFORM)
-        norfair_brinstar_elevator_clipdata.set(x, 21, Clipdata.BOMB_BLOCK_NEVER_REFORM, Clipdata.SCREW_ATTACK_BLOCK_NO_REFORM)
-    for x in (6, 12):
-        norfair_brinstar_elevator_clipdata.set(x, 20, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.BOMB_BLOCK_NEVER_REFORM)
-        norfair_brinstar_elevator_clipdata.set(x, 21, Clipdata.SCREW_ATTACK_BLOCK_NO_REFORM, Clipdata.PITFALL_BLOCK)
+    norfair_brinstar_elevator_bg1 = BackgroundTilemap.from_info(norfair_brinstar_elevator.bg1, 504)
+    elevator_tiles = [[0x01D0, 0x01D1, 0x01D2, 0x01D3, 0x01D4],
+                      [0x01E0, 0x01E1, 0x01E2, 0x01E3, 0x01E4],
+                      [0x0000] * 5]
+    ground_tiles = [[0x0000] * 5,
+                    [0x009B, 0x006B, 0x009E, 0x009C, 0x009D],
+                    [0x00AB, 0x0000, 0x00AE, 0x00AC, 0x00AD]]
+    norfair_brinstar_elevator_clipdata.set(9, 16, Clipdata.SOLID, Clipdata.ELEVATOR_UP)
+    norfair_brinstar_elevator_clipdata.set(9, 29, Clipdata.ELEVATOR_UP, Clipdata.SOLID)
+    for x in (7, 11):
+        norfair_brinstar_elevator_clipdata.set(x, 26, Clipdata.AIR, Clipdata.SOLID)
+    for y, (elevator_row, ground_row) in enumerate(zip(elevator_tiles, ground_tiles)):
+        for x, (elevator_tile, ground_tile) in enumerate(zip(elevator_row, ground_row)):
+            norfair_brinstar_elevator_bg1.set(x + 7, y + 15, ground_tile, elevator_tile)
+            norfair_brinstar_elevator_bg1.set(x + 7, y + 28, elevator_tile, ground_tile)
+    new_sprites = b"".join([
+        SpriteData(28, 9, 4).pack(),  # Elevator
+        SpriteData(23, 6, 2).pack(),  # Ripper
+        SpriteData(23, 12, 2).pack(),  # Ripper
+        SpriteData.terminator().pack()
+    ])
     write_data(rombuffer, norfair_brinstar_elevator_clipdata.to_compressed_data(), norfair_brinstar_elevator.clipdata.rom_address())
+    write_data(rombuffer, norfair_brinstar_elevator_bg1.to_compressed_data(), norfair_brinstar_elevator.bg1.rom_address())
+    write_data(rombuffer, new_sprites, norfair_brinstar_elevator.default_sprite_data_address)
 
     # Add beam blocks to escape softlock
     # Change visual to not leave floating dirt when breaking the blocks
     crateria_near_plasma = get_backgrounds(Area.CRATERIA, 9)
     crateria_near_plasma_clipdata = BackgroundTilemap.from_info(crateria_near_plasma.clipdata, 645)
+    crateria_near_plasma_bg1 = BackgroundTilemap.from_info(crateria_near_plasma.bg1, 1539)
     for x in range(9, 12):
         crateria_near_plasma_clipdata.set(x, 39, Clipdata.BEAM_BLOCK_NO_REFORM, Clipdata.SOLID)
-    write_data(rombuffer, crateria_near_plasma_clipdata.to_compressed_data(), crateria_near_plasma.clipdata.rom_address())
-    crateria_near_plasma_bg1 = BackgroundTilemap.from_info(crateria_near_plasma.bg1, 1539)
     crateria_near_plasma_bg1.set(10, 38, 0x0000, 0x0064)
     crateria_near_plasma_bg1.set(10, 39, 0x0072, 0x0074)
+    write_data(rombuffer, crateria_near_plasma_clipdata.to_compressed_data(), crateria_near_plasma.clipdata.rom_address())
     write_data(rombuffer, crateria_near_plasma_bg1.to_compressed_data(), crateria_near_plasma.bg1.rom_address())
 
     return bytes(rombuffer)
