@@ -43,18 +43,21 @@ class MZMPatchExtensions(APPatchExtension):
     def apply_layout_patches(caller: APProcedurePatch, rom: bytes) -> bytes:
         return rom_data.apply_layout_patches(rom)
 
+
 class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     game = "Metroid Zero Mission"
     hash = MD5_MZMUS
     patch_file_ending = ".apmzm"
     result_file_ending = ".gba"
 
-    procedure = [
-        ("apply_bsdiff4", ["basepatch.bsdiff"]),
-        ("apply_tokens", ["token_data.bin"]),
-        ("add_decompressed_graphics", []),
-        ("apply_background_patches", []),
-    ]
+    def __init__(self, *args, **kwargs):
+        super(MZMProcedurePatch, self).__init__(*args, **kwargs)
+        self.procedure = [
+            ("apply_bsdiff4", ["basepatch.bsdiff"]),
+            ("apply_tokens", ["token_data.bin"]),
+            ("add_decompressed_graphics", []),
+            ("apply_background_patches", []),
+        ]
 
     @classmethod
     def get_source_data(cls) -> bytes:
