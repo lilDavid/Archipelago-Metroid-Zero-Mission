@@ -5,7 +5,10 @@ Option definitions for Metroid: Zero Mission
 from schema import And, Schema
 from dataclasses import dataclass
 
-from Options import Choice, DeathLink, DefaultOnToggle, OptionDict, StartInventoryPool, Toggle, PerGameCommonOptions, Visibility
+from Options import (
+    Choice, DeathLink, DefaultOnToggle, OptionDict, OptionGroup, StartInventoryPool, Toggle,
+    PerGameCommonOptions, Visibility
+)
 
 
 class ChozodiaAccess(Choice):
@@ -46,6 +49,7 @@ class IBJInLogic(Toggle):
     """
     display_name = "IBJ In Logic"
 
+
 class HeatRunsAndLavaDives(Toggle):
     """
     Allows for traversing heated rooms and acid/lava dives without the appropriate suit(s) in logic.
@@ -55,6 +59,7 @@ class HeatRunsAndLavaDives(Toggle):
     mitigating suit.
     """
     display_name = "Heat Runs/Lava Dives"
+
 
 class WalljumpsInLogic(DefaultOnToggle):
     """
@@ -115,17 +120,40 @@ class JunkFillWeights(OptionDict):
         "Nothing": 0,
     }
 
+
+mzm_option_groups = [
+    OptionGroup("World", [
+        ChozodiaAccess,
+        SkipChozodiaStealth,
+        UnknownItemsAlwaysUsable,
+        LayoutPatches,
+        MorphBallPlacement,  # TODO: Shuffle settings group?
+    ]),
+    OptionGroup("Logic", [
+        IBJInLogic,
+        HeatRunsAndLavaDives,
+        WalljumpsInLogic,
+    ]),
+    OptionGroup("Cosmetic", [
+        DisplayNonLocalItems,
+    ]),
+    OptionGroup("Item & Location Options", [
+        JunkFillWeights,
+    ]),
+]
+
+
 @dataclass
 class MZMOptions(PerGameCommonOptions):
-    start_inventory_from_pool: StartInventoryPool
+    death_link: DeathLink
     chozodia_access: ChozodiaAccess
     skip_chozodia_stealth: SkipChozodiaStealth
     unknown_items_always_usable: UnknownItemsAlwaysUsable
+    layout_patches: LayoutPatches
+    morph_ball: MorphBallPlacement
     ibj_in_logic: IBJInLogic
     heatruns_lavadives: HeatRunsAndLavaDives
     walljumps_in_logic: WalljumpsInLogic
-    layout_patches: LayoutPatches
-    morph_ball: MorphBallPlacement
     display_nonlocal_items: DisplayNonLocalItems
-    death_link: DeathLink
+    start_inventory_from_pool: StartInventoryPool
     junk_fill_weights: JunkFillWeights

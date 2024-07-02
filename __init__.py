@@ -11,7 +11,7 @@ from .client import MZMClient
 from .data import data_path
 from .items import item_data_table, major_item_data_table, MZMItem
 from .locations import full_location_table
-from .options import MZMOptions, MorphBallPlacement
+from .options import MZMOptions, MorphBallPlacement, mzm_option_groups
 from .regions import create_regions
 from .rom import MZMProcedurePatch, write_tokens
 from .rules import set_rules
@@ -45,6 +45,7 @@ class MZMWeb(WebWorld):
     )
 
     tutorials = [setup]
+    option_groups = mzm_option_groups
 
 
 class MZMWorld(World):
@@ -58,6 +59,8 @@ class MZMWorld(World):
     settings: MZMSettings
 
     web = MZMWeb()
+
+    required_client_version = (0, 5, 0)
 
     item_name_to_id = {name: data.code for name, data in item_data_table.items()}
     location_name_to_id = full_location_table
