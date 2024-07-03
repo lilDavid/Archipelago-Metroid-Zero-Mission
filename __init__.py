@@ -7,7 +7,6 @@ from BaseClasses import ItemClassification, Tutorial
 import settings
 from worlds.AutoWorld import WebWorld, World
 
-from .client import MZMClient
 from .data import data_path
 from .items import item_data_table, major_item_data_table, MZMItem
 from .locations import full_location_table
@@ -50,7 +49,9 @@ class MZMWeb(WebWorld):
 
 class MZMWorld(World):
     """
-    Placeholder Description. Metroid: Zero Mission is a cool game
+    Metroid: Zero Mission is a retelling of the first Metroid on NES. Relive Samus' first adventure on planet Zebes with
+    new areas, items, enemies, and story! Logic based on Metroid: Zero Mission Randomizer by Biosp4rk and Dragonfangs,
+    used with permission.
     """
     game: str = "Metroid Zero Mission"
     options_dataclass = MZMOptions

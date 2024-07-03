@@ -13,8 +13,8 @@ from Options import (
 
 class ChozodiaAccess(Choice):
     """
-    Open: You can access Chozodia by using a Power Bomb to open the doors
-    Closed: You must defeat Mother Brain to access Chozodia
+    Open: You can access Chozodia by using a Power Bomb to open the doors.
+    Closed: You must defeat Mother Brain to access Chozodia.
     """
     display_name = "Chozodia Access"
     option_open = 0
@@ -27,15 +27,15 @@ class UnknownItemsAlwaysUsable(DefaultOnToggle):
     Unknown Items (Plasma Beam, Space Jump, and Gravity Suit) are activated and usable as soon as
     they are received.
 
-    When this option is disabled, the player will need to defeat the Chozo Ghost in Chozodia in order
+    When this option is disabled, the player will need to defeat the Chozo Ghost in Chozodia as ZSS in order
     to unlock Samus' fully-powered suit, after which they may then use the Plasma Beam, Space Jump,
-    and Gravity Suit, as in the original game.
+    and Gravity Suit, as in the unmodified game.
     """
     display_name = "Unknown Items Always Usable"
 
 
 class SkipChozodiaStealth(DefaultOnToggle):
-    """When escaping Tourian, place Samus in the save room just outside of the Chozo Ghost's room in Chozodia."""
+    """After escaping Tourian, place Samus in the save room just outside of the Chozo Ghost's room in Chozodia."""
     display_name = "Skip Chozodia Stealth"
 
 
@@ -43,7 +43,7 @@ class IBJInLogic(Toggle):
     """
     Allows for using IBJ (infinite bomb jumping) in logic.
 
-    This option may require you to traverse long vertical or horizontal distances using only bombs.
+    Enabling this option may require you to traverse long vertical or horizontal distances using only bombs.
 
     If disabled, this option does not disable performing IBJ, but it will never be logically required.
     """
@@ -63,8 +63,8 @@ class HeatRunsAndLavaDives(Toggle):
 
 class WalljumpsInLogic(DefaultOnToggle):
     """
-    Allows for using walljumps in logic. As the game does not teach nor require walljumping to complete the game
-    while acquiring all items, all items will be accessible using other means regardless of this setting.
+    Allows for using walljumps in logic. You may be required to walljump instead of using items such as Hi-Jump or
+    Power Grip in order to logically progress, where possible.
 
     Disabling this option will not remove the ability to walljump, but it will never be logically required.
     """
@@ -73,7 +73,9 @@ class WalljumpsInLogic(DefaultOnToggle):
 
 class LayoutPatches(DefaultOnToggle):
     """
-    Modify the layout of a few rooms to reduce softlocks
+    Modify the layout of a few rooms to reduce softlocks.
+    NOTE: You can warp to the starting room from any save station or Samus' ship by holding L+R while selecting "No"
+    when asked to save.
     """
     display_name = "Layout Patches"
 
@@ -81,6 +83,8 @@ class LayoutPatches(DefaultOnToggle):
 class MorphBallPlacement(Choice):
     """
     Influences where the Morph Ball will be placed.
+    Normal: Shuffled into the pool with no special treatment.
+    Early: Forced to be local in an early location.
     """
     display_name = "Morph Ball Placement"
     option_normal = 0
@@ -92,9 +96,9 @@ class DisplayNonLocalItems(Choice):
     """
     How to display items that will be sent to other players.
 
-    Match Series: Items from Super Metroid and SMZ3 display as their counterpart in Zero Mission
-    Match Game: Items for other Zero Mission worlds appear as the item that will be sent
-    None: All items for other players appear as AP logos
+    Match Series: Items from Super Metroid and SMZ3 display as their counterpart in Zero Mission.
+    Match Game: Items for other Zero Mission worlds appear as the item that will be sent.
+    None: All items for other players appear as Archipelago logos.
     """
     display_name = "Display Other Players' Items"
     option_none = 0
