@@ -265,8 +265,13 @@ class Clipdata(IntEnum):
     PITFALL_BLOCK = 0x56
     BOMB_BLOCK_NEVER_REFORM = 0x57
     BEAM_BLOCK_REFORM = 0x62
+    SPEED_BOOSTER_BLOCK_NO_REFORM = 0x5A
     SPEED_BOOSTER_BLOCK_REFORM = 0x6A
     SCREW_ATTACK_BLOCK_NO_REFORM = 0x6B
+    TOP_LEFT_SHOT_BLOCK_NO_REFORM = 0x53
+    TOP_RIGHT_SHOT_BLOCK_NO_REFORM = 0x54
+    BOTTOM_LEFT_SHOT_BLOCK_NO_REFORM = 0x63
+    BOTTOM_RIGHT_SHOT_BLOCK_NO_REFORM = 0x64
 
 
 class BackgroundTilemap:
@@ -407,4 +412,20 @@ def apply_layout_patches(rom: bytes) -> bytes:
     write_data(rombuffer, crateria_near_plasma_clipdata.to_compressed_data(), crateria_near_plasma.clipdata.rom_address())
     write_data(rombuffer, crateria_near_plasma_bg1.to_compressed_data(), crateria_near_plasma.bg1.rom_address())
 
+    # Change speed booster blocks in watery room next to elevator to beam blocks
+    crateria_water_speedway = get_backgrounds(Area.CRATERIA, 0xB)
+    crateria_water_speedway_clipdata = BackgroundTilemap.from_info(crateria_water_speedway.clipdata, 151)
+    crateria_water_speedway_clipdata.set(0x11, 0xA,
+                                         Clipdata.TOP_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+    crateria_water_speedway_clipdata.set(0x12, 0xA,
+                                         Clipdata.TOP_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+    crateria_water_speedway_clipdata.set(0x11, 0xB,
+                                         Clipdata.BOTTOM_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+    crateria_water_speedway_clipdata.set(0x12, 0xB,
+                                         Clipdata.BOTTOM_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+    crateria_water_speedway_clipdata.set(0x13, 0xB,
+                                         Clipdata.BEAM_BLOCK_NO_REFORM,
+                                         Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+    write_data(rombuffer, crateria_water_speedway_clipdata.to_compressed_data(),
+               crateria_water_speedway.clipdata.rom_address())
     return bytes(rombuffer)
