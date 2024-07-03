@@ -428,4 +428,18 @@ def apply_layout_patches(rom: bytes) -> bytes:
                                          Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     write_data(rombuffer, crateria_water_speedway_clipdata.to_compressed_data(),
                crateria_water_speedway.clipdata.rom_address())
+
+    # Change speed booster blocks in Kraid escape room to beam blocks
+    kraid_right_shaft = get_backgrounds(Area.KRAID, 0x1B)
+    kraid_right_shaft_clipdata = BackgroundTilemap.from_info(kraid_right_shaft.clipdata, 520)
+    kraid_right_shaft_clipdata.set(0xA, 0x37,
+                                         Clipdata.TOP_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+    kraid_right_shaft_clipdata.set(0xB, 0x37,
+                                         Clipdata.TOP_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+    kraid_right_shaft_clipdata.set(0xA, 0x38,
+                                         Clipdata.BOTTOM_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+    kraid_right_shaft_clipdata.set(0xB, 0x38,
+                                         Clipdata.BOTTOM_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+    write_data(rombuffer, kraid_right_shaft_clipdata.to_compressed_data(), kraid_right_shaft.clipdata.rom_address())
+
     return bytes(rombuffer)
