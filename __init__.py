@@ -7,6 +7,7 @@ from BaseClasses import ItemClassification, Tutorial
 import settings
 from worlds.AutoWorld import WebWorld, World
 
+from .client import MZMClient
 from .data import data_path
 from .items import item_data_table, major_item_data_table, MZMItem
 from .locations import full_location_table
