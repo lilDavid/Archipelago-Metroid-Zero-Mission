@@ -243,6 +243,9 @@ class MZMClient(BizHawkClient):
             await client_ctx.disconnect()
             return
 
+        if client_ctx.server is None or client_ctx.server.socket.closed or client_ctx.slot_data is None:
+            return
+
         if self.death_link.update_pending:
             await client_ctx.update_death_link(self.death_link.enabled)
             self.death_link.update_pending = False
