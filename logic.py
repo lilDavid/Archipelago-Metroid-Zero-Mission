@@ -121,7 +121,7 @@ def kraid_upper_right(state: CollectionState, player: int) -> bool:
                  or state.has("Power Grip", player))
             ) and (can_ibj(state, player)
                    or state.has("Power Grip", player)
-                   or (state.has("Ice Beam", player) and state.has_any({"Bomb", "Hi-Jump"}, player)))
+                   or (state.has_all({"Ice Beam", "Hi-Jump"}, player)))
 
 
 # access to lower kraid via left shaft
