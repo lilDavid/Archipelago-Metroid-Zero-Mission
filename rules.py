@@ -87,11 +87,12 @@ def set_rules(world: MZMWorld, locations):
             lambda state: (logic.has_missiles(state, player)
                            and logic.can_bomb_block(state, player)),
         "Brinstar Post-Hive Missile": lambda state: logic.brinstar_past_hives(state, player),
-        "Brinstar Upper Pillar Missile": lambda state: logic.can_bomb_block(state, player),
+        "Brinstar Upper Pillar Missile": lambda state: (logic.can_bomb_block(state, player)
+                                                        and state.has_any({"Bomb", "Hi-Jump"}, player)),
         "Brinstar Behind Bombs":
             lambda state: (logic.brinstar_past_hives(state, player)
-                           and (state.has("Bomb", player)
-                                or (logic.has_power_bombs(state, player) and state.has("Hi-Jump", player)))
+                           and (logic.can_bomb_block(state, player)
+                                and state.has_any({"Bomb", "Hi-Jump"}, player))
                            ),
         "Brinstar Bomb":
             lambda state: logic.brinstar_past_hives(state, player),
