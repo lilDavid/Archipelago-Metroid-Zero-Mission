@@ -152,6 +152,7 @@ def set_rules(world: MZMWorld, locations):
                 and (state.count("Energy Tank", player) >= 1)
                 and (state.has_all({"Hi-Jump", "Power Grip"}, player)
                      or state.has("Speed Booster", player)
+                     or logic.can_space_jump(state, player)
                      or logic.can_ibj(state, player)
                      or logic.can_walljump(state, player))
         )
@@ -316,7 +317,7 @@ def set_rules(world: MZMWorld, locations):
                      or state.has_all({"Long Beam", "Wave Beam"}, player))
                 and (logic.has_missile_count(state, player, 5)
                      and (logic.can_walljump(state, player) or logic.can_space_jump(state, player)
-                          or logic.can_space_jump(state, player) or state.has("Power Grip"), player))
+                          or logic.can_space_jump(state, player) or state.has("Power Grip", player)))
         ),
         "Ridley Southwest Puzzle Bottom": lambda state: (
                 (logic.ridley_longway_right_shaft_access(state, player)
@@ -415,7 +416,7 @@ def set_rules(world: MZMWorld, locations):
     }
 
     crateria_access_rules = {
-        "Crateria Landing Site Ballspark": lambda state:(
+        "Crateria Landing Site Ballspark": lambda state: (
                 state.has("Chozo Ghost Defeated", player) and logic.can_ballspark(state, player)
                 and (logic.can_gravity_suit(state, player)
                      or state.can_reach_entrance("Brinstar-Crateria ball cannon", player))),
