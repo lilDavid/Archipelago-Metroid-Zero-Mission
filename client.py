@@ -151,6 +151,7 @@ class ZMConstants:
     gPreventMovementTimer = get_symbol("gPreventMovementTimer")
     gEquipment = get_symbol("gEquipment")
     gEventsTriggered = get_symbol("gEventsTriggered")
+    gCurrentArea = get_symbol("gCurrentArea")
     gRandoLocationBitfields = get_symbol("gRandoLocationBitfields")
     gIncomingItemId = get_symbol("gIncomingItemId")
     gMultiworldItemCount = get_symbol("gMultiworldItemCount")
@@ -163,6 +164,7 @@ class MZMClient(BizHawkClient):
     patch_suffix = ".apmzm"
     local_checked_locations: List[int]
     local_set_events: Dict[str, bool]
+    local_area: int
     rom_slot_name: str
 
     death_link: DeathLinkCtx
@@ -173,6 +175,7 @@ class MZMClient(BizHawkClient):
         super().__init__()
         self.local_checked_locations = []
         self.local_set_events = {flag: False for flag in TRACKER_EVENT_FLAGS}
+        self.local_area = 0
         self.rom_slot_name = None
 
     async def validate_rom(self, client_ctx: BizHawkClientContext) -> bool:
@@ -257,6 +260,7 @@ class MZMClient(BizHawkClient):
                 read16(ZMConstants.gMainGameMode),
                 read16(ZMConstants.gGameModeSub1),
                 read16(ZMConstants.gPreventMovementTimer),
+                read8(ZMConstants.gCurrentArea),
                 read(ZMConstants.gEventsTriggered, 4 * 3),
                 read(ZMConstants.gRandoLocationBitfields, 4 * ZMConstants.AREA_MAX),
                 read8(ZMConstants.gMultiworldItemCount)
@@ -267,6 +271,7 @@ class MZMClient(BizHawkClient):
         gMainGameMode = next_int(read_result)
         gGameModeSub1 = next_int(read_result)
         gPreventMovementTimer = next_int(read_result)
+        gCurrentArea = next_int(read_result)
         gEventsTriggered = struct.unpack(f"<3I", next(read_result))
         gRandoLocationBitfields = struct.unpack(f"<{ZMConstants.AREA_MAX}I", next(read_result))
         gMultiworldItemCount = next_int(read_result)
@@ -327,6 +332,15 @@ class MZMClient(BizHawkClient):
                 "operations": [{"operation": "or", "value": event_bitfield}]
             }])
             self.local_set_events = set_events
+
+        if self.local_area != gCurrentArea and client_ctx.slot is not None:
+            await client_ctx.send_msgs([{
+                "cmd": "Set",
+                "key": f"mzm_area_{client_ctx.team}_{client_ctx.slot}",
+                "default": 0,
+                "want_reply": False,
+                "operations": [{"operation": "replace", "value": gCurrentArea}]
+            }])
 
         if self.death_link.enabled:
             if (gameplay_state == (ZMConstants.GM_INGAME, ZMConstants.SUB_GAME_MODE_DYING)
