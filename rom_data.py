@@ -349,6 +349,13 @@ def apply_always_background_patches(rom: bytes) -> bytes:
     get_backgrounds = background_extraction_function(rom)
 
     # Change the spotlight graphics so it always appears dark
+    chozodia_before_map = get_backgrounds(Area.CHOZODIA, 10).bg0
+    chozodia_before_map_bg0 = BackgroundTilemap.from_info(chozodia_before_map, 320)
+    for y, row in enumerate(chozodia_before_map_bg0.to_halfword_matrix()):
+        for x, tile in enumerate(row):
+            tile_info = tile & 0x0FFF
+            chozodia_before_map_bg0.set(x, y, tile_info | (0 << 12))
+    write_data(rombuffer, chozodia_before_map_bg0.to_compressed_data(), chozodia_before_map.rom_address())
     chozodia_dark_spotlight = get_backgrounds(Area.CHOZODIA, 25).bg0
     chozodia_dark_spotlight_bg0 = BackgroundTilemap.from_info(chozodia_dark_spotlight, 356)
     for y, row in enumerate(chozodia_dark_spotlight_bg0.to_halfword_matrix()):
