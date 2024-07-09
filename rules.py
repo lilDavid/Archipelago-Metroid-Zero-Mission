@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from worlds.generic.Rules import add_rule
 from . import logic
+
 if TYPE_CHECKING:
     from . import MZMWorld
 
@@ -87,8 +88,16 @@ def set_rules(world: MZMWorld, locations):
             lambda state: (logic.has_missiles(state, player)
                            and logic.can_bomb_block(state, player)),
         "Brinstar Post-Hive Missile": lambda state: logic.brinstar_past_hives(state, player),
-        "Brinstar Upper Pillar Missile": lambda state: (logic.can_bomb_block(state, player)
-                                                        and state.has_any({"Bomb", "Hi-Jump"}, player)),
+        "Brinstar Upper Pillar Missile":
+            lambda state: ((logic.can_bomb_block(state, player) and state.has_any({"Bomb", "Hi-Jump"}, player))
+                           or (logic.brinstar_past_hives(state, player)
+                               and (logic.can_ibj(state, player)
+                                    or (logic.can_space_jump(state, player)
+                                        and state.has_any({"Bomb", "Hi-Jump"}, player))
+                                    or (logic.can_walljump(state, player)
+                                        and state.has_all({"Hi-Jump", "Ice Beam"}, player)))
+                               )
+                           ),
         "Brinstar Behind Bombs":
             lambda state: (logic.brinstar_past_hives(state, player)
                            and (logic.can_bomb_block(state, player)
@@ -318,7 +327,7 @@ def set_rules(world: MZMWorld, locations):
                      or state.has_all({"Long Beam", "Wave Beam"}, player))
                 and (logic.has_missile_count(state, player, 5)
                      and (logic.can_walljump(state, player) or logic.can_space_jump(state, player)
-                          or logic.can_space_jump(state, player) or state.has("Power Grip", player)))
+                          or state.has("Power Grip", player)))
         ),
         "Ridley Southwest Puzzle Bottom": lambda state: (
                 (logic.ridley_longway_right_shaft_access(state, player)
@@ -382,7 +391,7 @@ def set_rules(world: MZMWorld, locations):
                      or (state.has("Power Grip", player) and logic.has_power_bombs(state, player)
                          and state.has_any({"Ice Beam", "Hi-Jump"}, player)))
                 and (logic.can_bomb_block(state, player) or state.has("Screw Attack", player))
-        ), # can also do this without ice beam using hj, grip, and walljumps
+        ),  # can also do this without ice beam using hj, grip, and walljumps
         "Ridley Bomb Puzzle": lambda state: (
                 (logic.ridley_longway_right_shaft_access(state, player)
                  or logic.ridley_shortcut_right_shaft_access(state, player))
@@ -439,7 +448,8 @@ def set_rules(world: MZMWorld, locations):
 
     chozodia_access_rules = {
         "Chozodia Upper Crateria Door": lambda state: (
-                logic.has_missiles(state, player)
+                state.can_reach_entrance("Crateria-Chozodia Upper Door", player)
+                and logic.has_missiles(state, player)
                 and (logic.can_walljump(state, player) or logic.can_ibj(state, player)
                      or logic.can_space_jump(state, player))
         ),
@@ -460,7 +470,8 @@ def set_rules(world: MZMWorld, locations):
                      or (state.has("Hi-Jump", player) and state.has_any({"Speed Booster", "Power Grip"}, player)))
         ),
         "Chozodia Ruins Near Upper Crateria Door": lambda state: (
-                logic.has_missiles(state, player)
+                state.can_reach_entrance("Crateria-Chozodia Upper Door", player)
+                and logic.has_missiles(state, player)
                 and (logic.can_walljump(state, player) or logic.can_ibj(state, player)
                      or logic.can_space_jump(state, player))
                 and state.has("Power Bomb Tank", player)
@@ -523,7 +534,7 @@ def set_rules(world: MZMWorld, locations):
         ),
         "Chozodia Mothership Ceiling Near ZSS Start":
             lambda state: logic.chozodia_tube_to_mothership_central(state, player)
-                          or state.has_all({"Chozo Ghost Defeated", "Power Bomb"}, player),
+                          or state.has_all({"Chozo Ghost Defeated", "Power Bomb Tank"}, player),
         "Chozodia Under Mecha Ridley Hallway": lambda state: (
             # you can also get here without PBs but we'll save that for advanced logic later
                 logic.chozodia_to_cockpit(state, player)
@@ -532,8 +543,10 @@ def set_rules(world: MZMWorld, locations):
         ),
         "Chozodia Southeast Corner In Hull":
             lambda state: logic.chozodia_tube_to_mothership_central(state, player)
-                          or state.has_all({"Chozo Ghost Defeated", "Power Bomb"}, player),
-        "Chozo Ghost": lambda state: state.has("Mother Brain Defeated", player),
+                          or state.has_all({"Chozo Ghost Defeated", "Power Bomb Tank"}, player),
+        "Chozo Ghost": lambda state: (
+            state.has("Mother Brain Defeated", player)
+            and (state.has("Power Grip", player) or logic.can_ibj(state, player))),  # Grip/IBJ needed to escape
         "Mecha Ridley": lambda state: (
                 logic.chozodia_to_cockpit(state, player)
                 and logic.has_missile_count(state, player, 40)

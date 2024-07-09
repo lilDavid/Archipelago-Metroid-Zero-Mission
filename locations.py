@@ -101,7 +101,7 @@ ridley_location_table = {
 
 tourian_location_table = {
     "Tourian Left of Mother Brain": AP_MZM_ID_BASE + 73,
-    "Tourian Under Mother Brain ": AP_MZM_ID_BASE + 74,
+    "Tourian Under Mother Brain": AP_MZM_ID_BASE + 74,
     "Mother Brain": None
 }
 

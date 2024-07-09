@@ -5,8 +5,10 @@ from .locations import (brinstar_location_table, kraid_location_table, norfair_l
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table, MZMLocation)
 from . import logic
+
 if TYPE_CHECKING:
     from . import MZMWorld
+
 
 # TODO: Split regions up into sub-regions based on shared-access logic rules
 
@@ -48,8 +50,6 @@ def create_regions(world: MZMWorld):
 
     menu.connect(brinstar)
 
-    # TODO: finish logic
-
     brinstar.connect(norfair, "Brinstar-Norfair elevator",
                      lambda state: logic.can_bomb_block(state, world.player))
 
@@ -66,26 +66,21 @@ def create_regions(world: MZMWorld):
             and state.has("Speed Booster", world.player)
     ))
 
-    brinstar.connect(tourian, "Brinstar-Tourian elevator", lambda state:
-       state.has_all({"Kraid Defeated", "Ridley Defeated"}, world.player))
+    brinstar.connect(tourian, "Brinstar-Tourian elevator",
+                     lambda state: state.has_all({"Kraid Defeated", "Ridley Defeated"}, world.player))
 
     norfair.connect(crateria, "Norfair-Crateria elevator",
                     lambda state: logic.can_long_beam(state, world.player))
 
     norfair.connect(ridley, "Norfair-Ridley elevator", lambda state: (
-        ((logic.norfair_to_save_behind_hijump(state, world.player)
-             and logic.has_missile_count(state, world.player, 4)
-             and state.has_all({"Wave Beam", "Speed Booster"}, world.player)
-             )
-            or logic.norfair_shortcut(state, world.player))
-        and (logic.has_missile_count(state, world.player, 6)
-             or logic.has_power_bombs(state, world.player))
+            ((logic.norfair_to_save_behind_hijump(state, world.player)
+              and logic.has_missile_count(state, world.player, 4)
+              and state.has_all({"Wave Beam", "Speed Booster"}, world.player)
+              )
+             or logic.norfair_shortcut(state, world.player))
+            and (logic.has_missile_count(state, world.player, 6)
+                 or logic.has_power_bombs(state, world.player))
     ))
-
-    #tourian.connect(crateria, "Tourian-Crateria Elevator")
-    # there's a door lock on the crateria side if you haven't killed Mother Brain
-    # in rando. in vanilla it's got a super missile door, weirdly. but the elevator simply
-    # doesn't work until after escape i guess. i don't think this is necessary in any case
 
     crateria.connect(chozodia, "Crateria-Chozodia Upper Door", lambda state: (
             logic.has_power_bombs(state, world.player)
@@ -95,5 +90,5 @@ def create_regions(world: MZMWorld):
             and (state.has("Mother Brain Defeated", world.player) or not world.options.chozodia_access.value)))
 
     crateria.connect(chozodia, "Crateria-Chozodia Lower Door", lambda state: (
-        logic.has_power_bombs(state, world.player)
-        and (state.has("Mother Brain Defeated", world.player) or not world.options.chozodia_access.value)))
+            logic.has_power_bombs(state, world.player)
+            and (state.has("Mother Brain Defeated", world.player) or not world.options.chozodia_access.value)))

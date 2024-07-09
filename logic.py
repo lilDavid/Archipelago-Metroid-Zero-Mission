@@ -107,7 +107,9 @@ def can_tricky_sparks(state: CollectionState, player: int) -> bool:
 
 
 def brinstar_past_hives(state: CollectionState, player: int) -> bool:
-    return state.has("Morph Ball", player) and has_missile_count(state, player, 10)
+    return (state.has("Morph Ball", player)
+            and (has_missile_count(state, player, 10)
+                or state.has_any({"Long Beam", "Ice Beam", "Wave Beam", "Plasma Beam"}, player)))
 
 
 # used for the items in this area as well as determining whether the ziplines can be activated
@@ -210,7 +212,8 @@ def ridley_left_shaft_access(state: CollectionState, player: int) -> bool:
     return (has_super_missiles(state, player)
             and (can_hj_sj_ibj_or_grip(state, player) or can_walljump(state, player)
                  or state.has("Ice Beam", player) or can_bomb_block(state, player))
-            and (can_traverse_heat(state, player) or hellrun(state, player, 1))
+            and (can_traverse_heat(state, player) or hellrun(state, player, 1)
+                 or (can_space_jump(state, player) and can_bomb_block(state, player)))
             )
 
 
@@ -240,11 +243,11 @@ def ridley_central_access(state: CollectionState, player: int) -> bool:
     )
 
 
-# ice beam makes dealing with the pirates a ton easier. etanks keeps you from needing to go too deep before you have
+# ice/plasma beam makes dealing with the pirates a ton easier. etanks keeps you from needing to go too deep before you have
 # a decent chance to survive. the rest is the strictest requirement to get in and back out of the chozo ghost area
 def chozodia_ghost_from_upper_crateria_door(state: CollectionState, player: int) -> bool:
     return (
-            state.has("Ice Beam", player) and (state.count("Energy Tank", player) >= 4)
+            state.has_any({"Ice Beam", "Plasma Beam"}, player) and (state.count("Energy Tank", player) >= 4)
             and has_missiles(state, player)
             and (can_walljump(state, player) or can_ibj(state, player)
                  or can_space_jump(state, player))
