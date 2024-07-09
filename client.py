@@ -305,7 +305,8 @@ class MZMClient(BizHawkClient):
                 "locations": checked_locations
             }])
 
-        if gMainGameMode in (ZMConstants.GM_CHOZODIA_ESCAPE, ZMConstants.GM_CREDITS) and not client_ctx.finished_game:
+        if ((set_events["EVENT_ESCAPED_CHOZODIA"] or gMainGameMode in (ZMConstants.GM_CHOZODIA_ESCAPE, ZMConstants.GM_CREDITS))
+            and not client_ctx.finished_game):
             await client_ctx.send_msgs([{
                 "cmd": "StatusUpdate",
                 "status": ClientStatus.CLIENT_GOAL
