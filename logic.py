@@ -228,10 +228,12 @@ def ridley_longway_right_shaft_access(state: CollectionState, player: int) -> bo
 # taking the shortcut, to the right of the elevator and up the hole
 def ridley_shortcut_right_shaft_access(state: CollectionState, player: int) -> bool:
     return (has_missiles(state, player)
-            and ((state.has("Power Grip", player) and has_power_bombs(state, player)
-                  and state.has_any({"Ice Beam", "Hi-Jump"}, player))
-                 or can_ibj(state, player))
-            and (can_bomb_block(state, player) or state.has("Screw Attack", player))
+            and (can_ibj(state, player)
+                 or (state.has("Power Grip", player)
+                     and can_bomb_block(state, player)
+                     and (state.has_any({"Ice Beam", "Hi-Jump"}, player)
+                          or can_space_jump(state, player)))
+                 )
             )
 
 
