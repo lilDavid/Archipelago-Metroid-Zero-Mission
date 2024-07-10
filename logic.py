@@ -78,7 +78,7 @@ def can_space_jump(state: CollectionState, player: int) -> bool:
 
 
 def can_traverse_heat(state: CollectionState, player: int) -> bool:
-    return state.has("Varia Suit", player) or can_gravity_suit(state, player)
+    return state.has("Varia Suit", player)
 
 
 def can_gravity_suit(state: CollectionState, player: int) -> bool:
