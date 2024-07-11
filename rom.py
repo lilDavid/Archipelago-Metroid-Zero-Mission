@@ -207,26 +207,25 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
             struct.pack("<IIB", *placement),
         )
 
-    if not world.options.remote_items:
-        # Create starting inventory
-        pickups = [0, 0, 0, 0]
-        beams = misc = 0
-        for item in multiworld.precollected_items[player]:
-            data = item_data_table[item.name]
-            if data.type == ItemType.beam:
-                beams |= data.bits
-            if data.type == ItemType.major:
-                misc |= data.bits
-            if data.type == ItemType.tank and (
-                data.id == 1 and pickups[1] < 999
-                or pickups[data.id] < 99
-            ):
-                pickups[data.id] += 1
-        patch.write_token(
-            APTokenTypes.WRITE,
-            get_rom_address("sRandoStartingInventory"),
-            struct.pack("<BxHBBBB", *pickups, beams, misc)
-        )
+    # Create starting inventory
+    pickups = [0, 0, 0, 0]
+    beams = misc = 0
+    for item in multiworld.precollected_items[player]:
+        data = item_data_table[item.name]
+        if data.type == ItemType.beam:
+            beams |= data.bits
+        if data.type == ItemType.major:
+            misc |= data.bits
+        if data.type == ItemType.tank and (
+            data.id == 1 and pickups[1] < 999
+            or pickups[data.id] < 99
+        ):
+            pickups[data.id] += 1
+    patch.write_token(
+        APTokenTypes.WRITE,
+        get_rom_address("sRandoStartingInventory"),
+        struct.pack("<BxHBBBB", *pickups, beams, misc)
+    )
 
     if world.options.chozodia_access == ChozodiaAccess.option_closed:
         patch.write_token(
