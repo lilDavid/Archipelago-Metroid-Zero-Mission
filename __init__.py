@@ -130,7 +130,8 @@ class MZMWorld(World):
             "ibj_logic": self.options.ibj_in_logic.value,
             "heatruns": self.options.heatruns_lavadives.value,
             "walljump_logic": self.options.walljumps_in_logic.value,
-            "death_link": self.options.death_link.value
+            "death_link": self.options.death_link.value,
+            "remote_items": self.options.remote_items.value,
         }
 
     def get_filler_item_name(self) -> str:

@@ -150,6 +150,11 @@ class JunkFillWeights(OptionDict):
     }
 
 
+class RemoteItems(Toggle):
+    """Indicates you get items sent from your own world. This allows coop play of a world."""
+    display_name = "Remote Items"
+
+
 mzm_option_groups = [
     OptionGroup("World", [
         ChozodiaAccess,
@@ -177,6 +182,7 @@ mzm_option_groups = [
 @dataclass
 class MZMOptions(PerGameCommonOptions):
     goal: Goal
+    remote_items: RemoteItems
     death_link: DeathLink
     chozodia_access: ChozodiaAccess
     skip_chozodia_stealth: SkipChozodiaStealth
