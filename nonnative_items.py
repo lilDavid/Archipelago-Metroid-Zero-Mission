@@ -68,6 +68,36 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         # "CardLowerNorfairL1":
         # "CardLowerNorfairBoss":
     },
+    "Metroid Prime": {
+        # "Power Beam":
+        "Ice Beam": ItemID.IceBeam,
+        "Wave Beam": ItemID.WaveBeam,
+        "Plasma Beam": ItemID.PlasmaBeam,
+        "Missile Expansion": ItemID.MissileTank,
+        # "Scan Visor":
+        "Morph Ball Bomb": ItemID.Bomb,
+        "Power Bomb Expansion": ItemID.PowerBombTank,
+        # "Flamethrower":
+        # "Thermal Visor":
+        "Charge Beam": ItemID.ChargeBeam,
+        # "Super Missile":
+        # "Grapple Beam":
+        # "X-Ray Visor":
+        # "Ice Spreader":
+        "Space Jump Boots": ItemID.HiJump,
+        "Morph Ball": ItemID.MorphBall,
+        # "Combat Visor":
+        # "Boost Ball":
+        # "Spider Ball":
+        # "Power Suit":
+        "Gravity Suit": ItemID.GravitySuit,
+        "Varia Suit": ItemID.VariaSuit,
+        # "Phazon Suit":
+        "Energy Tank": ItemID.EnergyTank,
+        # "Wavebuster":
+        # "Missile Launcher":
+        # "Power Bomb (Main)":
+    },
 }
 
 
