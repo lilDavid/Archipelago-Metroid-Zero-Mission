@@ -109,7 +109,8 @@ def can_tricky_sparks(state: CollectionState, player: int) -> bool:
 def brinstar_past_hives(state: CollectionState, player: int) -> bool:
     return (state.has("Morph Ball", player)
             and (has_missile_count(state, player, 10)
-                or state.has_any({"Long Beam", "Ice Beam", "Wave Beam", "Plasma Beam"}, player)))
+                 or state.has("Super Missile Tank", player)
+                 or state.has_any({"Long Beam", "Ice Beam", "Wave Beam", "Plasma Beam", "Screw Attack"}, player)))
 
 
 # used for the items in this area as well as determining whether the ziplines can be activated
@@ -118,7 +119,8 @@ def brinstar_past_hives(state: CollectionState, player: int) -> bool:
 def kraid_upper_right(state: CollectionState, player: int) -> bool:
     return (has_missiles(state, player)
             and can_ballcannon(state, player)
-            and (can_walljump(state, player)
+            and (can_ibj(state, player)
+                 or can_walljump(state, player)
                  or can_space_jump(state, player)
                  or state.has("Power Grip", player))
             ) and (can_ibj(state, player)
@@ -181,7 +183,8 @@ def norfair_to_save_behind_hijump(state: CollectionState, player: int) -> bool:
                  or state.has("Ice Beam", player))
             and (can_traverse_heat(state, player)
                  or hellrun(state, player, 6))
-            and (can_ibj(state, player) or can_space_jump(state, player)
+            and (can_ibj(state, player)
+                 or can_space_jump(state, player)
                  or (state.has("Speed Booster", player)
                      and (can_bomb_block(state, player) or state.has("Screw Attack", player))
                      )
@@ -189,7 +192,6 @@ def norfair_to_save_behind_hijump(state: CollectionState, player: int) -> bool:
             )
 
 
-# TODO: double check this
 def norfair_shortcut(state: CollectionState, player: int) -> bool:
     return (norfair_behind_ice_beam(state, player)
             and has_missiles(state, player)
@@ -260,14 +262,20 @@ def chozodia_ghost_from_upper_crateria_door(state: CollectionState, player: int)
 def chozodia_glass_tube_from_crateria_door(state: CollectionState, player: int) -> bool:
     return (
         # from upper door
-            (state.has("Ice Beam", player) and (state.count("Energy Tank", player) >= 2)
-             and has_missiles(state, player) and state.has("Power Bomb Tank", player)
+            (state.has_any({"Ice Beam", "Plasma Beam"}, player)
+             and state.count("Energy Tank", player) >= 2
+             and has_missiles(state, player)
+             and has_power_bombs(state, player)
              and (can_space_jump(state, player) or can_ibj(state, player)))
             # from lower door
-            or (state.has("Ice Beam", player) and (state.count("Energy Tank", player) >= 2)
-                and (can_ibj(state, player) or can_space_jump(state, player) or state.has("Speed Booster", player))
+            or (state.has_any({"Ice Beam", "Plasma Beam"}, player)
+                and state.count("Energy Tank", player) >= 2
+                and (can_ibj(state, player)
+                     or can_space_jump(state, player)
+                     or has_power_bombs(state, player)
+                     )
                 and has_missile_count(state, player, 6)
-                and state.has("Power Bomb Tank", player)
+                and has_power_bombs(state, player)
                 )
     )
 
@@ -276,16 +284,19 @@ def chozodia_glass_tube_from_crateria_door(state: CollectionState, player: int) 
 def chozodia_tube_to_mothership_central(state: CollectionState, player: int) -> bool:
     return (chozodia_glass_tube_from_crateria_door(state, player)
             and state.count("Energy Tank", player) >= 6
-            and ((state.has("Hi-Jump", player) and (can_walljump(state, player) or state.has("Power Grip", player)))
-                 or can_ibj(state, player) or can_space_jump(state, player)
+            and (can_ibj(state, player)
+                 or can_space_jump(state, player)
+                 or (state.has("Hi-Jump", player)
+                     and (can_walljump(state, player) or state.has("Power Grip", player)))
                  )
             )
 
 
 def chozodia_to_cockpit(state: CollectionState, player: int) -> bool:
-    return (((can_walljump(state, player) and state.has("Hi-Jump", player)) or can_ibj(state, player)
-             or can_space_jump(state, player))
-            and state.count("Energy Tank", player) >= 6
-            and state.has("Ice Beam", player)
-            and has_missiles(state, player)
-            and (state.has("Bomb", player) or state.count("Power Bomb Tank", player) >= 2))
+    return (chozodia_tube_to_mothership_central(state, player)
+            and (can_space_jump(state, player)
+                 or can_ibj(state, player)
+                 or (can_walljump(state, player) and state.has("Hi-Jump", player))
+            )
+            and (state.has("Bomb", player) or state.count("Power Bomb Tank", player) >= 2)
+            )

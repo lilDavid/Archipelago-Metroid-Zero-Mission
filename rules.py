@@ -142,7 +142,7 @@ def set_rules(world: MZMWorld, locations):
         "Kraid Speed Booster": lambda state: state.has("Kraid Defeated", player),
         "Kraid Worm Missile": lambda state: (
                 logic.kraid_upper_right(state, player)
-                and logic.has_missile_count(state, player, 30)
+                and logic.has_missile_count(state, player, 20)
                 and logic.can_bomb_block(state, player)
                 and (logic.can_hj_sj_ibj_or_grip(state, player) or logic.can_walljump(state, player))
         ),
@@ -158,7 +158,7 @@ def set_rules(world: MZMWorld, locations):
                                                              and logic.can_ballcannon(state, player),
         "Kraid": lambda state: (
                 state.can_reach("Kraid Space Jump/Unknown Item 2", "Location", player)
-                and logic.has_missile_count(state, player, 30)
+                and logic.has_missile_count(state, player, 20)
                 and (state.count("Energy Tank", player) >= 1)
                 and (state.has_all({"Hi-Jump", "Power Grip"}, player)
                      or state.has("Speed Booster", player)
@@ -416,9 +416,10 @@ def set_rules(world: MZMWorld, locations):
         "Mother Brain": lambda state: (
                 state.has_all({"Ice Beam", "Bomb"}, player)  # only bomb will unlatch Metroids
                 and logic.has_missile_count(state, player, 40)
-                and (state.count("Energy Tank", player) >= 4)
-                and (logic.can_hi_jump(state, player) or state.has("Power Grip", player))
-                and (state.has("Speed Booster", player) or logic.can_space_jump(state, player)
+                and state.count("Energy Tank", player) >= 4
+                and logic.can_hj_sj_ibj_or_grip(state, player)
+                and (state.has("Speed Booster", player)
+                     or logic.can_space_jump(state, player)
                      or logic.can_ibj(state, player)
                      or (state.has("Hi-Jump", player) and logic.can_walljump(state, player))
                      )
@@ -474,7 +475,7 @@ def set_rules(world: MZMWorld, locations):
                 and logic.has_missiles(state, player)
                 and (logic.can_walljump(state, player) or logic.can_ibj(state, player)
                      or logic.can_space_jump(state, player))
-                and state.has("Power Bomb Tank", player)
+                and logic.has_power_bombs(state, player)
         ),
         "Chozodia Chozo Ghost Area Morph Tunnel Above Water": lambda state: (
             # The room leading to this item is inaccessible until the Chozo Ghost is defeated
@@ -510,7 +511,7 @@ def set_rules(world: MZMWorld, locations):
         "Chozodia Original Power Bomb": lambda state: logic.chozodia_to_cockpit(state, player),
         "Chozodia Next to Original Power Bomb": lambda state: (
                 logic.chozodia_to_cockpit(state, player)
-                and state.has("Power Bomb Tank", player)
+                and logic.has_power_bombs(state, player)
                 and (logic.can_space_jump(state, player) or logic.can_ibj(state, player))
         ),
         "Chozodia Glass Tube Power Bomb": lambda state: logic.chozodia_glass_tube_from_crateria_door(state, player),
@@ -545,12 +546,14 @@ def set_rules(world: MZMWorld, locations):
             lambda state: logic.chozodia_tube_to_mothership_central(state, player)
                           or state.has_all({"Chozo Ghost Defeated", "Power Bomb Tank"}, player),
         "Chozo Ghost": lambda state: (
-            state.has("Mother Brain Defeated", player)
-            and (state.has("Power Grip", player) or logic.can_ibj(state, player))),  # Grip/IBJ needed to escape
+                state.has("Mother Brain Defeated", player)
+                and (logic.can_ibj(state, player)
+                     or (logic.can_space_jump(state, player) and state.has_any({"Power Grip", "Hi-Jump"}, player)))
+        ),  # Extra requirements needed to escape--can also do it without SJ using tight WJs and hj+grip
         "Mecha Ridley": lambda state: (
                 logic.chozodia_to_cockpit(state, player)
                 and logic.has_missile_count(state, player, 40)
-                and state.has("Power Bomb Tank", player)  # Or can skip them by flying to the tunnel
+                and logic.has_power_bombs(state, player)  # Or can skip them by flying to the tunnel
         ),
         "Chozodia Space Pirate's Ship": lambda state: state.has_all({"Mecha Ridley Defeated", "Plasma Beam"}, player)
     }
