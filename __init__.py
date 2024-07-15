@@ -124,6 +124,7 @@ class MZMWorld(World):
 
     def fill_slot_data(self) -> Dict[str, Any]:
         return {
+            "goal": self.options.goal.value,
             "unknown_items": self.options.unknown_items_always_usable.value,
             "layout_patches": self.options.layout_patches.value,
             "ibj_logic": self.options.ibj_in_logic.value,
@@ -141,7 +142,7 @@ class MZMWorld(World):
                        self.item_name_to_id[name],
                        self.player)
 
-    def create_tanks(self, item_name: str, count: int, progression_count: int = None):
+    def create_tanks(self, item_name: str, count: int, progression_count: Optional[int] = None):
         if progression_count is None:
             progression_count = count
         for _ in range(progression_count):

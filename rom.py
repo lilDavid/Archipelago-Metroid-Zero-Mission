@@ -15,7 +15,7 @@ from . import rom_data
 from .data import encode_str, get_rom_address, get_width_of_encoded_string
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
-from .options import ChozodiaAccess, DisplayNonLocalItems
+from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -110,6 +110,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         multiworld.player_name[player].encode("utf-8")[:64],
         multiworld.seed_name.encode("utf-8")[:64],
 
+        world.options.goal.value,
         world.options.unknown_items_always_usable.value,
         world.options.skip_chozodia_stealth.value,
         True,  # Make Power Bombs usable without Bomb
@@ -118,8 +119,21 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2xBBBB", *seed_info)
+        struct.pack("<H64s64s2xBBBBB", *seed_info)
     )
+
+    # Set goal
+    if world.options.goal.value != Goal.option_mecha_ridley:
+        patch.write_token(
+            APTokenTypes.WRITE,
+            get_rom_address("sHatchLockEventsChozodia", 8 * 15 + 1),  # sHatchLockEventsChozodia[15].event
+            (0x27).to_bytes(1, 'little'),  # EVENT_MOTHER_BRAIN_KILLED
+        )
+        patch.write_token(
+            APTokenTypes.WRITE,
+            get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * 6),  # sNumberOfHatchLockEventsPerArea[AREA_CHOZODIA]
+            (16).to_bytes(2, 'little')
+        )
 
     # Place items
     next_name_address = get_rom_address("sRandoItemAndPlayerNames")
