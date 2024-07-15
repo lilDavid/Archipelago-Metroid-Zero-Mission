@@ -2,9 +2,162 @@
 Functions used to describe Metroid: Zero Mission logic rules in rules.py
 """
 
+from __future__ import annotations
+
+import builtins
+import functools
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple
 from BaseClasses import CollectionState
+
 from .options import MZMOptions
 
+if TYPE_CHECKING:
+    from . import MZMWorld
+
+
+class Requirement(NamedTuple):
+    rule: Callable[[MZMWorld, CollectionState], bool]
+
+    def create_rule(self, world: MZMWorld):
+        return functools.partial(self.rule, world)
+
+    @classmethod
+    def item(cls, item: str, count: int = 1):
+        return cls(lambda world, state: state.has(item, world.player, count))
+
+    @classmethod
+    def location(cls, location: str):
+        return cls(lambda world, state: state.can_reach_location(location, world.player))
+
+    @classmethod
+    def entrance(cls, entrance: str):
+        return cls(lambda world, state: state.can_reach_entrance(entrance, world.player))
+
+    @classmethod
+    def setting_enabled(cls, setting: str):
+        return cls(lambda world, _: getattr(world.options, setting))
+
+    @classmethod
+    def setting_is(cls, setting: str, value: Any):
+        return cls(lambda world, _: getattr(world.options, setting) == value)
+
+    @classmethod
+    def setting_atleast(cls, setting: str, value: int):
+        return cls(lambda world, _: getattr(world.options, setting) >= value)
+
+
+def all(*args: Requirement):
+    return Requirement(lambda world, state: builtins.all(req.rule(world, state) for req in args))
+
+def any(*args: Requirement):
+    return Requirement(lambda world, state: builtins.any(req.rule(world, state) for req in args))
+
+
+KraidBoss = Requirement.item("Kraid Defeated")
+RidleyBoss = Requirement.item("Ridley Defeated")
+MotherBrainBoss = Requirement.item("Mother Brain Defeated")
+ChozoGhostBoss = Requirement.item("Chozo Ghost Defeated")
+MechaRidleyBoss = Requirement.item("Mecha Ridley Defeated")
+
+UnknownItem1 = Requirement.location("Crateria Plasma Beam/Unknown Item 1")
+UnknownItem2 = Requirement.location("Kraid Space Jump/Unknown Item 2")
+UnknownItem3 = Requirement.location("Ridley Gravity Suit/Unknown Item 3")
+
+CanUseUnknownItems = any(
+    Requirement.setting_enabled("unknown_items_always_usable"),
+    ChozoGhostBoss,
+)
+LayoutPatches = Requirement.setting_enabled("layout_patches")
+
+EnergyTanks = lambda n: Requirement.item("Energy Tank", n)
+MissileTanks = lambda n: Requirement.item("Missile Tank", n)
+SuperMissileTanks = lambda n: Requirement.item("Super Missile Tank", n)
+PowerBombTanks = lambda n: Requirement.item("Power Bomb Tank", n)
+LongBeam = Requirement.item("Long Beam")
+ChargeBeam = Requirement.item("Charge Beam")
+IceBeam = Requirement.item("Ice Beam")
+WaveBeam = Requirement.item("Wave Beam")
+PlasmaBeam = all(
+    Requirement.item("Plasma Beam"),
+    CanUseUnknownItems,
+)
+Bomb = Requirement.item("Bomb")
+VariaSuit = Requirement.item("Varia Suit")
+GravitySuit = all(
+    Requirement.item("Gravity Suit"),
+    CanUseUnknownItems
+)
+MorphBall = Requirement.item("Morph Ball")
+SpeedBooster = Requirement.item("Speed Booster")
+HiJump = Requirement.item("Hi-Jump")
+ScrewAttack = Requirement.item("Screw Attack")
+SpaceJump = all(
+    Requirement.item("Space Jump"),
+    CanUseUnknownItems
+)
+PowerGrip = Requirement.item("Power Grip")
+
+Missiles = any(
+    MissileTanks(1),
+    SuperMissileTanks(1),
+)
+MissileCount = lambda n: Requirement(
+    lambda world, state:
+        5 * state.count("Missile Tank", world.player) + 2 * state.count("Super Missile Tank", world.player)
+        >= n
+)
+SuperMissiles = SuperMissileTanks(1)
+PowerBombs = PowerBombTanks(1)
+PowerBombCount = lambda n: PowerBombTanks(n // 2)
+
+CanRegularBomb = all(
+    MorphBall,
+    Bomb,
+)
+CanIBJ = all(
+    Requirement.setting_enabled("ibj_in_logic"),
+    CanRegularBomb,
+)
+CanHiJump = any(
+    HiJump,
+    SpaceJump,
+    CanIBJ,
+)
+CanHjSjIbjOrGrip = any(  # This name is even more cursed in Pascal case
+    CanHiJump,
+    PowerGrip,
+)
+CanWallJump = Requirement.setting_enabled("walljumps_in_logic")
+CanTrickySparks = all(
+    lambda world, state: False,
+    SpeedBooster,
+)
+
+CanBombBlock = all(
+    MorphBall,
+    any(
+        Bomb,
+        PowerBombTanks(1),
+    ),
+)
+CanBallCannon = CanRegularBomb
+CanBallspark = all(
+    MorphBall,
+    SpeedBooster,
+    HiJump,
+)
+
+CanLongBeam = any(
+    LongBeam,
+    MissileCount(1),
+    CanBombBlock,
+)
+
+CanTraverseHeat = VariaSuit
+Hellrun = lambda n: all(
+    Requirement.setting_enabled("heatruns_lavadives"),
+    EnergyTanks(n),
+)
 
 # TODO: Add missing logic options
 # TODO: Fine tune boss logic

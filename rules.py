@@ -7,7 +7,9 @@ Logic based on MZM Randomizer, by Biospark and dragonfangs.
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from worlds.generic.Rules import add_rule
+
 from . import logic
+from .logic import *
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -18,15 +20,32 @@ if TYPE_CHECKING:
 def set_rules(world: MZMWorld, locations):
     player = world.player
 
+    # The rules can be moved out of this function once they've all been converted
     brinstar_access_rules = {
         "Brinstar Morph Ball Cannon": lambda state: logic.can_regular_bomb(state, player),
+#       "Brinstar Morph Ball Cannon": CanRegularBomb
         "Brinstar Long Beam": lambda state: (state.has("Morph Ball", player)
                                              and (logic.can_long_beam(state, player)
                                                   or world.options.layout_patches.value)),
+#       "Brinstar Long Beam": all(
+#           MorphBall,
+#           any(
+#               CanLongBeam,
+#               LayoutPatches,
+#           )
+#       ),
         "Brinstar Ceiling E-Tank":
             lambda state: (state.has("Ice Beam", player) and state.has("Ridley Defeated", player)) or
                           logic.can_space_jump(state, player)
                           or logic.can_ibj(state, player),
+#       "Brinstar Ceiling E-Tank": any(
+#           all(
+#               IceBeam,
+#               RidleyBoss
+#           ),
+#           SpaceJump,
+#           CanIBJ,
+#       ),
         "Brinstar Missile Above Super":
             lambda state: (logic.can_bomb_block(state, player)
                            and (logic.can_space_jump(state, player)
@@ -36,6 +55,19 @@ def set_rules(world: MZMWorld, locations):
                                 or logic.can_walljump(state, player)
                                 )
                            ),
+#       "Brinstar Missile Above Super": all(
+#           CanBombBlock,
+#           any(
+#               SpaceJump,
+#               IceBeam,
+#               CanIBJ,
+#               CanWallJump,
+#               all(
+#                   HiJump,
+#                   PowerGrip,
+#               ),
+#           )
+#       ),
         "Brinstar Super Missile": lambda state: logic.can_ballspark(state, player),
         "Brinstar Top Missile":
             lambda state: (state.has_all({"Morph Ball", "Power Grip"}, player)
@@ -341,6 +373,7 @@ def set_rules(world: MZMWorld, locations):
             lambda state: logic.ridley_longway_right_shaft_access(state, player),
         "Ridley E-Tank behind Gravity":
             lambda state: state.can_reach("Ridley Gravity Suit/Unknown Item 3", "Location", player),
+#       "Ridley E-Tank behind Gravity": UnknownItem3,
         "Ridley Gravity Suit/Unknown Item 3": lambda state: (
                 logic.ridley_central_access(state, player)
                 and logic.has_missile_count(state, player, 40)
@@ -435,7 +468,12 @@ def set_rules(world: MZMWorld, locations):
                 state.has_any({"Bomb", "Hi-Jump"}, player) and logic.can_hj_sj_ibj_or_grip(state, player)),
         "Crateria Statue Water":
             lambda state: state.can_reach("Crateria Plasma Beam/Unknown Item 1", "Location", player),
+#       "Crateria Statue Water": UnknownItem1,
         "Crateria Plasma Beam/Unknown Item 1": lambda state: state.has_any({"Bomb", "Hi-Jump"}, player),
+#       "Crateria Plasma Beam/Unknown Item 1": any(
+#           Bomb,
+#           HiJump,
+#       ),
         "Crateria East Ballspark": lambda state: (
                 logic.can_ballspark(state, player)
                 and (logic.can_space_jump(state, player) or logic.can_walljump(state, player))
@@ -572,5 +610,6 @@ def set_rules(world: MZMWorld, locations):
         location = world.multiworld.get_location(i, player)
         try:
             add_rule(location, access_rules[i])
+#           add_rule(location, access_rules[i].create_rule(world))
         except KeyError:
             continue
