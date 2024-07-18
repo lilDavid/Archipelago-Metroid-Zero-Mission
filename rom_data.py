@@ -260,11 +260,11 @@ class Area(IntEnum):
 class Clipdata(IntEnum):
     AIR = 0x00
     SOLID = 0x10
-    STEEP_SLOPE_BLTR = 0x11 # bottom left to top right, like /
+    STEEP_SLOPE_RISING = 0x11  # Positive gradient, like /
     ELEVATOR_UP = 0x29
     BEAM_BLOCK_NEVER_REFORM = 0x52
-    TOP_LEFT_SHOT_BLOCK_NO_REFORM = 0x53
-    TOP_RIGHT_SHOT_BLOCK_NO_REFORM = 0x54
+    LARGE_BEAM_BLOCK_NW_NO_REFORM = 0x53
+    LARGE_BEAM_BLOCK_NE_NO_REFORM = 0x54
     BEAM_BLOCK_NO_REFORM = 0x55
     PITFALL_BLOCK = 0x56
     BOMB_BLOCK_NEVER_REFORM = 0x57
@@ -272,8 +272,8 @@ class Clipdata(IntEnum):
     ENERGY_TANK = 0x5C
     MISSILE_TANK = 0x5D
     BEAM_BLOCK_REFORM = 0x62
-    BOTTOM_LEFT_SHOT_BLOCK_NO_REFORM = 0x63
-    BOTTOM_RIGHT_SHOT_BLOCK_NO_REFORM = 0x64
+    LARGE_BEAM_BLOCK_SW_NO_REFORM = 0x63
+    LARGE_BEAM_BLOCK_SE_NO_REFORM = 0x64
     BOMB_BLOCK_REFORM = 0x67
     SPEED_BOOSTER_BLOCK_REFORM = 0x6A
     SCREW_ATTACK_BLOCK_NO_REFORM = 0x6B
@@ -498,9 +498,9 @@ def apply_layout_patches(rom: bytes) -> bytes:
     brinstar_top = get_backgrounds(Area.BRINSTAR, 29)
     brinstar_top_clipdata = BackgroundTilemap.from_info(brinstar_top.clipdata, 117)
     brinstar_top_bg1 = BackgroundTilemap.from_info(brinstar_top.bg1, 287)
-    brinstar_top_clipdata.set(0xE, 0x5, Clipdata.STEEP_SLOPE_BLTR, Clipdata.AIR)
+    brinstar_top_clipdata.set(0xE, 0x5, Clipdata.STEEP_SLOPE_RISING, Clipdata.AIR)
     brinstar_top_bg1.set(0xE, 0x5, 0x009A, 0x0106)
-    brinstar_top_clipdata.set(0xF, 0x4, Clipdata.STEEP_SLOPE_BLTR, Clipdata.SOLID)
+    brinstar_top_clipdata.set(0xF, 0x4, Clipdata.STEEP_SLOPE_RISING, Clipdata.SOLID)
     brinstar_top_bg1.set(0xF, 0x4, 0x009A, 0x0092)
     write_data(rombuffer, brinstar_top_bg1.to_compressed_data(), brinstar_top.bg1.rom_address())
     write_data(rombuffer, brinstar_top_clipdata.to_compressed_data(), brinstar_top.clipdata.rom_address())
@@ -555,13 +555,13 @@ def apply_layout_patches(rom: bytes) -> bytes:
     crateria_water_speedway = get_backgrounds(Area.CRATERIA, 11)
     crateria_water_speedway_clipdata = BackgroundTilemap.from_info(crateria_water_speedway.clipdata, 151)
     crateria_water_speedway_clipdata.set(0x11, 0xA,
-                                         Clipdata.TOP_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+                                         Clipdata.LARGE_BEAM_BLOCK_NW_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     crateria_water_speedway_clipdata.set(0x12, 0xA,
-                                         Clipdata.TOP_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+                                         Clipdata.LARGE_BEAM_BLOCK_NE_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     crateria_water_speedway_clipdata.set(0x11, 0xB,
-                                         Clipdata.BOTTOM_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+                                         Clipdata.LARGE_BEAM_BLOCK_SW_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     crateria_water_speedway_clipdata.set(0x12, 0xB,
-                                         Clipdata.BOTTOM_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+                                         Clipdata.LARGE_BEAM_BLOCK_SE_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     crateria_water_speedway_clipdata.set(0x13, 0xB,
                                          Clipdata.BEAM_BLOCK_NO_REFORM,
                                          Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
@@ -572,13 +572,13 @@ def apply_layout_patches(rom: bytes) -> bytes:
     kraid_right_shaft = get_backgrounds(Area.KRAID, 27)
     kraid_right_shaft_clipdata = BackgroundTilemap.from_info(kraid_right_shaft.clipdata, 520)
     kraid_right_shaft_clipdata.set(0xA, 0x37,
-                                         Clipdata.TOP_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+                                         Clipdata.LARGE_BEAM_BLOCK_NW_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     kraid_right_shaft_clipdata.set(0xB, 0x37,
-                                         Clipdata.TOP_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+                                         Clipdata.LARGE_BEAM_BLOCK_NE_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     kraid_right_shaft_clipdata.set(0xA, 0x38,
-                                         Clipdata.BOTTOM_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+                                         Clipdata.LARGE_BEAM_BLOCK_SW_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     kraid_right_shaft_clipdata.set(0xB, 0x38,
-                                         Clipdata.BOTTOM_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+                                         Clipdata.LARGE_BEAM_BLOCK_SE_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     write_data(rombuffer, kraid_right_shaft_clipdata.to_compressed_data(), kraid_right_shaft.clipdata.rom_address())
 
     return bytes(rombuffer)
