@@ -1,7 +1,7 @@
 from enum import IntEnum
 import itertools
 import struct
-from typing import Callable, ClassVar, List, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import Callable, Mapping, NamedTuple, Optional, Sequence, Tuple, Union
 
 from . import lz10, rle, iterators
 from .data import get_rom_address, get_symbol
@@ -177,6 +177,7 @@ class BackgroundProperties(IntEnum):
     RLE_COMPRESSED = 0x10
     LZ77_COMPRESSED = 0x40
     DARK_ROOM = LZ77_COMPRESSED | 5
+    STARTS_FROM_BOTTOM = LZ77_COMPRESSED | 6
 
 
 class BackgroundInfo(NamedTuple):
@@ -262,18 +263,28 @@ class Clipdata(IntEnum):
     STEEP_SLOPE_BLTR = 0x11 # bottom left to top right, like /
     ELEVATOR_UP = 0x29
     BEAM_BLOCK_NEVER_REFORM = 0x52
+    TOP_LEFT_SHOT_BLOCK_NO_REFORM = 0x53
+    TOP_RIGHT_SHOT_BLOCK_NO_REFORM = 0x54
     BEAM_BLOCK_NO_REFORM = 0x55
     PITFALL_BLOCK = 0x56
     BOMB_BLOCK_NEVER_REFORM = 0x57
     SPEED_BOOSTER_BLOCK_NO_REFORM = 0x5A
+    ENERGY_TANK = 0x5C
+    MISSILE_TANK = 0x5D
     BEAM_BLOCK_REFORM = 0x62
+    BOTTOM_LEFT_SHOT_BLOCK_NO_REFORM = 0x63
+    BOTTOM_RIGHT_SHOT_BLOCK_NO_REFORM = 0x64
     BOMB_BLOCK_REFORM = 0x67
     SPEED_BOOSTER_BLOCK_REFORM = 0x6A
     SCREW_ATTACK_BLOCK_NO_REFORM = 0x6B
-    TOP_LEFT_SHOT_BLOCK_NO_REFORM = 0x53
-    TOP_RIGHT_SHOT_BLOCK_NO_REFORM = 0x54
-    BOTTOM_LEFT_SHOT_BLOCK_NO_REFORM = 0x63
-    BOTTOM_RIGHT_SHOT_BLOCK_NO_REFORM = 0x64
+    HIDDEN_ENERGY_TANK = 0x6C
+    UNDERWATER_ENERGY_TANK = 0x7C
+
+
+class TankTypeOffset(IntEnum):
+    NORMAL = Clipdata.ENERGY_TANK - Clipdata.ENERGY_TANK
+    HIDDEN = Clipdata.HIDDEN_ENERGY_TANK - Clipdata.ENERGY_TANK
+    UNDERWATER = Clipdata.UNDERWATER_ENERGY_TANK - Clipdata.ENERGY_TANK
 
 
 class BackgroundTilemap:
@@ -346,9 +357,111 @@ def background_extraction_function(rom: ByteString) -> Callable[[int, int], Room
     return get_backgrounds
 
 
+# Tuples are: Clipdata offset, BG1 offset, tank type
+item_clipdata_and_gfx: Mapping[Area, Mapping[int, Sequence[Tuple[int, Optional[int], TankTypeOffset]]]] = {
+    Area.BRINSTAR: {
+        1: [(0x26, 0x54, TankTypeOffset.NORMAL)],
+        2: [(0xE, None, TankTypeOffset.HIDDEN)],
+        12: [(0x34, 0x154, TankTypeOffset.NORMAL)],
+        14: [(0x97, 0x122, TankTypeOffset.NORMAL)],
+        15: [(0x1E, 0x9E, TankTypeOffset.NORMAL)],
+        19: [(0xE6, None, TankTypeOffset.HIDDEN), (0x68, 0x134, TankTypeOffset.NORMAL)],
+        21: [(0x35, 0x110, TankTypeOffset.NORMAL)],
+        23: [(0x10B, 0x220, TankTypeOffset.NORMAL)],
+        25: [(0x1A, 0x44, TankTypeOffset.NORMAL)],
+        29: [(0x30, 0x63, TankTypeOffset.NORMAL)],
+        40: [(0x17, 0x36, TankTypeOffset.NORMAL)],
+        41: [(0x5E, 0x10D, TankTypeOffset.NORMAL), (0x9B, 0x184, TankTypeOffset.NORMAL)],
+    },
+    Area.KRAID: {
+        1: [(0x1B, 0xC5, TankTypeOffset.NORMAL)],
+        2: [(0x10F, 0x1E3, TankTypeOffset.NORMAL)],
+        4: [(0x21, 0x5A, TankTypeOffset.NORMAL)],
+        7: [(0x69, 0x166, TankTypeOffset.NORMAL)],
+        8: [(0x17E, 0x3A8, TankTypeOffset.NORMAL)],
+        9: [(0x3D, 0xCC, TankTypeOffset.NORMAL)],
+        10: [(0x69, 0xA2, TankTypeOffset.NORMAL)],
+        17: [(0x14, None, TankTypeOffset.HIDDEN)],
+        21: [(0x16, 0x78, TankTypeOffset.NORMAL)],
+        26: [(0x33, 0x6C, TankTypeOffset.NORMAL)],
+        38: [(0xC, 0x35, TankTypeOffset.NORMAL)],
+    },
+    Area.NORFAIR: {
+        1: [(0x85, 0x154, TankTypeOffset.NORMAL)],
+        3: [(0x46, 0xB7, TankTypeOffset.NORMAL)],
+        4: [(0xC1, 0x16C, TankTypeOffset.NORMAL)],
+        5: [(0x3E6, 0x6B7, TankTypeOffset.NORMAL), (0x5D4, 0x6B7, TankTypeOffset.NORMAL)],
+        10: [(0x34, 0x60, TankTypeOffset.NORMAL)],
+        17: [(0x17, 0x53, TankTypeOffset.NORMAL)],
+        28: [(0x3C, None, TankTypeOffset.HIDDEN), (0x55, 0xA7, TankTypeOffset.NORMAL)],
+        32: [(0x4f, 0xC2, TankTypeOffset.NORMAL), (0x30, None, TankTypeOffset.HIDDEN)],
+        37: [(0x10, None, TankTypeOffset.HIDDEN)],
+        38: [(0x29, 0x87, TankTypeOffset.NORMAL)],
+        42: [(0x26, None, TankTypeOffset.HIDDEN)],
+        46: [(0x25, None, TankTypeOffset.HIDDEN)],
+        47: [(0x11, None, TankTypeOffset.HIDDEN)],
+        55: [(0x6F, 0xF6, TankTypeOffset.NORMAL), (0xD6, 0x1D9, TankTypeOffset.NORMAL)]
+    },
+    Area.RIDLEY: {
+        4: [(0x2B, 0x4C, TankTypeOffset.NORMAL)],
+        6: [(0x111, 0x1BC, TankTypeOffset.NORMAL)],
+        9: [(0x23, 0x2F, TankTypeOffset.NORMAL)],
+        10: [(0x86, 0x18C, TankTypeOffset.NORMAL), (0x35, None, TankTypeOffset.HIDDEN)],
+        13: [(0x3D, 0x78, TankTypeOffset.NORMAL)],
+        14: [(0x7C, 0x10C, TankTypeOffset.NORMAL)],
+        16: [(0x3A, 0xB8, TankTypeOffset.NORMAL)],
+        17: [(0x13C, None, TankTypeOffset.HIDDEN)],
+        18: [(0x66, 0x21E, TankTypeOffset.NORMAL)],
+        19: [(0x9C, 0x14C, TankTypeOffset.NORMAL)],
+        22: [(0x16, None, TankTypeOffset.HIDDEN), (0x58, 0xC1, TankTypeOffset.NORMAL)],
+        23: [(0x8, 0x2D, TankTypeOffset.NORMAL), (0x7B, 0xC9, TankTypeOffset.NORMAL)],
+        29: [(0xA, 0x2E, TankTypeOffset.NORMAL), (0x118, 0x198, TankTypeOffset.NORMAL)],
+        30: [(0x103, 0x142, TankTypeOffset.NORMAL)],
+        31: [(0x30, 0x96, TankTypeOffset.NORMAL)],
+    },
+    Area.TOURIAN: {
+        7: [(0x24, 0x48, TankTypeOffset.NORMAL)],
+        8: [(0x27A, None, TankTypeOffset.HIDDEN)],
+    },
+    Area.CRATERIA: {
+        5: [(0xD5, 0x1AC, TankTypeOffset.NORMAL)], # TODO: Fake landing site ballspark scout
+        7: [(0x1C8, None, TankTypeOffset.HIDDEN)],
+        9: [(0x3D, 0x92, TankTypeOffset.NORMAL), ((0x1CA, 0x3B4, TankTypeOffset.NORMAL))],
+        14: [(0x46, 0xC0, TankTypeOffset.NORMAL)],
+    },
+    Area.CHOZODIA: {
+        10: [(0x8, None, TankTypeOffset.HIDDEN)],
+        24: [(0x55, 0x9E, TankTypeOffset.NORMAL)],
+        26: [(0x14, 0x4B, TankTypeOffset.NORMAL)],
+        34: [(0x3C, None, TankTypeOffset.HIDDEN)],
+        47: [(0x45, 0xB1, TankTypeOffset.NORMAL)],
+        49: [(0x17, 0x52, TankTypeOffset.NORMAL)],
+        54: [(0xE4, 0x295, TankTypeOffset.NORMAL)],
+        65: [(0x6, None, TankTypeOffset.HIDDEN)],
+        66: [(0x18, None, TankTypeOffset.HIDDEN)],
+        71: [(0xA9, 0x1C7, TankTypeOffset.NORMAL)],
+        73: [(0x3B, None, TankTypeOffset.HIDDEN)],
+        78: [(0x47, 0xBC, TankTypeOffset.NORMAL)],
+        87: [(0x2B, None, TankTypeOffset.HIDDEN)],
+        89: [(0x7C, None, TankTypeOffset.HIDDEN)],
+        90: [(0x107, 0x307, TankTypeOffset.NORMAL), (0x1E2, 0x4D5, TankTypeOffset.NORMAL)], # TODO: Fake Charlie spark super scout
+        95: [(0x12, 0x3A, TankTypeOffset.NORMAL)],
+    },
+}
+
+
 def apply_always_background_patches(rom: bytes) -> bytes:
     rombuffer = bytearray(rom)
     get_backgrounds = background_extraction_function(rom)
+
+    # Item graphics and clipdata
+    for area, rooms in item_clipdata_and_gfx.items():
+        for room, items in rooms.items():
+            for i, (clip_offset, bg1_offset, behavior) in enumerate(items):
+                backgrounds = get_backgrounds(area, room)
+                rombuffer[backgrounds.clipdata.rom_address() + clip_offset] = Clipdata.ENERGY_TANK + i + behavior
+                if (bg1_offset is not None):
+                    rombuffer[backgrounds.bg1.rom_address() + bg1_offset] = 0x49 - i
 
     # Change the spotlight graphics so it always appears dark
     chozodia_before_map = get_backgrounds(Area.CHOZODIA, 10).bg0
