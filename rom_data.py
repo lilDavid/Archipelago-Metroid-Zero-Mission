@@ -285,6 +285,7 @@ class TankTypeOffset(IntEnum):
     NORMAL = Clipdata.ENERGY_TANK - Clipdata.ENERGY_TANK
     HIDDEN = Clipdata.HIDDEN_ENERGY_TANK - Clipdata.ENERGY_TANK
     UNDERWATER = Clipdata.UNDERWATER_ENERGY_TANK - Clipdata.ENERGY_TANK
+    FAKE = 0
 
 
 class BackgroundTilemap:
@@ -358,7 +359,7 @@ def background_extraction_function(rom: ByteString) -> Callable[[int, int], Room
 
 
 # Tuples are: Clipdata offset, BG1 offset, tank type
-item_clipdata_and_gfx: Mapping[Area, Mapping[int, Sequence[Tuple[int, Optional[int], TankTypeOffset]]]] = {
+item_clipdata_and_gfx: Mapping[Area, Mapping[int, Sequence[Tuple[Optional[int], Optional[int], TankTypeOffset]]]] = {
     Area.BRINSTAR: {
         1: [(0x26, 0x54, TankTypeOffset.NORMAL)],
         2: [(0xE, None, TankTypeOffset.HIDDEN)],
@@ -394,7 +395,7 @@ item_clipdata_and_gfx: Mapping[Area, Mapping[int, Sequence[Tuple[int, Optional[i
         10: [(0x34, 0x60, TankTypeOffset.NORMAL)],
         17: [(0x17, 0x53, TankTypeOffset.NORMAL)],
         28: [(0x3C, None, TankTypeOffset.HIDDEN), (0x55, 0xA7, TankTypeOffset.NORMAL)],
-        32: [(0x4f, 0xC2, TankTypeOffset.NORMAL), (0x30, None, TankTypeOffset.HIDDEN)],
+        32: [(0x4f, 0xC2, TankTypeOffset.NORMAL), (0x30, 0x8D, TankTypeOffset.NORMAL)],
         37: [(0x10, None, TankTypeOffset.HIDDEN)],
         38: [(0x29, 0x87, TankTypeOffset.NORMAL)],
         42: [(0x26, None, TankTypeOffset.HIDDEN)],
@@ -424,16 +425,19 @@ item_clipdata_and_gfx: Mapping[Area, Mapping[int, Sequence[Tuple[int, Optional[i
         8: [(0x27A, None, TankTypeOffset.HIDDEN)],
     },
     Area.CRATERIA: {
-        5: [(0xD5, 0x1AC, TankTypeOffset.NORMAL)], # TODO: Fake landing site ballspark scout
+        0: [(None, 0x1AC, TankTypeOffset.FAKE)],
+        5: [(0xD5, 0x1AC, TankTypeOffset.NORMAL)],
         7: [(0x1C8, None, TankTypeOffset.HIDDEN)],
         9: [(0x3D, 0x92, TankTypeOffset.NORMAL), ((0x1CA, 0x3B4, TankTypeOffset.NORMAL))],
         14: [(0x46, 0xC0, TankTypeOffset.NORMAL)],
     },
     Area.CHOZODIA: {
         10: [(0x8, None, TankTypeOffset.HIDDEN)],
+        14: [(0x43, 0x10, TankTypeOffset.NORMAL)],
         24: [(0x55, 0x9E, TankTypeOffset.NORMAL)],
         26: [(0x14, 0x4B, TankTypeOffset.NORMAL)],
         34: [(0x3C, None, TankTypeOffset.HIDDEN)],
+        41: [(None, 0x2EE, TankTypeOffset.FAKE), (None, 0x4BC, TankTypeOffset.FAKE)],
         47: [(0x45, 0xB1, TankTypeOffset.NORMAL)],
         49: [(0x17, 0x52, TankTypeOffset.NORMAL)],
         54: [(0xE4, 0x295, TankTypeOffset.NORMAL)],
@@ -444,7 +448,7 @@ item_clipdata_and_gfx: Mapping[Area, Mapping[int, Sequence[Tuple[int, Optional[i
         78: [(0x47, 0xBC, TankTypeOffset.NORMAL)],
         87: [(0x2B, None, TankTypeOffset.HIDDEN)],
         89: [(0x7C, None, TankTypeOffset.HIDDEN)],
-        90: [(0x107, 0x307, TankTypeOffset.NORMAL), (0x1E2, 0x4D5, TankTypeOffset.NORMAL)], # TODO: Fake Charlie spark super scout
+        90: [(0x107, 0x307, TankTypeOffset.NORMAL), (0x1E2, 0x4D5, TankTypeOffset.NORMAL)],
         95: [(0x12, 0x3A, TankTypeOffset.NORMAL)],
     },
 }
@@ -459,8 +463,9 @@ def apply_always_background_patches(rom: bytes) -> bytes:
         for room, items in rooms.items():
             for i, (clip_offset, bg1_offset, behavior) in enumerate(items):
                 backgrounds = get_backgrounds(area, room)
-                rombuffer[backgrounds.clipdata.rom_address() + clip_offset] = Clipdata.ENERGY_TANK + i + behavior
-                if (bg1_offset is not None):
+                if clip_offset is not None:
+                    rombuffer[backgrounds.clipdata.rom_address() + clip_offset] = Clipdata.ENERGY_TANK + i + behavior
+                if bg1_offset is not None:
                     rombuffer[backgrounds.bg1.rom_address() + bg1_offset] = 0x49 - i
 
     # Change the spotlight graphics so it always appears dark
