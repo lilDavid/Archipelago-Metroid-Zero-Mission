@@ -1,29 +1,20 @@
 from enum import IntEnum
 import itertools
 import struct
-from typing import Callable, ClassVar, List, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import Callable, NamedTuple, Optional, Sequence, Tuple, Union
 
 from . import lz10, rle, iterators
-from .data import get_rom_address, get_symbol
 
 
 ByteString = Union[bytes, bytearray, memoryview]
 
 
-def decompress_data(rom: bytes, src: Union[str, int]):
-    if isinstance(src, str):
-        address = get_rom_address(src)
-    else:
-        address = src
-    return bytes(lz10.decompress(memoryview(rom)[address:]))
+def decompress_data(rom: bytes, src: int):
+    return bytes(lz10.decompress(memoryview(rom)[src:]))
 
 
-def write_data(rombuffer: bytearray, data: bytes, dst: Union[str, int]):
-    if isinstance(dst, str):
-        address = get_rom_address(dst)
-    else:
-        address = dst
-    rombuffer[address:address + len(data)] = data
+def write_data(rombuffer: bytearray, data: bytes, dst: int):
+    rombuffer[dst:dst + len(data)] = data
 
 
 def get_tile(tiledata: bytes, x: int, y: int) -> bytes:
@@ -59,54 +50,55 @@ def extract_unknown_chozo_statue_sprite(statue: bytes, y_offset: int):
     return 4 * shifted
 
 
-def write_palette_pointer(rombuffer: bytearray, palette_name: str, index: int):
-    palette = get_symbol(palette_name)
-    write_data(rombuffer,
-               palette.to_bytes(4, "little"),
-               get_symbol("sItemGfxPointers", 8 * index + 4))  # sItemGfxPointers[index].palette
-
-
-def add_item_sprites(rom: bytes) -> bytes:
+def add_item_sprites(rom: bytes, item_gfx_addresses: Sequence[Tuple[int, int]]) -> bytes:
     rombuffer = bytearray(rom)
+    item_gfx_addresses = iter(item_gfx_addresses)
 
     # Tanks are already in needed format
     # Plasma Beam, Gravity Suit, and Space Jump are by default custom and already in ROM
 
     # Long Beam
-    long_statue = decompress_data(rom, "sChozoStatueLongBeamGfx")
+    src, dst = next(item_gfx_addresses)
+    long_statue = decompress_data(rom, src)
     long = extract_chozo_statue_sprite(long_statue)
-    write_data(rombuffer, long, "sRandoLongBeamGfx")
+    write_data(rombuffer, long, dst)
 
     # Charge Beam
-    charge = decompress_data(rom, "sChargeBeamGfx")
+    src, dst = next(item_gfx_addresses)
+    charge = decompress_data(rom, src)
     charge1 = get_sprites(charge, 18, 0, 1)
     charge2 = get_sprites(charge, 20, 0, 1)
     charge3 = bytearray(charge1)
     charge3[0x20:0x40] = get_tile(charge, 22, 0)
-    write_data(rombuffer, bytes(charge1 + charge2 + charge3 + charge2), "sRandoChargeBeamGfx")
+    write_data(rombuffer, bytes(charge1 + charge2 + charge3 + charge2), dst)
 
     # Ice Beam
-    ice_statue = decompress_data(rom, "sChozoStatueIceBeamGfx")
+    src, dst = next(item_gfx_addresses)
+    ice_statue = decompress_data(rom, src)
     ice = extract_chozo_statue_sprite(ice_statue)
-    write_data(rombuffer, ice, "sRandoIceBeamGfx")
+    write_data(rombuffer, ice, dst)
 
     # Wave Beam
-    wave_statue = decompress_data(rom, "sChozoStatueWaveBeamGfx")
+    src, dst = next(item_gfx_addresses)
+    wave_statue = decompress_data(rom, src)
     wave = extract_chozo_statue_sprite(wave_statue)
-    write_data(rombuffer, wave, "sRandoWaveBeamGfx")
+    write_data(rombuffer, wave, dst)
 
     # Bomb
-    bomb_statue = decompress_data(rom, "sChozoStatueBombsGfx")
+    src, dst = next(item_gfx_addresses)
+    bomb_statue = decompress_data(rom, src)
     bomb = extract_chozo_statue_sprite(bomb_statue)
-    write_data(rombuffer, bomb, "sRandoBombGfx")
+    write_data(rombuffer, bomb, dst)
 
     # Varia Suit
-    varia_statue = decompress_data(rom, "sChozoStatueVariaGfx")
+    src, dst = next(item_gfx_addresses)
+    varia_statue = decompress_data(rom, src)
     varia = extract_chozo_statue_sprite(varia_statue)
-    write_data(rombuffer, varia, "sRandoVariaSuitGfx")
+    write_data(rombuffer, varia, dst)
 
     # Morph Ball
-    morph = decompress_data(rom, "sMorphBallGfx")
+    src, dst = next(item_gfx_addresses)
+    morph = decompress_data(rom, src)
     morph_core = get_sprites(morph, 0, 0, 3)
     morph_glass = get_sprites(morph, 6, 0, 1)
     morph_composited = bytearray(len(morph_core))
@@ -123,51 +115,66 @@ def add_item_sprites(rom: bytes) -> bytes:
                     ball_right = glass_right
                 combined = ball_right << 4 | ball_left
                 morph_composited[i + 0x40 * y + 0x80 * t] = combined
-    write_data(rombuffer, make_4_frame_animation(morph_composited), "sRandoMorphBallGfx")
+    write_data(rombuffer, make_4_frame_animation(morph_composited), dst)
 
     # Speed Booster
-    speed_statue = decompress_data(rom, "sChozoStatueSpeedboosterGfx")
+    src, dst = next(item_gfx_addresses)
+    speed_statue = decompress_data(rom, src)
     speed = extract_chozo_statue_sprite(speed_statue)
-    write_data(rombuffer, speed, "sRandoSpeedBoosterGfx")
+    write_data(rombuffer, speed, dst)
 
     # Hi-Jump Boots
-    hijump_statue = decompress_data(rom, "sChozoStatueHighJumpGfx")
+    src, dst = next(item_gfx_addresses)
+    hijump_statue = decompress_data(rom, src)
     hijump = extract_chozo_statue_sprite(hijump_statue)
-    write_data(rombuffer, hijump, "sRandoHiJumpGfx")
+    write_data(rombuffer, hijump, dst)
 
     # Screw Attack
-    screw_statue = decompress_data(rom, "sChozoStatueScrewAttackGfx")
+    src, dst = next(item_gfx_addresses)
+    screw_statue = decompress_data(rom, src)
     screw = extract_chozo_statue_sprite(screw_statue)
-    write_data(rombuffer, screw, "sRandoScrewAttackGfx")
+    write_data(rombuffer, screw, dst)
 
     # Power Grip
-    powergrip = decompress_data(rom, "sPowerGripGfx")
+    src, dst = next(item_gfx_addresses)
+    powergrip = decompress_data(rom, src)
     powergrip = get_sprites(powergrip, 0, 0, 3)
-    write_data(rombuffer, make_4_frame_animation(powergrip), "sRandoPowerGripGfx")
+    write_data(rombuffer, make_4_frame_animation(powergrip), dst)
 
     return bytes(rombuffer)
 
 
-def use_unknown_item_sprites(rom: bytes) -> bytes:
+def use_unknown_item_sprites(rom: bytes,
+                             gfx_ptr_address: int,
+                             item_gfx_addresses: Sequence[Tuple[int, int]]) -> bytes:
+    def write_palette_pointer(rombuffer: bytearray, palette_ptr: int, index: int):
+        write_data(rombuffer,
+                   palette_ptr.to_bytes(4, "little"),
+                   gfx_ptr_address + 8 * index + 4)  # sItemGfxPointers[index].palette
+
     rombuffer = bytearray(rom)
+    item_gfx_addresses = iter(item_gfx_addresses)
 
     # Plasma Beam
-    plasma_statue = decompress_data(rom, "sChozoStatuePlasmaBeamGfx")
+    src, dst, pal = next(item_gfx_addresses)
+    plasma_statue = decompress_data(rom, src)
     plasma = extract_unknown_chozo_statue_sprite(plasma_statue, 4)
-    write_data(rombuffer, plasma, "sRandoPlasmaBeamGfx")
-    write_palette_pointer(rombuffer, "sChozoStatuePlasmaBeamPal", 8)
+    write_data(rombuffer, plasma, dst)
+    write_palette_pointer(rombuffer, pal, 8)
 
     # Gravity Suit
-    gravity_statue = decompress_data(rom, "sChozoStatueGravitySuitGfx")
+    src, dst, pal = next(item_gfx_addresses)
+    gravity_statue = decompress_data(rom, src)
     gravity = extract_unknown_chozo_statue_sprite(gravity_statue, 2)
-    write_data(rombuffer, gravity, "sRandoGravitySuitGfx")
-    write_palette_pointer(rombuffer, "sChozoStatueGravitySuitPal", 11)
+    write_data(rombuffer, gravity, dst)
+    write_palette_pointer(rombuffer, pal, 11)
 
     # Space Jump
-    space_statue = decompress_data(rom, "sChozoStatueSpaceJumpGfx")
+    src, dst, pal = next(item_gfx_addresses)
+    space_statue = decompress_data(rom, src)
     spacejump = extract_unknown_chozo_statue_sprite(space_statue, 2)
-    write_data(rombuffer, spacejump, "sRandoSpaceJumpGfx")
-    write_palette_pointer(rombuffer, "sChozoStatueSpaceJumpPal", 16)
+    write_data(rombuffer, spacejump, dst)
+    write_palette_pointer(rombuffer, pal, 16)
 
     return bytes(rombuffer)
 
@@ -337,18 +344,17 @@ def read_u32(rom, addr):
     return int.from_bytes(rom[addr:addr + 4], "little")
 
 
-def background_extraction_function(rom: ByteString) -> Callable[[int, int], RoomInfo]:
+def background_extraction_function(rom: ByteString, room_entry_table_addr: int) -> Callable[[int, int], RoomInfo]:
     def get_backgrounds(area, room):
-        room_entry_pointer_array_addr = get_rom_address("sAreaRoomEntryPointers")
-        room_entry_array_addr = read_u32(rom, (room_entry_pointer_array_addr + 4 * area) & (0x8000000 - 1))
+        room_entry_array_addr = read_u32(rom, (room_entry_table_addr + 4 * area) & (0x8000000 - 1))
         room_entry_addr = (room_entry_array_addr + 60 * room) & (0x8000000 - 1)
         return RoomInfo.from_pointer(rom, room_entry_addr)
     return get_backgrounds
 
 
-def apply_always_background_patches(rom: bytes) -> bytes:
+def apply_always_background_patches(rom: bytes, room_entry_table_addr: int) -> bytes:
     rombuffer = bytearray(rom)
-    get_backgrounds = background_extraction_function(rom)
+    get_backgrounds = background_extraction_function(rom, room_entry_table_addr)
 
     # Change the spotlight graphics so it always appears dark
     chozodia_before_map = get_backgrounds(Area.CHOZODIA, 10).bg0
@@ -369,10 +375,10 @@ def apply_always_background_patches(rom: bytes) -> bytes:
     return bytes(rombuffer)
 
 
-def apply_layout_patches(rom: bytes) -> bytes:
+def apply_layout_patches(rom: bytes, room_entry_table_addr: int) -> bytes:
     rom = memoryview(rom)
     rombuffer = bytearray(rom)
-    get_backgrounds = background_extraction_function(rom)
+    get_backgrounds = background_extraction_function(rom, room_entry_table_addr)
 
     # Change the three beam blocks to never reform
     long_beam_hall = get_backgrounds(Area.BRINSTAR, 4)
