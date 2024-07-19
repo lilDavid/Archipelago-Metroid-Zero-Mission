@@ -15,12 +15,12 @@ class Goal(Choice):
     """
     What you will be required to do to beat the game.
     Mecha Ridley: Mecha Ridley is always open and can be reached as long as you have the right items.
-    Major Bosses: The door to Mecha Ridley is locked until Kraid, Ridley, Mother Brain, and the Chozo Ghost are defeated.
+    Bosses: The door to Mecha Ridley is locked until Kraid, Ridley, Mother Brain, and the Chozo Ghost are defeated.
     """
     display_name = "Goal"
     option_mecha_ridley = 0
-    option_major_bosses = 1
-    default = option_major_bosses
+    option_bosses = 1
+    default = option_bosses
 
 
 class ChozodiaAccess(Choice):

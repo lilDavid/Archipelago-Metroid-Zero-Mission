@@ -304,6 +304,6 @@ def chozodia_to_cockpit(state: CollectionState, player: int) -> bool:
 
 def goal(state: CollectionState, player: int) -> bool:
     goal = _get_options(state, player).goal
-    if goal == Goal.option_major_bosses:
+    if goal == Goal.option_bosses:
         return state.has_all({"Mother Brain Defeated", "Chozo Ghost Defeated"}, player)
     return True
