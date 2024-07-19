@@ -51,6 +51,11 @@ class SkipChozodiaStealth(DefaultOnToggle):
     display_name = "Skip Chozodia Stealth"
 
 
+class StartWithMaps(DefaultOnToggle):
+    """Start the game with all map stations visited."""
+    display_name = "Start with Maps"
+
+
 class IBJInLogic(Toggle):
     """
     Allows for using IBJ (infinite bomb jumping) in logic.
@@ -144,6 +149,7 @@ mzm_option_groups = [
         UnknownItemsAlwaysUsable,
         LayoutPatches,
         MorphBallPlacement,  # TODO: Shuffle settings group?
+        StartWithMaps,
     ]),
     OptionGroup("Logic", [
         IBJInLogic,
@@ -168,6 +174,7 @@ class MZMOptions(PerGameCommonOptions):
     unknown_items_always_usable: UnknownItemsAlwaysUsable
     layout_patches: LayoutPatches
     morph_ball: MorphBallPlacement
+    start_with_maps: StartWithMaps
     ibj_in_logic: IBJInLogic
     heatruns_lavadives: HeatRunsAndLavaDives
     walljumps_in_logic: WalljumpsInLogic

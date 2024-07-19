@@ -112,14 +112,15 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
 
         world.options.goal.value,
         world.options.unknown_items_always_usable.value,
-        world.options.skip_chozodia_stealth.value,
-        True,  # Make Power Bombs usable without Bomb
         True,  # Remove Gravity Suit heat resistance
+        True,  # Make Power Bombs usable without Bomb
+        world.options.skip_chozodia_stealth.value,
+        world.options.start_with_maps.value,
     )
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2xBBBBB", *seed_info)
+        struct.pack("<H64s64s2x6B", *seed_info)
     )
 
     # Set goal
