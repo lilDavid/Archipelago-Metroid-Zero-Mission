@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import struct
-from typing import TYPE_CHECKING, Mapping, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Sequence, Tuple
 
 from BaseClasses import ItemClassification, Location
 import Utils
@@ -44,8 +44,11 @@ class MZMPatchExtensions(APPatchExtension):
         return rom_data.apply_always_background_patches(rom, room_entry_table_addr)
 
     @staticmethod
-    def apply_layout_patches(caller: APProcedurePatch, rom: bytes, room_entry_table_addr: int) -> bytes:
-        return rom_data.apply_layout_patches(rom, room_entry_table_addr)
+    def apply_layout_patches(caller: APProcedurePatch,
+                             rom: bytes,
+                             room_entry_table_addr: int,
+                             patches: Sequence[str]) -> bytes:
+        return rom_data.apply_layout_patches(rom, room_entry_table_addr, set(patches))
 
 
 class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
@@ -72,7 +75,7 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
         self.procedure.append(("add_unknown_item_graphics", [get_rom_address("sItemGfxPointers"), self.get_unknown_item_gfx_addresses()]))
 
     def add_layout_patches(self):
-        self.procedure.append(("apply_layout_patches", [get_rom_address("sAreaRoomEntryPointers")]))
+        self.procedure.append(("apply_layout_patches", [get_rom_address("sAreaRoomEntryPointers"), list(rom_data.expansion_required_patches)]))
 
     @staticmethod
     def get_item_gfx_addresses() -> Sequence[Tuple[int, int]]:

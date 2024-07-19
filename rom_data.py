@@ -1,7 +1,7 @@
 from enum import IntEnum
 import itertools
 import struct
-from typing import Callable, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import Callable, NamedTuple, Optional, Sequence, Set, Tuple, Union
 
 from . import lz10, rle, iterators
 
@@ -375,7 +375,16 @@ def apply_always_background_patches(rom: bytes, room_entry_table_addr: int) -> b
     return bytes(rombuffer)
 
 
-def apply_layout_patches(rom: bytes, room_entry_table_addr: int) -> bytes:
+# Patches that require expanded space. These are not backwards compatible, so we keep a list and
+# apply only the ones that both the generator and the patcher have.
+expansion_required_patches = {
+    "brinstar_top",
+    "norfair_brinstar_elevator",
+    "crateria_water_speedway",
+}
+
+
+def apply_layout_patches(rom: bytes, room_entry_table_addr: int, patches: Set[str]) -> bytes:
     rom = memoryview(rom)
     rombuffer = bytearray(rom)
     get_backgrounds = background_extraction_function(rom, room_entry_table_addr)
@@ -387,16 +396,17 @@ def apply_layout_patches(rom: bytes, room_entry_table_addr: int) -> bytes:
         long_beam_hall_clipdata.set(x, 8, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.BEAM_BLOCK_NO_REFORM)
     write_data(rombuffer, long_beam_hall_clipdata.to_compressed_data(), long_beam_hall.clipdata.rom_address())
 
-    # Create a slope instead of a wall to allow leaving Brinstar Top Missile room
-    brinstar_top = get_backgrounds(Area.BRINSTAR, 29)
-    brinstar_top_clipdata = BackgroundTilemap.from_info(brinstar_top.clipdata, 117)
-    brinstar_top_bg1 = BackgroundTilemap.from_info(brinstar_top.bg1, 287)
-    brinstar_top_clipdata.set(0xE, 0x5, Clipdata.STEEP_SLOPE_BLTR, Clipdata.AIR)
-    brinstar_top_bg1.set(0xE, 0x5, 0x009A, 0x0106)
-    brinstar_top_clipdata.set(0xF, 0x4, Clipdata.STEEP_SLOPE_BLTR, Clipdata.SOLID)
-    brinstar_top_bg1.set(0xF, 0x4, 0x009A, 0x0092)
-    write_data(rombuffer, brinstar_top_bg1.to_compressed_data(), brinstar_top.bg1.rom_address())
-    write_data(rombuffer, brinstar_top_clipdata.to_compressed_data(), brinstar_top.clipdata.rom_address())
+    if "brinstar_top" in patches:
+        # Create a slope instead of a wall to allow leaving Brinstar Top Missile room
+        brinstar_top = get_backgrounds(Area.BRINSTAR, 29)
+        brinstar_top_clipdata = BackgroundTilemap.from_info(brinstar_top.clipdata, 117)
+        brinstar_top_bg1 = BackgroundTilemap.from_info(brinstar_top.bg1, 287)
+        brinstar_top_clipdata.set(0xE, 0x5, Clipdata.STEEP_SLOPE_BLTR, Clipdata.AIR)
+        brinstar_top_bg1.set(0xE, 0x5, 0x009A, 0x0106)
+        brinstar_top_clipdata.set(0xF, 0x4, Clipdata.STEEP_SLOPE_BLTR, Clipdata.SOLID)
+        brinstar_top_bg1.set(0xF, 0x4, 0x009A, 0x0092)
+        write_data(rombuffer, brinstar_top_bg1.to_compressed_data(), brinstar_top.bg1.rom_address())
+        write_data(rombuffer, brinstar_top_clipdata.to_compressed_data(), brinstar_top.clipdata.rom_address())
 
     # Change the bomb block by the Brinstar under-bridge item to never reform
     under_bridge = get_backgrounds(Area.BRINSTAR, 14)
@@ -404,33 +414,34 @@ def apply_layout_patches(rom: bytes, room_entry_table_addr: int) -> bytes:
     under_bridge_clipdata.set(0xC, 0x17, Clipdata.BOMB_BLOCK_NEVER_REFORM, Clipdata.BOMB_BLOCK_REFORM)
     write_data(rombuffer, under_bridge_clipdata.to_compressed_data(), under_bridge.clipdata.rom_address())
 
-    # Move Norfair elevator to the bottom of the room
-    norfair_brinstar_elevator = get_backgrounds(Area.NORFAIR, 0)
-    norfair_brinstar_elevator_clipdata = BackgroundTilemap.from_info(norfair_brinstar_elevator.clipdata, 238)
-    norfair_brinstar_elevator_bg1 = BackgroundTilemap.from_info(norfair_brinstar_elevator.bg1, 504)
-    elevator_tiles = [[0x01D0, 0x01D1, 0x01D2, 0x01D3, 0x01D4],
-                      [0x01E0, 0x01E1, 0x01E2, 0x01E3, 0x01E4],
-                      [0x0000] * 5]
-    ground_tiles = [[0x0000] * 5,
-                    [0x009B, 0x006B, 0x009E, 0x009C, 0x009D],
-                    [0x00AB, 0x0000, 0x00AE, 0x00AC, 0x00AD]]
-    norfair_brinstar_elevator_clipdata.set(9, 16, Clipdata.SOLID, Clipdata.ELEVATOR_UP)
-    norfair_brinstar_elevator_clipdata.set(9, 29, Clipdata.ELEVATOR_UP, Clipdata.SOLID)
-    for x in (7, 11):
-        norfair_brinstar_elevator_clipdata.set(x, 26, Clipdata.AIR, Clipdata.SOLID)
-    for y, (elevator_row, ground_row) in enumerate(zip(elevator_tiles, ground_tiles)):
-        for x, (elevator_tile, ground_tile) in enumerate(zip(elevator_row, ground_row)):
-            norfair_brinstar_elevator_bg1.set(x + 7, y + 15, ground_tile, elevator_tile)
-            norfair_brinstar_elevator_bg1.set(x + 7, y + 28, elevator_tile, ground_tile)
-    new_sprites = b"".join([
-        SpriteData(28, 9, 4).pack(),  # Elevator
-        SpriteData(23, 6, 2).pack(),  # Ripper
-        SpriteData(23, 12, 2).pack(),  # Ripper
-        SpriteData.terminator().pack()
-    ])
-    write_data(rombuffer, norfair_brinstar_elevator_clipdata.to_compressed_data(), norfair_brinstar_elevator.clipdata.rom_address())
-    write_data(rombuffer, norfair_brinstar_elevator_bg1.to_compressed_data(), norfair_brinstar_elevator.bg1.rom_address())
-    write_data(rombuffer, new_sprites, norfair_brinstar_elevator.default_sprite_data_address)
+    if "norfair_brinstar_elevator" in patches:
+        # Move the elevator to the bottom of the room
+        norfair_brinstar_elevator = get_backgrounds(Area.NORFAIR, 0)
+        norfair_brinstar_elevator_clipdata = BackgroundTilemap.from_info(norfair_brinstar_elevator.clipdata, 238)
+        norfair_brinstar_elevator_bg1 = BackgroundTilemap.from_info(norfair_brinstar_elevator.bg1, 504)
+        elevator_tiles = [[0x01D0, 0x01D1, 0x01D2, 0x01D3, 0x01D4],
+                          [0x01E0, 0x01E1, 0x01E2, 0x01E3, 0x01E4],
+                          [0x0000] * 5]
+        ground_tiles = [[0x0000] * 5,
+                        [0x009B, 0x006B, 0x009E, 0x009C, 0x009D],
+                        [0x00AB, 0x0000, 0x00AE, 0x00AC, 0x00AD]]
+        norfair_brinstar_elevator_clipdata.set(9, 16, Clipdata.SOLID, Clipdata.ELEVATOR_UP)
+        norfair_brinstar_elevator_clipdata.set(9, 29, Clipdata.ELEVATOR_UP, Clipdata.SOLID)
+        for x in (7, 11):
+            norfair_brinstar_elevator_clipdata.set(x, 26, Clipdata.AIR, Clipdata.SOLID)
+        for y, (elevator_row, ground_row) in enumerate(zip(elevator_tiles, ground_tiles)):
+            for x, (elevator_tile, ground_tile) in enumerate(zip(elevator_row, ground_row)):
+                norfair_brinstar_elevator_bg1.set(x + 7, y + 15, ground_tile, elevator_tile)
+                norfair_brinstar_elevator_bg1.set(x + 7, y + 28, elevator_tile, ground_tile)
+        new_sprites = b"".join([
+            SpriteData(28, 9, 4).pack(),  # Elevator
+            SpriteData(23, 6, 2).pack(),  # Ripper
+            SpriteData(23, 12, 2).pack(),  # Ripper
+            SpriteData.terminator().pack()
+        ])
+        write_data(rombuffer, norfair_brinstar_elevator_clipdata.to_compressed_data(), norfair_brinstar_elevator.clipdata.rom_address())
+        write_data(rombuffer, norfair_brinstar_elevator_bg1.to_compressed_data(), norfair_brinstar_elevator.bg1.rom_address())
+        write_data(rombuffer, new_sprites, norfair_brinstar_elevator.default_sprite_data_address)
 
     # Add beam blocks to escape softlock
     # Change visual to not leave floating dirt when breaking the blocks
@@ -444,22 +455,23 @@ def apply_layout_patches(rom: bytes, room_entry_table_addr: int) -> bytes:
     write_data(rombuffer, crateria_near_plasma_clipdata.to_compressed_data(), crateria_near_plasma.clipdata.rom_address())
     write_data(rombuffer, crateria_near_plasma_bg1.to_compressed_data(), crateria_near_plasma.bg1.rom_address())
 
-    # Change speed booster blocks in watery room next to elevator to beam blocks
-    crateria_water_speedway = get_backgrounds(Area.CRATERIA, 11)
-    crateria_water_speedway_clipdata = BackgroundTilemap.from_info(crateria_water_speedway.clipdata, 151)
-    crateria_water_speedway_clipdata.set(0x11, 0xA,
-                                         Clipdata.TOP_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
-    crateria_water_speedway_clipdata.set(0x12, 0xA,
-                                         Clipdata.TOP_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
-    crateria_water_speedway_clipdata.set(0x11, 0xB,
-                                         Clipdata.BOTTOM_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
-    crateria_water_speedway_clipdata.set(0x12, 0xB,
-                                         Clipdata.BOTTOM_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
-    crateria_water_speedway_clipdata.set(0x13, 0xB,
-                                         Clipdata.BEAM_BLOCK_NO_REFORM,
-                                         Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
-    write_data(rombuffer, crateria_water_speedway_clipdata.to_compressed_data(),
-               crateria_water_speedway.clipdata.rom_address())
+    if "crateria_water_speedway" in patches:
+        # Change speed booster blocks in watery room next to elevator to beam blocks
+        crateria_water_speedway = get_backgrounds(Area.CRATERIA, 11)
+        crateria_water_speedway_clipdata = BackgroundTilemap.from_info(crateria_water_speedway.clipdata, 151)
+        crateria_water_speedway_clipdata.set(0x11, 0xA,
+                                             Clipdata.TOP_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+        crateria_water_speedway_clipdata.set(0x12, 0xA,
+                                             Clipdata.TOP_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+        crateria_water_speedway_clipdata.set(0x11, 0xB,
+                                             Clipdata.BOTTOM_LEFT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+        crateria_water_speedway_clipdata.set(0x12, 0xB,
+                                             Clipdata.BOTTOM_RIGHT_SHOT_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+        crateria_water_speedway_clipdata.set(0x13, 0xB,
+                                             Clipdata.BEAM_BLOCK_NO_REFORM,
+                                             Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+        write_data(rombuffer, crateria_water_speedway_clipdata.to_compressed_data(),
+                   crateria_water_speedway.clipdata.rom_address())
 
     # Change speed booster blocks in Kraid escape room to beam blocks
     kraid_right_shaft = get_backgrounds(Area.KRAID, 27)
