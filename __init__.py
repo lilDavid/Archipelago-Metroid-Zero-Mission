@@ -1,7 +1,7 @@
 import typing
 from pathlib import Path
 from collections import Counter
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 from BaseClasses import ItemClassification, Tutorial
 import settings
@@ -58,7 +58,7 @@ class MZMWorld(World):
     options_dataclass = MZMOptions
     options: MZMOptions
     topology_present = True
-    settings: MZMSettings
+    settings: ClassVar[MZMSettings]
 
     web = MZMWeb()
 
