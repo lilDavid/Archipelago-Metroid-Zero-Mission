@@ -410,7 +410,7 @@ item_clipdata_and_gfx: Mapping[Area, Mapping[int, Sequence[Tuple[Optional[int], 
         22: [(0x16, None), (0x58, 0xC1)],
         23: [(0x8, 0x2D), (0x7B, 0xC9)],
         29: [(0xA, 0x2E), (0x118, 0x198)],
-        30: [(0x103, 0x142)],
+        30: [(0x103, 0x152)],
         31: [(0x30, 0x96)],
     },
     Area.TOURIAN: {
