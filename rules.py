@@ -554,6 +554,7 @@ def set_rules(world: MZMWorld, locations):
                 logic.chozodia_to_cockpit(state, player)
                 and logic.has_missile_count(state, player, 40)
                 and logic.has_power_bombs(state, player)  # Or can skip them by flying to the tunnel
+                and logic.goal(state, player)
         ),
         "Chozodia Space Pirate's Ship": lambda state: state.has_all({"Mecha Ridley Defeated", "Plasma Beam"}, player)
     }

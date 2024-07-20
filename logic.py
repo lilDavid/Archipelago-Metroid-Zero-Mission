@@ -3,7 +3,7 @@ Functions used to describe Metroid: Zero Mission logic rules in rules.py
 """
 
 from BaseClasses import CollectionState
-from .options import MZMOptions
+from .options import Goal, MZMOptions
 
 
 # TODO: Add missing logic options
@@ -300,3 +300,10 @@ def chozodia_to_cockpit(state: CollectionState, player: int) -> bool:
             )
             and (state.has("Bomb", player) or state.count("Power Bomb Tank", player) >= 2)
             )
+
+
+def goal(state: CollectionState, player: int) -> bool:
+    goal = _get_options(state, player).goal
+    if goal == Goal.option_bosses:
+        return state.has_all({"Mother Brain Defeated", "Chozo Ghost Defeated"}, player)
+    return True
