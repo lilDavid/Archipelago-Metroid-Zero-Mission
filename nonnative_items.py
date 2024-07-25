@@ -84,7 +84,7 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         # "Grapple Beam":
         # "X-Ray Visor":
         # "Ice Spreader":
-        "Space Jump Boots": ItemID.HiJump,
+        # "Space Jump Boots":
         "Morph Ball": ItemID.MorphBall,
         # "Combat Visor":
         # "Boost Ball":
@@ -97,6 +97,30 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         # "Wavebuster":
         # "Missile Launcher":
         # "Power Bomb (Main)":
+    },
+    "Super Metroid Map Rando": {
+        "ETank": ItemID.EnergyTank,
+        "Missile": ItemID.MissileTank,
+        "Super": ItemID.SuperMissileTank,
+        "PowerBomb": ItemID.PowerBombTank,
+        "Bombs": ItemID.Bomb,
+        "Charge": ItemID.ChargeBeam,
+        "Ice": ItemID.IceBeam,
+        "HiJump": ItemID.HiJump,
+        "SpeedBooster": ItemID.SpeedBooster,
+        "Wave": ItemID.WaveBeam,
+        # "Spazer":
+        # "SpringBall":
+        "Varia": ItemID.VariaSuit,
+        "Gravity": ItemID.GravitySuit,
+        # "XRayScope":
+        "Plasma": ItemID.PlasmaBeam,
+        # "Grapple":
+        "SpaceJump": ItemID.SpaceJump,
+        "ScrewAttack": ItemID.ScrewAttack,
+        "Morph": ItemID.MorphBall,
+        # "ReserveTank":
+        # "WallJump":
     },
 }
 
