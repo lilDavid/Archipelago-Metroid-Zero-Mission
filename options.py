@@ -15,12 +15,12 @@ class Goal(Choice):
     """
     What you will be required to do to beat the game.
     Mecha Ridley: Mecha Ridley is always open and can be reached as long as you have the right items.
-    Major Bosses: The door to Mecha Ridley is locked until Kraid, Ridley, Mother Brain, and the Chozo Ghost are defeated.
+    Bosses: The door to Mecha Ridley is locked until Kraid, Ridley, Mother Brain, and the Chozo Ghost are defeated.
     """
     display_name = "Goal"
     option_mecha_ridley = 0
-    option_major_bosses = 1
-    default = option_major_bosses
+    option_bosses = 1
+    default = option_bosses
 
 
 class ChozodiaAccess(Choice):
@@ -49,6 +49,11 @@ class UnknownItemsAlwaysUsable(DefaultOnToggle):
 class SkipChozodiaStealth(DefaultOnToggle):
     """After escaping Tourian, place Samus in the save room just outside of the Chozo Ghost's room in Chozodia."""
     display_name = "Skip Chozodia Stealth"
+
+
+class StartWithMaps(DefaultOnToggle):
+    """Start the game with all map stations visited."""
+    display_name = "Start with Maps"
 
 
 class IBJInLogic(Toggle):
@@ -144,6 +149,7 @@ mzm_option_groups = [
         UnknownItemsAlwaysUsable,
         LayoutPatches,
         MorphBallPlacement,  # TODO: Shuffle settings group?
+        StartWithMaps,
     ]),
     OptionGroup("Logic", [
         IBJInLogic,
@@ -168,6 +174,7 @@ class MZMOptions(PerGameCommonOptions):
     unknown_items_always_usable: UnknownItemsAlwaysUsable
     layout_patches: LayoutPatches
     morph_ball: MorphBallPlacement
+    start_with_maps: StartWithMaps
     ibj_in_logic: IBJInLogic
     heatruns_lavadives: HeatRunsAndLavaDives
     walljumps_in_logic: WalljumpsInLogic
