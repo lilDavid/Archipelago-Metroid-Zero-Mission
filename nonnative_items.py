@@ -97,6 +97,10 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         # "Wavebuster":
         # "Missile Launcher":
         # "Power Bomb (Main)":
+        # "Progressive Power Beam":
+        "Progressive Ice Beam": ItemID.IceBeam,
+        "Progressive Wave Beam": ItemID.WaveBeam,
+        "Progressive Plasma Beam": ItemID.PlasmaBeam,
     },
     "Super Metroid Map Rando": {
         "ETank": ItemID.EnergyTank,
