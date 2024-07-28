@@ -66,6 +66,14 @@ class ItemID(IntEnum):
     APItemFiller = 19
     APItemProgression = 20
     APItemUseful = 21
+    SpazerBeam = 22
+    GrappleBeam = 23
+    SpringBall = 24
+    XRayScope = 25
+    ReserveTank = 26
+    WallJump = 27
+    PowerBeam = 28
+    SpiderBall = 29
 
 
 tank_data_table = {
