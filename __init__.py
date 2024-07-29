@@ -126,9 +126,11 @@ class MZMWorld(World):
         return {
             "unknown_items": self.options.unknown_items_always_usable.value,
             "layout_patches": self.options.layout_patches.value,
+            "logic_difficulty": self.options.logic_difficulty.value,
             "ibj_logic": self.options.ibj_in_logic.value,
             "heatruns": self.options.heatruns_lavadives.value,
             "walljump_logic": self.options.walljumps_in_logic.value,
+            "tricky_shinesparks": self.options.tricky_shinesparks.value,
             "death_link": self.options.death_link.value
         }
 
