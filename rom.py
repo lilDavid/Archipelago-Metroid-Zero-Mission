@@ -116,11 +116,12 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         True,  # Make Power Bombs usable without Bomb
         world.options.skip_chozodia_stealth.value,
         world.options.start_with_maps.value,
+        world.options.fast_item_banners.value,
     )
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2x6B", *seed_info)
+        struct.pack("<H64s64s2x7B", *seed_info)
     )
 
     # Set goal

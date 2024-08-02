@@ -109,6 +109,14 @@ class MorphBallPlacement(Choice):
     default = option_early
 
 
+class FastItemBanners(DefaultOnToggle):
+    """
+    Makes the banner that appears when you collect an item much quicker, and makes it play a sound
+    related to the item when it appears.
+    """
+    display_name = "Fast Item Banners"
+
+
 class DisplayNonLocalItems(Choice):
     """
     How to display items that will be sent to other players.
@@ -157,6 +165,7 @@ mzm_option_groups = [
         WalljumpsInLogic,
     ]),
     OptionGroup("Cosmetic", [
+        FastItemBanners,
         DisplayNonLocalItems,
     ]),
     OptionGroup("Item & Location Options", [
@@ -178,6 +187,7 @@ class MZMOptions(PerGameCommonOptions):
     ibj_in_logic: IBJInLogic
     heatruns_lavadives: HeatRunsAndLavaDives
     walljumps_in_logic: WalljumpsInLogic
+    fast_item_banners: FastItemBanners
     display_nonlocal_items: DisplayNonLocalItems
     start_inventory_from_pool: StartInventoryPool
     junk_fill_weights: JunkFillWeights
