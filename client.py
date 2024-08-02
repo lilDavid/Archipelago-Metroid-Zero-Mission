@@ -451,7 +451,12 @@ class MZMClient(BizHawkClient):
                         )
                     try:
                         if item.id == ItemID.EnergyTank:
-                            await write_amounts(16, new_capacity, new_capacity)
+                            read_result = await read_amounts(size)
+                            if read_result is None:
+                                continue
+                            capacity, current = map(get_int, read_result)
+                            if new_capacity > capacity:
+                                await write_amounts(16, new_capacity, new_capacity)
                         else:
                             size = 16 if item.id == ItemID.MissileTank else 8
                             read_result = await read_amounts(size)
