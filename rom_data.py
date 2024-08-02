@@ -1,29 +1,20 @@
 from enum import IntEnum
 import itertools
 import struct
-from typing import Callable, Mapping, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import Callable, Mapping, NamedTuple, Optional, Sequence, Set, Tuple, Union
 
 from . import lz10, rle, iterators
-from .data import get_rom_address, get_symbol
 
 
 ByteString = Union[bytes, bytearray, memoryview]
 
 
-def decompress_data(rom: bytes, src: Union[str, int]):
-    if isinstance(src, str):
-        address = get_rom_address(src)
-    else:
-        address = src
-    return bytes(lz10.decompress(memoryview(rom)[address:]))
+def decompress_data(rom: bytes, src: int):
+    return bytes(lz10.decompress(memoryview(rom)[src:]))
 
 
-def write_data(rombuffer: bytearray, data: bytes, dst: Union[str, int]):
-    if isinstance(dst, str):
-        address = get_rom_address(dst)
-    else:
-        address = dst
-    rombuffer[address:address + len(data)] = data
+def write_data(rombuffer: bytearray, data: bytes, dst: int):
+    rombuffer[dst:dst + len(data)] = data
 
 
 def get_tile(tiledata: bytes, x: int, y: int) -> bytes:
@@ -59,54 +50,55 @@ def extract_unknown_chozo_statue_sprite(statue: bytes, y_offset: int):
     return 4 * shifted
 
 
-def write_palette_pointer(rombuffer: bytearray, palette_name: str, index: int):
-    palette = get_symbol(palette_name)
-    write_data(rombuffer,
-               palette.to_bytes(4, "little"),
-               get_symbol("sItemGfxPointers", 8 * index + 4))  # sItemGfxPointers[index].palette
-
-
-def add_item_sprites(rom: bytes) -> bytes:
+def add_item_sprites(rom: bytes, item_gfx_addresses: Sequence[Tuple[int, int]]) -> bytes:
     rombuffer = bytearray(rom)
+    item_gfx_addresses = iter(item_gfx_addresses)
 
     # Tanks are already in needed format
     # Plasma Beam, Gravity Suit, and Space Jump are by default custom and already in ROM
 
     # Long Beam
-    long_statue = decompress_data(rom, "sChozoStatueLongBeamGfx")
+    src, dst = next(item_gfx_addresses)
+    long_statue = decompress_data(rom, src)
     long = extract_chozo_statue_sprite(long_statue)
-    write_data(rombuffer, long, "sRandoLongBeamGfx")
+    write_data(rombuffer, long, dst)
 
     # Charge Beam
-    charge = decompress_data(rom, "sChargeBeamGfx")
+    src, dst = next(item_gfx_addresses)
+    charge = decompress_data(rom, src)
     charge1 = get_sprites(charge, 18, 0, 1)
     charge2 = get_sprites(charge, 20, 0, 1)
     charge3 = bytearray(charge1)
     charge3[0x20:0x40] = get_tile(charge, 22, 0)
-    write_data(rombuffer, bytes(charge1 + charge2 + charge3 + charge2), "sRandoChargeBeamGfx")
+    write_data(rombuffer, bytes(charge1 + charge2 + charge3 + charge2), dst)
 
     # Ice Beam
-    ice_statue = decompress_data(rom, "sChozoStatueIceBeamGfx")
+    src, dst = next(item_gfx_addresses)
+    ice_statue = decompress_data(rom, src)
     ice = extract_chozo_statue_sprite(ice_statue)
-    write_data(rombuffer, ice, "sRandoIceBeamGfx")
+    write_data(rombuffer, ice, dst)
 
     # Wave Beam
-    wave_statue = decompress_data(rom, "sChozoStatueWaveBeamGfx")
+    src, dst = next(item_gfx_addresses)
+    wave_statue = decompress_data(rom, src)
     wave = extract_chozo_statue_sprite(wave_statue)
-    write_data(rombuffer, wave, "sRandoWaveBeamGfx")
+    write_data(rombuffer, wave, dst)
 
     # Bomb
-    bomb_statue = decompress_data(rom, "sChozoStatueBombsGfx")
+    src, dst = next(item_gfx_addresses)
+    bomb_statue = decompress_data(rom, src)
     bomb = extract_chozo_statue_sprite(bomb_statue)
-    write_data(rombuffer, bomb, "sRandoBombGfx")
+    write_data(rombuffer, bomb, dst)
 
     # Varia Suit
-    varia_statue = decompress_data(rom, "sChozoStatueVariaGfx")
+    src, dst = next(item_gfx_addresses)
+    varia_statue = decompress_data(rom, src)
     varia = extract_chozo_statue_sprite(varia_statue)
-    write_data(rombuffer, varia, "sRandoVariaSuitGfx")
+    write_data(rombuffer, varia, dst)
 
     # Morph Ball
-    morph = decompress_data(rom, "sMorphBallGfx")
+    src, dst = next(item_gfx_addresses)
+    morph = decompress_data(rom, src)
     morph_core = get_sprites(morph, 0, 0, 3)
     morph_glass = get_sprites(morph, 6, 0, 1)
     morph_composited = bytearray(len(morph_core))
@@ -123,51 +115,66 @@ def add_item_sprites(rom: bytes) -> bytes:
                     ball_right = glass_right
                 combined = ball_right << 4 | ball_left
                 morph_composited[i + 0x40 * y + 0x80 * t] = combined
-    write_data(rombuffer, make_4_frame_animation(morph_composited), "sRandoMorphBallGfx")
+    write_data(rombuffer, make_4_frame_animation(morph_composited), dst)
 
     # Speed Booster
-    speed_statue = decompress_data(rom, "sChozoStatueSpeedboosterGfx")
+    src, dst = next(item_gfx_addresses)
+    speed_statue = decompress_data(rom, src)
     speed = extract_chozo_statue_sprite(speed_statue)
-    write_data(rombuffer, speed, "sRandoSpeedBoosterGfx")
+    write_data(rombuffer, speed, dst)
 
     # Hi-Jump Boots
-    hijump_statue = decompress_data(rom, "sChozoStatueHighJumpGfx")
+    src, dst = next(item_gfx_addresses)
+    hijump_statue = decompress_data(rom, src)
     hijump = extract_chozo_statue_sprite(hijump_statue)
-    write_data(rombuffer, hijump, "sRandoHiJumpGfx")
+    write_data(rombuffer, hijump, dst)
 
     # Screw Attack
-    screw_statue = decompress_data(rom, "sChozoStatueScrewAttackGfx")
+    src, dst = next(item_gfx_addresses)
+    screw_statue = decompress_data(rom, src)
     screw = extract_chozo_statue_sprite(screw_statue)
-    write_data(rombuffer, screw, "sRandoScrewAttackGfx")
+    write_data(rombuffer, screw, dst)
 
     # Power Grip
-    powergrip = decompress_data(rom, "sPowerGripGfx")
+    src, dst = next(item_gfx_addresses)
+    powergrip = decompress_data(rom, src)
     powergrip = get_sprites(powergrip, 0, 0, 3)
-    write_data(rombuffer, make_4_frame_animation(powergrip), "sRandoPowerGripGfx")
+    write_data(rombuffer, make_4_frame_animation(powergrip), dst)
 
     return bytes(rombuffer)
 
 
-def use_unknown_item_sprites(rom: bytes) -> bytes:
+def use_unknown_item_sprites(rom: bytes,
+                             gfx_ptr_address: int,
+                             item_gfx_addresses: Sequence[Tuple[int, int]]) -> bytes:
+    def write_palette_pointer(rombuffer: bytearray, palette_ptr: int, index: int):
+        write_data(rombuffer,
+                   palette_ptr.to_bytes(4, "little"),
+                   gfx_ptr_address + 8 * index + 4)  # sItemGfxPointers[index].palette
+
     rombuffer = bytearray(rom)
+    item_gfx_addresses = iter(item_gfx_addresses)
 
     # Plasma Beam
-    plasma_statue = decompress_data(rom, "sChozoStatuePlasmaBeamGfx")
+    src, dst, pal = next(item_gfx_addresses)
+    plasma_statue = decompress_data(rom, src)
     plasma = extract_unknown_chozo_statue_sprite(plasma_statue, 4)
-    write_data(rombuffer, plasma, "sRandoPlasmaBeamGfx")
-    write_palette_pointer(rombuffer, "sChozoStatuePlasmaBeamPal", 8)
+    write_data(rombuffer, plasma, dst)
+    write_palette_pointer(rombuffer, pal, 8)
 
     # Gravity Suit
-    gravity_statue = decompress_data(rom, "sChozoStatueGravitySuitGfx")
+    src, dst, pal = next(item_gfx_addresses)
+    gravity_statue = decompress_data(rom, src)
     gravity = extract_unknown_chozo_statue_sprite(gravity_statue, 2)
-    write_data(rombuffer, gravity, "sRandoGravitySuitGfx")
-    write_palette_pointer(rombuffer, "sChozoStatueGravitySuitPal", 11)
+    write_data(rombuffer, gravity, dst)
+    write_palette_pointer(rombuffer, pal, 11)
 
     # Space Jump
-    space_statue = decompress_data(rom, "sChozoStatueSpaceJumpGfx")
+    src, dst, pal = next(item_gfx_addresses)
+    space_statue = decompress_data(rom, src)
     spacejump = extract_unknown_chozo_statue_sprite(space_statue, 2)
-    write_data(rombuffer, spacejump, "sRandoSpaceJumpGfx")
-    write_palette_pointer(rombuffer, "sChozoStatueSpaceJumpPal", 16)
+    write_data(rombuffer, spacejump, dst)
+    write_palette_pointer(rombuffer, pal, 16)
 
     return bytes(rombuffer)
 
@@ -342,10 +349,9 @@ def read_u32(rom, addr):
     return int.from_bytes(rom[addr:addr + 4], "little")
 
 
-def background_extraction_function(rom: ByteString) -> Callable[[int, int], RoomInfo]:
+def background_extraction_function(rom: ByteString, room_entry_table_addr: int) -> Callable[[int, int], RoomInfo]:
     def get_backgrounds(area, room):
-        room_entry_pointer_array_addr = get_rom_address("sAreaRoomEntryPointers")
-        room_entry_array_addr = read_u32(rom, (room_entry_pointer_array_addr + 4 * area) & (0x8000000 - 1))
+        room_entry_array_addr = read_u32(rom, (room_entry_table_addr + 4 * area) & (0x8000000 - 1))
         room_entry_addr = (room_entry_array_addr + 60 * room) & (0x8000000 - 1)
         return RoomInfo.from_pointer(rom, room_entry_addr)
     return get_backgrounds
@@ -447,9 +453,9 @@ item_clipdata_and_gfx: Mapping[Area, Mapping[int, Sequence[Tuple[Optional[int], 
 }
 
 
-def apply_always_background_patches(rom: bytes) -> bytes:
+def apply_always_background_patches(rom: bytes, room_entry_table_addr: int) -> bytes:
     rombuffer = bytearray(rom)
-    get_backgrounds = background_extraction_function(rom)
+    get_backgrounds = background_extraction_function(rom, room_entry_table_addr)
 
     # Item graphics and clipdata
     for area, rooms in item_clipdata_and_gfx.items():
@@ -483,10 +489,19 @@ def apply_always_background_patches(rom: bytes) -> bytes:
     return bytes(rombuffer)
 
 
-def apply_layout_patches(rom: bytes) -> bytes:
+# Patches that require expanded space. These are not backwards compatible, so we keep a list and
+# apply only the ones that both the generator and the patcher have.
+expansion_required_patches = {
+    "brinstar_top",
+    "norfair_brinstar_elevator",
+    "crateria_water_speedway",
+}
+
+
+def apply_layout_patches(rom: bytes, room_entry_table_addr: int, patches: Set[str]) -> bytes:
     rom = memoryview(rom)
     rombuffer = bytearray(rom)
-    get_backgrounds = background_extraction_function(rom)
+    get_backgrounds = background_extraction_function(rom, room_entry_table_addr)
 
     # Change the three beam blocks to never reform
     long_beam_hall = get_backgrounds(Area.BRINSTAR, 4)
@@ -495,16 +510,17 @@ def apply_layout_patches(rom: bytes) -> bytes:
         long_beam_hall_clipdata.set(x, 8, Clipdata.BEAM_BLOCK_NEVER_REFORM, Clipdata.BEAM_BLOCK_NO_REFORM)
     write_data(rombuffer, long_beam_hall_clipdata.to_compressed_data(), long_beam_hall.clipdata.rom_address())
 
-    # Create a slope instead of a wall to allow leaving Brinstar Top Missile room
-    brinstar_top = get_backgrounds(Area.BRINSTAR, 29)
-    brinstar_top_clipdata = BackgroundTilemap.from_info(brinstar_top.clipdata, 117)
-    brinstar_top_bg1 = BackgroundTilemap.from_info(brinstar_top.bg1, 287)
-    brinstar_top_clipdata.set(0xE, 0x5, Clipdata.STEEP_SLOPE_RISING, Clipdata.AIR)
-    brinstar_top_bg1.set(0xE, 0x5, 0x009A, 0x0106)
-    brinstar_top_clipdata.set(0xF, 0x4, Clipdata.STEEP_SLOPE_RISING, Clipdata.SOLID)
-    brinstar_top_bg1.set(0xF, 0x4, 0x009A, 0x0092)
-    write_data(rombuffer, brinstar_top_bg1.to_compressed_data(), brinstar_top.bg1.rom_address())
-    write_data(rombuffer, brinstar_top_clipdata.to_compressed_data(), brinstar_top.clipdata.rom_address())
+    if "brinstar_top" in patches:
+        # Create a slope instead of a wall to allow leaving Brinstar Top Missile room
+        brinstar_top = get_backgrounds(Area.BRINSTAR, 29)
+        brinstar_top_clipdata = BackgroundTilemap.from_info(brinstar_top.clipdata, 117)
+        brinstar_top_bg1 = BackgroundTilemap.from_info(brinstar_top.bg1, 287)
+        brinstar_top_clipdata.set(0xE, 0x5, Clipdata.STEEP_SLOPE_RISING, Clipdata.AIR)
+        brinstar_top_bg1.set(0xE, 0x5, 0x009A, 0x0106)
+        brinstar_top_clipdata.set(0xF, 0x4, Clipdata.STEEP_SLOPE_RISING, Clipdata.SOLID)
+        brinstar_top_bg1.set(0xF, 0x4, 0x009A, 0x0092)
+        write_data(rombuffer, brinstar_top_bg1.to_compressed_data(), brinstar_top.bg1.rom_address())
+        write_data(rombuffer, brinstar_top_clipdata.to_compressed_data(), brinstar_top.clipdata.rom_address())
 
     # Change the bomb block by the Brinstar under-bridge item to never reform
     under_bridge = get_backgrounds(Area.BRINSTAR, 14)
@@ -512,33 +528,34 @@ def apply_layout_patches(rom: bytes) -> bytes:
     under_bridge_clipdata.set(0xC, 0x17, Clipdata.BOMB_BLOCK_NEVER_REFORM, Clipdata.BOMB_BLOCK_REFORM)
     write_data(rombuffer, under_bridge_clipdata.to_compressed_data(), under_bridge.clipdata.rom_address())
 
-    # Move Norfair elevator to the bottom of the room
-    norfair_brinstar_elevator = get_backgrounds(Area.NORFAIR, 0)
-    norfair_brinstar_elevator_clipdata = BackgroundTilemap.from_info(norfair_brinstar_elevator.clipdata, 238)
-    norfair_brinstar_elevator_bg1 = BackgroundTilemap.from_info(norfair_brinstar_elevator.bg1, 504)
-    elevator_tiles = [[0x01D0, 0x01D1, 0x01D2, 0x01D3, 0x01D4],
-                      [0x01E0, 0x01E1, 0x01E2, 0x01E3, 0x01E4],
-                      [0x0000] * 5]
-    ground_tiles = [[0x0000] * 5,
-                    [0x009B, 0x006B, 0x009E, 0x009C, 0x009D],
-                    [0x00AB, 0x0000, 0x00AE, 0x00AC, 0x00AD]]
-    norfair_brinstar_elevator_clipdata.set(9, 16, Clipdata.SOLID, Clipdata.ELEVATOR_UP)
-    norfair_brinstar_elevator_clipdata.set(9, 29, Clipdata.ELEVATOR_UP, Clipdata.SOLID)
-    for x in (7, 11):
-        norfair_brinstar_elevator_clipdata.set(x, 26, Clipdata.AIR, Clipdata.SOLID)
-    for y, (elevator_row, ground_row) in enumerate(zip(elevator_tiles, ground_tiles)):
-        for x, (elevator_tile, ground_tile) in enumerate(zip(elevator_row, ground_row)):
-            norfair_brinstar_elevator_bg1.set(x + 7, y + 15, ground_tile, elevator_tile)
-            norfair_brinstar_elevator_bg1.set(x + 7, y + 28, elevator_tile, ground_tile)
-    new_sprites = b"".join([
-        SpriteData(28, 9, 4).pack(),  # Elevator
-        SpriteData(23, 6, 2).pack(),  # Ripper
-        SpriteData(23, 12, 2).pack(),  # Ripper
-        SpriteData.terminator().pack()
-    ])
-    write_data(rombuffer, norfair_brinstar_elevator_clipdata.to_compressed_data(), norfair_brinstar_elevator.clipdata.rom_address())
-    write_data(rombuffer, norfair_brinstar_elevator_bg1.to_compressed_data(), norfair_brinstar_elevator.bg1.rom_address())
-    write_data(rombuffer, new_sprites, norfair_brinstar_elevator.default_sprite_data_address)
+    if "norfair_brinstar_elevator" in patches:
+        # Move the elevator to the bottom of the room
+        norfair_brinstar_elevator = get_backgrounds(Area.NORFAIR, 0)
+        norfair_brinstar_elevator_clipdata = BackgroundTilemap.from_info(norfair_brinstar_elevator.clipdata, 238)
+        norfair_brinstar_elevator_bg1 = BackgroundTilemap.from_info(norfair_brinstar_elevator.bg1, 504)
+        elevator_tiles = [[0x01D0, 0x01D1, 0x01D2, 0x01D3, 0x01D4],
+                          [0x01E0, 0x01E1, 0x01E2, 0x01E3, 0x01E4],
+                          [0x0000] * 5]
+        ground_tiles = [[0x0000] * 5,
+                        [0x009B, 0x006B, 0x009E, 0x009C, 0x009D],
+                        [0x00AB, 0x0000, 0x00AE, 0x00AC, 0x00AD]]
+        norfair_brinstar_elevator_clipdata.set(9, 16, Clipdata.SOLID, Clipdata.ELEVATOR_UP)
+        norfair_brinstar_elevator_clipdata.set(9, 29, Clipdata.ELEVATOR_UP, Clipdata.SOLID)
+        for x in (7, 11):
+            norfair_brinstar_elevator_clipdata.set(x, 26, Clipdata.AIR, Clipdata.SOLID)
+        for y, (elevator_row, ground_row) in enumerate(zip(elevator_tiles, ground_tiles)):
+            for x, (elevator_tile, ground_tile) in enumerate(zip(elevator_row, ground_row)):
+                norfair_brinstar_elevator_bg1.set(x + 7, y + 15, ground_tile, elevator_tile)
+                norfair_brinstar_elevator_bg1.set(x + 7, y + 28, elevator_tile, ground_tile)
+        new_sprites = b"".join([
+            SpriteData(28, 9, 4).pack(),  # Elevator
+            SpriteData(23, 6, 2).pack(),  # Ripper
+            SpriteData(23, 12, 2).pack(),  # Ripper
+            SpriteData.terminator().pack()
+        ])
+        write_data(rombuffer, norfair_brinstar_elevator_clipdata.to_compressed_data(), norfair_brinstar_elevator.clipdata.rom_address())
+        write_data(rombuffer, norfair_brinstar_elevator_bg1.to_compressed_data(), norfair_brinstar_elevator.bg1.rom_address())
+        write_data(rombuffer, new_sprites, norfair_brinstar_elevator.default_sprite_data_address)
 
     # Add beam blocks to escape softlock
     # Change visual to not leave floating dirt when breaking the blocks
@@ -552,22 +569,23 @@ def apply_layout_patches(rom: bytes) -> bytes:
     write_data(rombuffer, crateria_near_plasma_clipdata.to_compressed_data(), crateria_near_plasma.clipdata.rom_address())
     write_data(rombuffer, crateria_near_plasma_bg1.to_compressed_data(), crateria_near_plasma.bg1.rom_address())
 
-    # Change speed booster blocks in watery room next to elevator to beam blocks
-    crateria_water_speedway = get_backgrounds(Area.CRATERIA, 11)
-    crateria_water_speedway_clipdata = BackgroundTilemap.from_info(crateria_water_speedway.clipdata, 151)
-    crateria_water_speedway_clipdata.set(0x11, 0xA,
-                                         Clipdata.LARGE_BEAM_BLOCK_NW_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
-    crateria_water_speedway_clipdata.set(0x12, 0xA,
-                                         Clipdata.LARGE_BEAM_BLOCK_NE_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
-    crateria_water_speedway_clipdata.set(0x11, 0xB,
-                                         Clipdata.LARGE_BEAM_BLOCK_SW_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
-    crateria_water_speedway_clipdata.set(0x12, 0xB,
-                                         Clipdata.LARGE_BEAM_BLOCK_SE_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
-    crateria_water_speedway_clipdata.set(0x13, 0xB,
-                                         Clipdata.BEAM_BLOCK_NO_REFORM,
-                                         Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
-    write_data(rombuffer, crateria_water_speedway_clipdata.to_compressed_data(),
-               crateria_water_speedway.clipdata.rom_address())
+    if "crateria_water_speedway" in patches:
+        # Change speed booster blocks in watery room next to elevator to beam blocks
+        crateria_water_speedway = get_backgrounds(Area.CRATERIA, 11)
+        crateria_water_speedway_clipdata = BackgroundTilemap.from_info(crateria_water_speedway.clipdata, 151)
+        crateria_water_speedway_clipdata.set(0x11, 0xA,
+                                             Clipdata.LARGE_BEAM_BLOCK_NW_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+        crateria_water_speedway_clipdata.set(0x12, 0xA,
+                                             Clipdata.LARGE_BEAM_BLOCK_NE_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+        crateria_water_speedway_clipdata.set(0x11, 0xB,
+                                             Clipdata.LARGE_BEAM_BLOCK_SW_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+        crateria_water_speedway_clipdata.set(0x12, 0xB,
+                                             Clipdata.LARGE_BEAM_BLOCK_SE_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+        crateria_water_speedway_clipdata.set(0x13, 0xB,
+                                             Clipdata.BEAM_BLOCK_NO_REFORM,
+                                             Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
+        write_data(rombuffer, crateria_water_speedway_clipdata.to_compressed_data(),
+                   crateria_water_speedway.clipdata.rom_address())
 
     # Change speed booster blocks in Kraid escape room to beam blocks
     kraid_right_shaft = get_backgrounds(Area.KRAID, 27)
