@@ -406,82 +406,84 @@ class MZMClient(BizHawkClient):
 
         # Update items if nonlocal
         if client_ctx.items_handling & 0b110:
-            if (gMultiworldItemCount > self.local_items_acquired):
+            if (gMultiworldItemCount > len(client_ctx.items_received)):
+                self.local_items_acquired = len(client_ctx.items_received)
+            elif (gMultiworldItemCount > self.local_items_acquired):
                 self.local_items_acquired = gMultiworldItemCount
-            elif (gMultiworldItemCount < self.local_items_acquired):
-                acquired_items = Counter(item_data_table[client_ctx.item_names.lookup_in_game(item.item)]
-                                         for item in client_ctx.items_received[:self.local_items_acquired])
-                try:
-                    read_result = await bizhawk.guarded_read(
-                        bizhawk_ctx,
-                        [read(ZMConstants.gEquipment + 12, 4),
-                         read8(ZMConstants.gEquipment + 18)],
-                        guard_list)
-                except bizhawk.RequestFailedError:
-                    return
-                if not read_result:
-                    return
-                beams, beam_activation, majors, major_activation = read_result[0]
-                beam_deactivation = beams ^ beam_activation
-                major_deactivation = majors ^ major_activation
-                beams = majors = 0
-                current_suit = new_suit = read_result[1][0]
-                if current_suit == ZMConstants.SUIT_SUITLESS:
-                    return
-                for item, count in acquired_items.items():
-                    if item.type == ItemType.tank:
-                        max_offset, current_offset = ((0, 6), (2, 8), (4, 10), (5, 11))[item.id]
-                        updated_max = ZMConstants.sStartingHealthAmmo[item.id] + count * ZMConstants.sTankIncreaseAmount[gDifficulty][item.id]
-                        def read_amounts(size):
-                            return bizhawk.guarded_read(
-                                bizhawk_ctx,
-                                [read(ZMConstants.gEquipment + max_offset, size // 8),
-                                 read(ZMConstants.gEquipment + current_offset, size // 8)],
-                                guard_list
-                            )
-                        def write_amounts(size, max, current, expect_current=None):
-                            return bizhawk.guarded_write(
-                                bizhawk_ctx,
-                                [write(ZMConstants.gEquipment + max_offset, max.to_bytes(size // 8, 'little')),
-                                 write(ZMConstants.gEquipment + current_offset, current.to_bytes(size // 8, 'little'))],
-                                (guard_list + [guard(ZMConstants.gEquipment + current_offset, expect_current)])
-                                    if expect_current is not None else guard_list
-                            )
-                        try:
-                            if item.id == ItemID.EnergyTank:
-                                await write_amounts(16, updated_max, updated_max)
-                            else:
-                                size = 16 if item.id == ItemID.MissileTank else 8
-                                read_result = await read_amounts(size)
-                                if read_result is None:
-                                    continue
-                                max, current = map(get_int, read_result)
-                                consumed = max - current
-                                await write_amounts(size, updated_max, updated_max - consumed, current)
-                        except bizhawk.RequestFailedError:
-                            return
-                    unknown_items = client_ctx.slot_data["unknown_items"] or self.local_set_events["EVENT_FULLY_POWERED_SUIT_OBTAINED"]
-                    if item.type == ItemType.beam:
-                        beams |= item.bits
-                        if item.id != ItemID.PlasmaBeam or unknown_items:
-                            beam_activation |= item.bits
-                    if item.type == ItemType.major:
-                        majors |= item.bits
-                        if item.id not in (ItemID.SpaceJump, ItemID.GravitySuit) or unknown_items:
-                            major_activation |= item.bits
-                        if item.id in (ItemID.VariaSuit, ItemID.GravitySuit) and unknown_items:
-                            new_suit = ZMConstants.SUIT_FULLY_POWERED
-                major_activation &= ~major_deactivation & 0xFF
-                beam_activation &= ~beam_deactivation & 0xFF
-                try:
-                    await bizhawk.guarded_write(
-                        bizhawk_ctx,
-                        [write(ZMConstants.gEquipment + 12, bytes((beams, beam_activation, majors, major_activation))),
-                         write8(ZMConstants.gEquipment + 18, new_suit),
-                         write16(ZMConstants.gMultiworldItemCount, self.local_items_acquired)],
-                        guard_list + [guard(ZMConstants.gEquipment + 18, current_suit)])
-                except bizhawk.RequestFailedError:
-                    return
+
+            acquired_items = Counter(item_data_table[client_ctx.item_names.lookup_in_game(item.item)]
+                                     for item in client_ctx.items_received[:self.local_items_acquired])
+            try:
+                read_result = await bizhawk.guarded_read(
+                    bizhawk_ctx,
+                    [read(ZMConstants.gEquipment + 12, 4),
+                     read8(ZMConstants.gEquipment + 18)],
+                    guard_list)
+            except bizhawk.RequestFailedError:
+                return
+            if not read_result:
+                return
+            beams, beam_activation, majors, major_activation = read_result[0]
+            beam_deactivation = beams ^ beam_activation
+            major_deactivation = majors ^ major_activation
+            beams = majors = 0
+            current_suit = new_suit = read_result[1][0]
+            if current_suit == ZMConstants.SUIT_SUITLESS:
+                return
+            for item, count in acquired_items.items():
+                if item.type == ItemType.tank:
+                    max_offset, current_offset = ((0, 6), (2, 8), (4, 10), (5, 11))[item.id]
+                    new_capacity = ZMConstants.sStartingHealthAmmo[item.id] + count * ZMConstants.sTankIncreaseAmount[gDifficulty][item.id]
+                    def read_amounts(size):
+                        return bizhawk.guarded_read(
+                            bizhawk_ctx,
+                            [read(ZMConstants.gEquipment + max_offset, size // 8),
+                             read(ZMConstants.gEquipment + current_offset, size // 8)],
+                            guard_list
+                        )
+                    def write_amounts(size, max, current, expect_current=None):
+                        return bizhawk.guarded_write(
+                            bizhawk_ctx,
+                            [write(ZMConstants.gEquipment + max_offset, max.to_bytes(size // 8, 'little')),
+                             write(ZMConstants.gEquipment + current_offset, current.to_bytes(size // 8, 'little'))],
+                            (guard_list + [guard(ZMConstants.gEquipment + current_offset, expect_current.to_bytes(size // 8, 'little'))])
+                                if expect_current is not None else guard_list
+                        )
+                    try:
+                        if item.id == ItemID.EnergyTank:
+                            await write_amounts(16, new_capacity, new_capacity)
+                        else:
+                            size = 16 if item.id == ItemID.MissileTank else 8
+                            read_result = await read_amounts(size)
+                            if read_result is None:
+                                continue
+                            capacity, current = map(get_int, read_result)
+                            consumed = capacity - current
+                            await write_amounts(size, new_capacity, max(new_capacity - consumed, 0), current)
+                    except bizhawk.RequestFailedError:
+                        return
+                unknown_items = client_ctx.slot_data["unknown_items"] or self.local_set_events["EVENT_FULLY_POWERED_SUIT_OBTAINED"]
+                if item.type == ItemType.beam:
+                    beams |= item.bits
+                    if item.id != ItemID.PlasmaBeam or unknown_items:
+                        beam_activation |= item.bits
+                if item.type == ItemType.major:
+                    majors |= item.bits
+                    if item.id not in (ItemID.SpaceJump, ItemID.GravitySuit) or unknown_items:
+                        major_activation |= item.bits
+                    if item.id in (ItemID.VariaSuit, ItemID.GravitySuit) and unknown_items:
+                        new_suit = ZMConstants.SUIT_FULLY_POWERED
+            major_activation &= ~major_deactivation & 0xFF
+            beam_activation &= ~beam_deactivation & 0xFF
+            try:
+                await bizhawk.guarded_write(
+                    bizhawk_ctx,
+                    [write(ZMConstants.gEquipment + 12, bytes((beams, beam_activation, majors, major_activation))),
+                     write8(ZMConstants.gEquipment + 18, new_suit),
+                     write16(ZMConstants.gMultiworldItemCount, self.local_items_acquired)],
+                    guard_list + [guard(ZMConstants.gEquipment + 18, current_suit)])
+            except bizhawk.RequestFailedError:
+                return
         else:
             self.local_items_acquired = gMultiworldItemCount
 
