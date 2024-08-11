@@ -9,8 +9,8 @@ from worlds.AutoWorld import WebWorld, World
 
 from .client import MZMClient
 from .data import data_path
-from .items import item_data_table, major_item_data_table, MZMItem
-from .locations import full_location_table
+from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
+from .locations import full_location_table, mzm_location_name_groups
 from .options import MZMOptions, MorphBallPlacement, mzm_option_groups
 from .regions import create_regions
 from .rom import MZMProcedurePatch, write_tokens
@@ -66,6 +66,9 @@ class MZMWorld(World):
 
     item_name_to_id = {name: data.code for name, data in item_data_table.items()}
     location_name_to_id = full_location_table
+
+    item_name_groups = mzm_item_name_groups
+    location_name_groups = mzm_location_name_groups
 
     junk_fill: List[str]
 

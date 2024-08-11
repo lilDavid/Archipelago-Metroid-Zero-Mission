@@ -101,3 +101,16 @@ item_data_table: Dict[str, ItemData] = {
     **major_item_data_table,
     **extra_item_data_table,
 }
+
+mzm_item_name_groups = {
+    "Beams": {name for name, data in major_item_data_table.items() if data.type == ItemType.beam and data.id != ItemID.Bomb},
+    "Upgrades": {
+        "Bomb",
+        *(name for name, data in major_item_data_table.items() if data.type == ItemType.major)
+    },
+    "Major Items": set(major_item_data_table.keys()),
+    "Missiles": {
+        "Missile Tank",
+        "Super Missile Tank",
+    },
+}
