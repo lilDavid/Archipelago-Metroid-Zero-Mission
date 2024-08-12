@@ -12,7 +12,7 @@ from .data import data_path
 from .items import item_data_table, major_item_data_table, MZMItem
 from .locations import full_location_table
 from .options import MZMOptions, MorphBallPlacement, mzm_option_groups
-from .regions import create_regions
+from .regions import create_regions_and_connections
 from .rom import MZMProcedurePatch, write_tokens
 from .rules import set_rules
 
@@ -41,7 +41,7 @@ class MZMWeb(WebWorld):
         "English",
         "multiworld_en.md",
         "multiworld/en",
-        ["lil David, NoiseCrush"]
+        ["N/A"]
     )
 
     tutorials = [setup]
@@ -65,7 +65,7 @@ class MZMWorld(World):
     required_client_version = (0, 5, 0)
 
     item_name_to_id = {name: data.code for name, data in item_data_table.items()}
-    location_name_to_id = full_location_table
+    location_name_to_id = {name: data.code for name, data in full_location_table.items()}
 
     junk_fill: List[str]
 
@@ -79,14 +79,14 @@ class MZMWorld(World):
         self.options.local_items.value.add("Nothing")
 
     def create_regions(self) -> None:
-        create_regions(self)
+        create_regions_and_connections(self)
 
         self.place_event("Kraid Defeated", "Kraid")
         self.place_event("Ridley Defeated", "Ridley")
         self.place_event("Mother Brain Defeated", "Mother Brain")
         self.place_event("Chozo Ghost Defeated", "Chozo Ghost")
         self.place_event("Mecha Ridley Defeated", "Mecha Ridley")
-        self.place_event("Mission Complete", "Chozodia Space Pirate's Ship")
+        self.place_event("Mission Accomplished!", "Chozodia Space Pirate's Ship")
 
     def create_items(self) -> None:
         item_pool: List[MZMItem] = []
@@ -106,7 +106,7 @@ class MZMWorld(World):
     def set_rules(self) -> None:
         set_rules(self, full_location_table)
         self.multiworld.completion_condition[self.player] = lambda state: (
-            state.has("Mission Complete", self.player))
+            state.has("Mission Accomplished!", self.player))
 
     def generate_output(self, output_directory: str):
         output_path = Path(output_directory)
