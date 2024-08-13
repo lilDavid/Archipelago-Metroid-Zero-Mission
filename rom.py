@@ -96,9 +96,9 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     @staticmethod
     def get_unknown_item_gfx_addresses() -> Sequence[Tuple[int, int, int]]:
         return [
-            (get_rom_address("sChozoStatuePlasmaBeamGfx"), get_rom_address("sRandoPlasmaBeamGfx"), get_symbol("sChozoStatuePlasmaBeamPal"))
-            (get_rom_address("sChozoStatueGravitySuitGfx"), get_rom_address("sRandoGravitySuitGfx"), get_symbol("sChozoStatueGravitySuitPal"))
-            (get_rom_address("sChozoStatueSpaceJumpGfx"), get_rom_address("sRandoSpaceJumpGfx"), get_symbol("sChozoStatueSpaceJumpPal"))
+            (get_rom_address("sChozoStatuePlasmaBeamGfx"), get_rom_address("sRandoPlasmaBeamGfx"), get_symbol("sChozoStatuePlasmaBeamPal")),
+            (get_rom_address("sChozoStatueGravitySuitGfx"), get_rom_address("sRandoGravitySuitGfx"), get_symbol("sChozoStatueGravitySuitPal")),
+            (get_rom_address("sChozoStatueSpaceJumpGfx"), get_rom_address("sRandoSpaceJumpGfx"), get_symbol("sChozoStatueSpaceJumpPal")),
         ]
 
 
