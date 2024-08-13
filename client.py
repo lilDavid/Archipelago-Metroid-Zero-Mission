@@ -173,12 +173,13 @@ class ZMConstants:
     gCurrentArea = get_symbol("gCurrentArea")
     gRandoLocationBitfields = get_symbol("gRandoLocationBitfields")
     gIncomingItemId = get_symbol("gIncomingItemId")
+    gIncomingItemCount = get_symbol("gIncomingItemCount")
     gMultiworldItemCount = get_symbol("gMultiworldItemCount")
     gMultiworldItemSenderName = get_symbol("gMultiworldItemSenderName")
 
 
 class QueuedItem(NamedTuple):
-    network_item: NetworkItem
+    network_items: List[NetworkItem]  # All should be the same item
     index: int  # Position of first instance
 
 
@@ -431,17 +432,23 @@ class MZMClient(BizHawkClient):
         remote_items_found = list(get_remote_items(client_ctx.items_received))
 
         if self.queued_item is not None and gMultiworldItemCount > self.queued_item.index:
-            self.local_items_acquired.append(self.queued_item.network_item)
+            self.local_items_acquired.extend(self.queued_item.network_items)
             self.queued_item = None
 
-        local_multiworld_item_count = sum(1 for _ in get_remote_items(self.local_items_acquired))
-        if self.queued_item is None and local_multiworld_item_count < len(remote_items_found):
-            item = remote_items_found[local_multiworld_item_count]
-            self.queued_item = QueuedItem(item, local_multiworld_item_count)
+        local_multiworld_items = list(get_remote_items(self.local_items_acquired))
+        if self.queued_item is None and len(local_multiworld_items) < len(remote_items_found):
+            if client_ctx.items_handling & 0b110:
+                new_items = Counter(item.item for item in remote_items_found) - Counter(item.item for item in local_multiworld_items)
+                next_item, next_item_count = next(iter(new_items.items()))
+                copies = list(itertools.islice(filter(lambda item: item.item == next_item, reversed(client_ctx.items_received)), next_item_count))
+                copies.reverse()
+            else:
+                copies = [remote_items_found[len(local_multiworld_items)]]
+            self.queued_item = QueuedItem(copies, len(local_multiworld_items))
 
         if gMultiworldItemCount > len(remote_items_found):
             self.local_items_acquired = client_ctx.items_received
-            local_multiworld_item_count = sum(1 for _ in get_remote_items(self.local_items_acquired))
+            local_multiworld_items = list(get_remote_items(self.local_items_acquired))
 
         # Update items if nonlocal
         if client_ctx.items_handling & 0b110:
@@ -523,14 +530,15 @@ class MZMClient(BizHawkClient):
                     item_guard_list + [guard(ZMConstants.gEquipment + 18, current_suit)])
                 await bizhawk.guarded_write(
                     bizhawk_ctx,
-                    [write16(ZMConstants.gMultiworldItemCount, local_multiworld_item_count)],
+                    [write16(ZMConstants.gMultiworldItemCount, len(local_multiworld_items))],
                     item_guard_list + [guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount)])
             except bizhawk.RequestFailedError:
                 return
 
         if self.queued_item is not None and gMultiworldItemCount <= self.queued_item.index:
-            next_item = self.queued_item.network_item
+            next_item = self.queued_item.network_items[0]
             item_data = item_data_table[client_ctx.item_names.lookup_in_game(next_item.item)]
+            copies = len(self.queued_item.network_items)
             if next_item.player == client_ctx.slot:
                 sender = TERMINATOR_CHAR
             else:
@@ -540,6 +548,7 @@ class MZMClient(BizHawkClient):
                 await bizhawk.guarded_write(
                     bizhawk_ctx,
                     [write8(ZMConstants.gIncomingItemId, item_data.id),
+                     write8(ZMConstants.gIncomingItemCount, copies),
                      write(ZMConstants.gMultiworldItemSenderName, sender)],
                     guard_list + [guard8(ZMConstants.gIncomingItemId, ZMConstants.ITEM_NONE),
                                   guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount)])
