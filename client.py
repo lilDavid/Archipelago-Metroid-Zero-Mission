@@ -301,7 +301,6 @@ class MZMClient(BizHawkClient):
             read_result = iter(await bizhawk.read(bizhawk_ctx, [
                 read16(ZMConstants.gMainGameMode),
                 read16(ZMConstants.gGameModeSub1),
-                read16(ZMConstants.gPreventMovementTimer),
                 read8(ZMConstants.gCurrentArea),
                 read(ZMConstants.gEventsTriggered, 4 * 3),
                 read(ZMConstants.gRandoLocationBitfields, 4 * ZMConstants.AREA_MAX),
@@ -313,7 +312,6 @@ class MZMClient(BizHawkClient):
 
         gMainGameMode = next_int(read_result)
         gGameModeSub1 = next_int(read_result)
-        gPreventMovementTimer = next_int(read_result)
         gCurrentArea = next_int(read_result)
         gEventsTriggered = struct.unpack(f"<3I", next(read_result))
         gRandoLocationBitfields = struct.unpack(f"<{ZMConstants.AREA_MAX}I", next(read_result))
@@ -432,31 +430,30 @@ class MZMClient(BizHawkClient):
 
         remote_items_found = list(get_remote_items(client_ctx.items_received))
 
-        if gMultiworldItemCount > len(remote_items_found):
-            self.local_items_acquired = client_ctx.items_received
+        if self.queued_item is not None and gMultiworldItemCount > self.queued_item.index:
+            self.local_items_acquired.append(self.queued_item.network_item)
+            self.queued_item = None
 
         local_multiworld_item_count = sum(1 for _ in get_remote_items(self.local_items_acquired))
-        print(gMultiworldItemCount, local_multiworld_item_count, len(remote_items_found))
-
-        if local_multiworld_item_count < len(remote_items_found):
+        if self.queued_item is None and local_multiworld_item_count < len(remote_items_found):
             item = remote_items_found[local_multiworld_item_count]
             self.queued_item = QueuedItem(item, local_multiworld_item_count)
 
-        if (self.queued_item is not None and gMultiworldItemCount > self.queued_item.index):
-            self.local_items_acquired.append(self.queued_item.network_item)
-            local_multiworld_item_count += 1
-            self.queued_item = None
+        if gMultiworldItemCount > len(remote_items_found):
+            self.local_items_acquired = client_ctx.items_received
+            local_multiworld_item_count = sum(1 for _ in get_remote_items(self.local_items_acquired))
 
         # Update items if nonlocal
         if client_ctx.items_handling & 0b110:
             acquired_items = Counter(item_data_table[client_ctx.item_names.lookup_in_game(item.item)]
                                      for item in self.local_items_acquired)
+            item_guard_list = guard_list + [guard8(ZMConstants.gPreventMovementTimer, 0)]
             try:
                 read_result = await bizhawk.guarded_read(
                     bizhawk_ctx,
                     [read(ZMConstants.gEquipment + 12, 4),
                      read8(ZMConstants.gEquipment + 18)],
-                    guard_list)
+                    item_guard_list)
             except bizhawk.RequestFailedError:
                 return
             if not read_result:
@@ -477,15 +474,15 @@ class MZMClient(BizHawkClient):
                             bizhawk_ctx,
                             [read(ZMConstants.gEquipment + max_offset, size // 8),
                              read(ZMConstants.gEquipment + current_offset, size // 8)],
-                            guard_list
+                            item_guard_list
                         )
                     def write_amounts(size, max, current, expect_current=None):
                         return bizhawk.guarded_write(
                             bizhawk_ctx,
                             [write(ZMConstants.gEquipment + max_offset, max.to_bytes(size // 8, 'little')),
                              write(ZMConstants.gEquipment + current_offset, current.to_bytes(size // 8, 'little'))],
-                            (guard_list + [guard(ZMConstants.gEquipment + current_offset, expect_current.to_bytes(size // 8, 'little'))])
-                                if expect_current is not None else guard_list
+                            (item_guard_list + [guard(ZMConstants.gEquipment + current_offset, expect_current.to_bytes(size // 8, 'little'))])
+                                if expect_current is not None else item_guard_list
                         )
                     try:
                         if item.id == ItemID.EnergyTank:
@@ -523,15 +520,15 @@ class MZMClient(BizHawkClient):
                     bizhawk_ctx,
                     [write(ZMConstants.gEquipment + 12, bytes((beams, beam_activation, majors, major_activation))),
                      write8(ZMConstants.gEquipment + 18, new_suit)],
-                    guard_list + [guard(ZMConstants.gEquipment + 18, current_suit)])
+                    item_guard_list + [guard(ZMConstants.gEquipment + 18, current_suit)])
                 await bizhawk.guarded_write(
                     bizhawk_ctx,
                     [write16(ZMConstants.gMultiworldItemCount, local_multiworld_item_count)],
-                    guard_list + [guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount)])
+                    item_guard_list + [guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount)])
             except bizhawk.RequestFailedError:
                 return
 
-        if self.queued_item is not None:
+        if self.queued_item is not None and gMultiworldItemCount <= self.queued_item.index:
             next_item = self.queued_item.network_item
             item_data = item_data_table[client_ctx.item_names.lookup_in_game(next_item.item)]
             if next_item.player == client_ctx.slot:
@@ -544,7 +541,8 @@ class MZMClient(BizHawkClient):
                     bizhawk_ctx,
                     [write8(ZMConstants.gIncomingItemId, item_data.id),
                      write(ZMConstants.gMultiworldItemSenderName, sender)],
-                    guard_list + [guard8(ZMConstants.gIncomingItemId, ZMConstants.ITEM_NONE)])
+                    guard_list + [guard8(ZMConstants.gIncomingItemId, ZMConstants.ITEM_NONE),
+                                  guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount)])
             except bizhawk.RequestFailedError:
                 return
 
