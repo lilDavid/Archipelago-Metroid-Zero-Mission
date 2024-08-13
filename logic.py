@@ -630,8 +630,13 @@ def ridley_right_shaft_to_central():
 # Ridley, Unknown 3, and the item behind Unknown 3
 def ridley_central_to_ridley_room():
     return all(
-        MissileCount(40),
-        EnergyTanks(3),
+        any(
+            AdvancedLogic,
+            all(
+              MissileCount(40),
+              EnergyTanks(3),
+            )
+        ),
         any(
             CanFly,
             all(

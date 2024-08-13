@@ -43,8 +43,8 @@ class LogicDifficulty(Choice):
     """
     Determines the general difficulty of the game's logic. On advanced difficulty, more niche techniques and game
     knowledge may be required to collect items or progress, and you may be required to complete areas or bosses
-    with fewer resources. Examples of "tricks" this may put in logic include entering invisible tunnels, jump extends,
-    and Acid Worm skip.
+    with the minimum required resources. Examples of "tricks" this may put in logic include entering invisible tunnels,
+    jump extends, and Acid Worm skip.
 
     Other specific tricks (such as difficult Shinesparks and horizontal IBJ) have individual difficulty settings that
     this does not affect.

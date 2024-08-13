@@ -528,7 +528,6 @@ ridley_central = {
         "Ridley Under Owls": None,
     }
 
-#TODO determine reasonable Ridley combat logic for advanced
 ridley_room = {
         "Ridley Behind Unknown Statue": UnknownItem3,
         "Ridley Unknown Item Statue": None,
