@@ -415,23 +415,36 @@ class MZMClient(BizHawkClient):
             except bizhawk.RequestFailedError:
                 return
 
+        def get_remote_items(item_list: Iterable[NetworkItem]):
+            return filter(lambda item: item.player != client_ctx.slot or item.location not in self.local_checked_locations,
+                          itertools.dropwhile(lambda item: item.location == -2, item_list))
+
         if (self.local_items_acquired is None):
-            start_inventory = sum(1 for _ in itertools.takewhile(lambda item: item.location == -2, client_ctx.items_received))
-            self.local_items_acquired = client_ctx.items_received[:max(start_inventory, gMultiworldItemCount)]
+            remote_item_count = 0
+            self.local_items_acquired = []
+            for item in client_ctx.items_received:
+                if (item.location == -2 or
+                    (item.player == client_ctx.slot and item.location in self.local_checked_locations)):
+                    self.local_items_acquired.append(item)
+                elif remote_item_count < gMultiworldItemCount:
+                    self.local_items_acquired.append(item)
+                    remote_item_count += 1
 
-        if gMultiworldItemCount > len(client_ctx.items_received):
-            # Ignore mismatch and don't update items until all checked locations have been accounted for
-            if checked_locations.difference(item.location for item in client_ctx.items_received if item.player == client_ctx.slot):
-                return
-            else:
-                self.local_items_acquired = client_ctx.items_received
+        remote_items_found = list(get_remote_items(client_ctx.items_received))
 
-        if len(self.local_items_acquired) < len(client_ctx.items_received):
-            item = client_ctx.items_received[len(self.local_items_acquired)]
-            self.queued_item = QueuedItem(item, len(self.local_items_acquired))
+        if gMultiworldItemCount > len(remote_items_found):
+            self.local_items_acquired = client_ctx.items_received
+
+        local_multiworld_item_count = sum(1 for _ in get_remote_items(self.local_items_acquired))
+        print(gMultiworldItemCount, local_multiworld_item_count, len(remote_items_found))
+
+        if local_multiworld_item_count < len(remote_items_found):
+            item = remote_items_found[local_multiworld_item_count]
+            self.queued_item = QueuedItem(item, local_multiworld_item_count)
 
         if (self.queued_item is not None and gMultiworldItemCount > self.queued_item.index):
             self.local_items_acquired.append(self.queued_item.network_item)
+            local_multiworld_item_count += 1
             self.queued_item = None
 
         # Update items if nonlocal
@@ -513,7 +526,7 @@ class MZMClient(BizHawkClient):
                     guard_list + [guard(ZMConstants.gEquipment + 18, current_suit)])
                 await bizhawk.guarded_write(
                     bizhawk_ctx,
-                    [write16(ZMConstants.gMultiworldItemCount, len(self.local_items_acquired))],
+                    [write16(ZMConstants.gMultiworldItemCount, local_multiworld_item_count)],
                     guard_list + [guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount)])
             except bizhawk.RequestFailedError:
                 return

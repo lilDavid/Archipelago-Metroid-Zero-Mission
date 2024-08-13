@@ -148,7 +148,6 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         multiworld.seed_name.encode("utf-8")[:64],
 
         world.options.goal.value,
-        world.options.remote_items.value,
         world.options.unknown_items_always_usable.value,
         True,  # Remove Gravity Suit heat resistance
         True,  # Make Power Bombs usable without Bomb
@@ -159,7 +158,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2x8B", *seed_info)
+        struct.pack("<H64s64s2x7B", *seed_info)
     )
 
     # Set goal
