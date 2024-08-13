@@ -183,16 +183,23 @@ class QueuedItem(NamedTuple):
     index: int  # Position of first instance
 
 
+class ItemCollection(NamedTuple):
+    starting: List[NetworkItem]
+    local: List[NetworkItem]
+    remote: List[NetworkItem]
+
+
 class MZMClient(BizHawkClient):
     game = "Metroid Zero Mission"
     system = "GBA"
     patch_suffix = ".apmzm"
 
-    local_items_acquired: Optional[List[NetworkItem]]
     local_checked_locations: Set[int]
     local_set_events: Dict[str, bool]
     local_area: int
 
+    remote_items_acquired: Optional[List[NetworkItem]]
+    received_items: ItemCollection
     queued_item: Optional[QueuedItem]
 
     rom_slot_name: Optional[str]
@@ -203,7 +210,7 @@ class MZMClient(BizHawkClient):
 
     def __init__(self) -> None:
         super().__init__()
-        self.local_items_acquired = None
+        self.remote_items_acquired = None
         self.local_checked_locations = set()
         self.local_set_events = {flag: False for flag in TRACKER_EVENT_FLAGS}
         self.local_area = 0
@@ -414,46 +421,33 @@ class MZMClient(BizHawkClient):
             except bizhawk.RequestFailedError:
                 return
 
-        def get_remote_items(item_list: Iterable[NetworkItem]):
-            return filter(lambda item: item.player != client_ctx.slot or item.location not in self.local_checked_locations,
-                          itertools.dropwhile(lambda item: item.location == -2, item_list))
-
-        if (self.local_items_acquired is None):
-            remote_item_count = 0
-            self.local_items_acquired = []
-            for item in client_ctx.items_received:
-                if (item.location == -2 or
-                    (item.player == client_ctx.slot and item.location in self.local_checked_locations)):
-                    self.local_items_acquired.append(item)
-                elif remote_item_count < gMultiworldItemCount:
-                    self.local_items_acquired.append(item)
-                    remote_item_count += 1
-
-        remote_items_found = list(get_remote_items(client_ctx.items_received))
+        received_items = self.received_items
+        if (self.remote_items_acquired is None):
+            self.remote_items_acquired = list(itertools.islice(received_items.remote, gMultiworldItemCount))
 
         if self.queued_item is not None and gMultiworldItemCount > self.queued_item.index:
-            self.local_items_acquired.extend(self.queued_item.network_items)
+            self.remote_items_acquired.extend(self.queued_item.network_items)
             self.queued_item = None
 
-        local_multiworld_items = list(get_remote_items(self.local_items_acquired))
-        if self.queued_item is None and len(local_multiworld_items) < len(remote_items_found):
+        if self.queued_item is None and len(self.remote_items_acquired) < len(received_items.remote):
             if client_ctx.items_handling & 0b110:
-                new_items = Counter(item.item for item in remote_items_found) - Counter(item.item for item in local_multiworld_items)
+                new_items = Counter(item.item for item in received_items.remote) - Counter(item.item for item in self.remote_items_acquired)
                 next_item, next_item_count = next(iter(new_items.items()))
-                copies = list(itertools.islice(filter(lambda item: item.item == next_item, reversed(client_ctx.items_received)), next_item_count))
+                copies = list(itertools.islice(filter(lambda item: item.item == next_item, reversed(received_items.remote)), next_item_count))
                 copies.reverse()
             else:
-                copies = [remote_items_found[len(local_multiworld_items)]]
-            self.queued_item = QueuedItem(copies, len(local_multiworld_items))
+                copies = [received_items.remote[len(self.remote_items_acquired)]]
+            self.queued_item = QueuedItem(copies, len(self.remote_items_acquired))
 
-        if gMultiworldItemCount > len(remote_items_found):
-            self.local_items_acquired = client_ctx.items_received
-            local_multiworld_items = list(get_remote_items(self.local_items_acquired))
+        if gMultiworldItemCount > len(received_items.remote):
+            self.remote_items_acquired = received_items.remote
 
         # Update items if nonlocal
         if client_ctx.items_handling & 0b110:
             acquired_items = Counter(item_data_table[client_ctx.item_names.lookup_in_game(item.item)]
-                                     for item in self.local_items_acquired)
+                                     for item in itertools.chain(received_items.starting,
+                                                                 received_items.local,
+                                                                 self.remote_items_acquired))
             item_guard_list = guard_list + [guard8(ZMConstants.gPreventMovementTimer, 0)]
             try:
                 read_result = await bizhawk.guarded_read(
@@ -530,7 +524,7 @@ class MZMClient(BizHawkClient):
                     item_guard_list + [guard(ZMConstants.gEquipment + 18, current_suit)])
                 await bizhawk.guarded_write(
                     bizhawk_ctx,
-                    [write16(ZMConstants.gMultiworldItemCount, len(local_multiworld_items))],
+                    [write16(ZMConstants.gMultiworldItemCount, len(self.remote_items_acquired))],
                     item_guard_list + [guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount)])
             except bizhawk.RequestFailedError:
                 return
@@ -555,6 +549,16 @@ class MZMClient(BizHawkClient):
             except bizhawk.RequestFailedError:
                 return
 
+    def create_collection(self, ctx: BizHawkClientContext):
+        def is_local(item: NetworkItem):
+            return item.player == ctx.slot and item.location in self.local_checked_locations
+
+        starting = itertools.takewhile(lambda item: item.location == -2, ctx.items_received)
+        t1, t2 = itertools.tee(itertools.dropwhile(lambda item: item.location == -2, ctx.items_received))
+        remote = itertools.filterfalse(is_local, t1)
+        local = filter(is_local, t2)
+        return ItemCollection(list(starting), list(local), list(remote))
+
     def on_package(self, ctx: BizHawkClientContext, cmd: str, args: dict) -> None:
         if cmd == "Connected":
             if args["slot_data"].get("death_link"):
@@ -564,6 +568,8 @@ class MZMClient(BizHawkClient):
             if ctx.seed_name and ctx.seed_name != args["seed_name"]:
                 # CommonClient's on_package displays an error to the user in this case, but connection is not cancelled.
                 self.dc_pending = True
+        if cmd == "ReceivedItems":
+            self.received_items = self.create_collection(ctx)
         if cmd == "Bounced":
             tags = args.get("tags", [])
             if "DeathLink" in tags and args["data"]["source"] != ctx.auth:
