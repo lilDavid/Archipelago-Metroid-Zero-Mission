@@ -7,7 +7,7 @@ from __future__ import annotations
 import asyncio
 import itertools
 import struct
-from typing import TYPE_CHECKING, Counter, Dict, Iterable, Iterator, List, NamedTuple, Optional, Set
+from typing import TYPE_CHECKING, Counter, Dict, Iterable, Iterator, List, NamedTuple, Optional, Set, Tuple
 
 from NetUtils import ClientStatus, NetworkItem
 import Utils
@@ -280,56 +280,22 @@ class MZMClient(BizHawkClient):
             return True
         return (main_game_mode, game_mode_sub) == (ZMConstants.GM_INGAME, ZMConstants.SUB_GAME_MODE_DYING)
 
-    async def game_watcher(self, client_ctx: BizHawkClientContext) -> None:
-        if self.dc_pending:
-            await client_ctx.disconnect()
-            return
-
-        if client_ctx.server is None or client_ctx.server.socket.closed or client_ctx.slot_data is None:
-            return
-
-        if not client_ctx.items_handling:
-            client_ctx.items_handling = 0b111 if client_ctx.slot_data["remote_items"] else 0b001
-            await client_ctx.send_msgs([{
-                "cmd": "ConnectUpdate",
-                "items_handling": client_ctx.items_handling
-            }])
-
-            # Need to make sure items handling updates and we get the correct list of received items before continuing.
-            await asyncio.sleep(0.75)
-            return
-
-        if self.death_link.update_pending:
-            await client_ctx.update_death_link(self.death_link.enabled)
-            self.death_link.update_pending = False
-
+    async def send_game_state(self, client_ctx: BizHawkClientContext, gameplay_state: Tuple[int, int]):
         bizhawk_ctx = client_ctx.bizhawk_ctx
 
         try:
             read_result = iter(await bizhawk.read(bizhawk_ctx, [
-                read16(ZMConstants.gMainGameMode),
-                read16(ZMConstants.gGameModeSub1),
                 read8(ZMConstants.gCurrentArea),
                 read(ZMConstants.gEventsTriggered, 4 * 3),
                 read(ZMConstants.gRandoLocationBitfields, 4 * ZMConstants.AREA_MAX),
-                read8(ZMConstants.gMultiworldItemCount),
-                read8(ZMConstants.gDifficulty),
             ]))
         except bizhawk.RequestFailedError:
             return
 
-        gMainGameMode = next_int(read_result)
-        gGameModeSub1 = next_int(read_result)
+        gMainGameMode = gameplay_state[0]
         gCurrentArea = next_int(read_result)
         gEventsTriggered = struct.unpack(f"<3I", next(read_result))
         gRandoLocationBitfields = struct.unpack(f"<{ZMConstants.AREA_MAX}I", next(read_result))
-        gMultiworldItemCount = next_int(read_result)
-        gDifficulty = next_int(read_result)
-
-        gameplay_state = (gMainGameMode, gGameModeSub1)
-
-        if not self.is_state_read_safe(gMainGameMode, gGameModeSub1):
-            return
 
         checked_locations = set()
         set_events = {flag: False for flag in TRACKER_EVENT_FLAGS}
@@ -393,6 +359,220 @@ class MZMClient(BizHawkClient):
                 "operations": [{"operation": "replace", "value": gCurrentArea}]
             }])
 
+    async def handle_received_items(self, client_ctx: BizHawkClientContext, received_items: ItemCollection):
+        bizhawk_ctx = client_ctx.bizhawk_ctx
+
+        try:
+            read_result = iter(await bizhawk.read(bizhawk_ctx, [read8(ZMConstants.gMultiworldItemCount)]))
+        except bizhawk.RequestFailedError:
+            return
+
+        gMultiworldItemCount = next_int(read_result)
+
+        if (self.remote_items_acquired is None):
+            self.remote_items_acquired = list(itertools.islice(received_items.remote, gMultiworldItemCount))
+
+        if self.queued_item is not None and gMultiworldItemCount > self.queued_item.index:
+            self.remote_items_acquired.extend(self.queued_item.network_items)
+            self.queued_item = None
+
+        if self.queued_item is None and len(self.remote_items_acquired) < len(received_items.remote):
+            if client_ctx.items_handling & 0b110:
+                new_items = Counter(item.item for item in received_items.remote) - Counter(item.item for item in self.remote_items_acquired)
+                next_item, next_item_count = next(iter(new_items.items()))
+                copies = list(itertools.islice(filter(lambda item: item.item == next_item, reversed(received_items.remote)), next_item_count))
+                copies.reverse()
+            else:
+                copies = [received_items.remote[len(self.remote_items_acquired)]]
+            self.queued_item = QueuedItem(copies, len(self.remote_items_acquired))
+
+        if gMultiworldItemCount > len(received_items.remote):
+            self.remote_items_acquired = received_items.remote
+
+    async def update_equipment(self, client_ctx: BizHawkClientContext, gameplay_state: Tuple[int, int], items: Iterable[NetworkItem]):
+        bizhawk_ctx = client_ctx.bizhawk_ctx
+
+        try:
+            read_result = iter(await bizhawk.read(bizhawk_ctx, [
+                read8(ZMConstants.gMultiworldItemCount),
+                read8(ZMConstants.gDifficulty),
+            ]))
+        except bizhawk.RequestFailedError:
+            return
+
+        gMainGameMode, gGameModeSub1 = gameplay_state
+        gMultiworldItemCount = next_int(read_result)
+        gDifficulty = next_int(read_result)
+
+        guard_list = [
+            # Ensure game state hasn't changed
+            guard16(ZMConstants.gMainGameMode, gMainGameMode),
+            guard16(ZMConstants.gGameModeSub1, gGameModeSub1),
+            guard8(ZMConstants.gPreventMovementTimer, 0)
+        ]
+        acquired_items = Counter(item_data_table[client_ctx.item_names.lookup_in_game(item.item)] for item in items)
+        try:
+            read_result = await bizhawk.guarded_read(
+                bizhawk_ctx,
+                [read(ZMConstants.gEquipment + 12, 4),
+                 read8(ZMConstants.gEquipment + 18)],
+                guard_list)
+        except bizhawk.RequestFailedError:
+            return
+        if not read_result:
+            return
+        beams, beam_activation, majors, major_activation = read_result[0]
+        beam_deactivation = beams ^ beam_activation
+        major_deactivation = majors ^ major_activation
+        beams = majors = 0
+        current_suit = new_suit = read_result[1][0]
+        if current_suit == ZMConstants.SUIT_SUITLESS:
+            return
+        for item, count in acquired_items.items():
+            if item.type == ItemType.tank:
+                max_offset, current_offset = ((0, 6), (2, 8), (4, 10), (5, 11))[item.id]
+                new_capacity = ZMConstants.sStartingHealthAmmo[item.id] + count * ZMConstants.sTankIncreaseAmount[gDifficulty][item.id]
+                def read_amounts(size):
+                    return bizhawk.guarded_read(
+                        bizhawk_ctx,
+                        [read(ZMConstants.gEquipment + max_offset, size // 8),
+                         read(ZMConstants.gEquipment + current_offset, size // 8)],
+                        guard_list
+                    )
+                def write_amounts(size, max, current, expect_current=None):
+                    return bizhawk.guarded_write(
+                        bizhawk_ctx,
+                        [write(ZMConstants.gEquipment + max_offset, max.to_bytes(size // 8, 'little')),
+                         write(ZMConstants.gEquipment + current_offset, current.to_bytes(size // 8, 'little'))],
+                        (guard_list + [guard(ZMConstants.gEquipment + current_offset, expect_current.to_bytes(size // 8, 'little'))])
+                            if expect_current is not None else guard_list
+                    )
+                try:
+                    if item.id == ItemID.EnergyTank:
+                        read_result = await read_amounts(size)
+                        if read_result is None:
+                            continue
+                        capacity, current = map(get_int, read_result)
+                        if new_capacity > capacity:
+                            await write_amounts(16, new_capacity, new_capacity)
+                    else:
+                        size = 16 if item.id == ItemID.MissileTank else 8
+                        read_result = await read_amounts(size)
+                        if read_result is None:
+                            continue
+                        capacity, current = map(get_int, read_result)
+                        consumed = capacity - current
+                        await write_amounts(size, new_capacity, max(new_capacity - consumed, 0), current)
+                except bizhawk.RequestFailedError:
+                    return
+            unknown_items = client_ctx.slot_data["unknown_items"] or self.local_set_events["EVENT_FULLY_POWERED_SUIT_OBTAINED"]
+            if item.type == ItemType.beam:
+                beams |= item.bits
+                if item.id != ItemID.PlasmaBeam or unknown_items:
+                    beam_activation |= item.bits
+            if item.type == ItemType.major:
+                majors |= item.bits
+                if item.id not in (ItemID.SpaceJump, ItemID.GravitySuit) or unknown_items:
+                    major_activation |= item.bits
+                if item.id in (ItemID.VariaSuit, ItemID.GravitySuit) and unknown_items:
+                    new_suit = ZMConstants.SUIT_FULLY_POWERED
+        major_activation &= ~major_deactivation & 0xFF
+        beam_activation &= ~beam_deactivation & 0xFF
+        try:
+            await bizhawk.guarded_write(
+                bizhawk_ctx,
+                [write(ZMConstants.gEquipment + 12, bytes((beams, beam_activation, majors, major_activation))),
+                 write8(ZMConstants.gEquipment + 18, new_suit)],
+                guard_list + [guard(ZMConstants.gEquipment + 18, current_suit)])
+            await bizhawk.guarded_write(
+                bizhawk_ctx,
+                [write16(ZMConstants.gMultiworldItemCount, len(self.remote_items_acquired))],
+                guard_list + [guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount)])
+        except bizhawk.RequestFailedError:
+            return
+
+    async def write_received_item(self, client_ctx: BizHawkClientContext, gameplay_state: Tuple[int, int]):
+        bizhawk_ctx = client_ctx.bizhawk_ctx
+
+        try:
+            read_result = iter(await bizhawk.read(bizhawk_ctx, [read8(ZMConstants.gMultiworldItemCount)]))
+        except bizhawk.RequestFailedError:
+            return
+
+        gMainGameMode, gGameModeSub1 = gameplay_state
+        gMultiworldItemCount = next_int(read_result)
+
+        guard_list = [
+            guard16(ZMConstants.gMainGameMode, gMainGameMode),
+            guard16(ZMConstants.gGameModeSub1, gGameModeSub1),
+            guard8(ZMConstants.gIncomingItemId, ZMConstants.ITEM_NONE),
+            guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount),
+        ]
+
+        if gMultiworldItemCount > self.queued_item.index:
+            return
+
+        next_item = self.queued_item.network_items[0]
+        item_data = item_data_table[client_ctx.item_names.lookup_in_game(next_item.item)]
+        copies = len(self.queued_item.network_items)
+        if next_item.player == client_ctx.slot:
+            sender = TERMINATOR_CHAR
+        else:
+            sender = encode_str(client_ctx.player_names[next_item.player]) + TERMINATOR_CHAR
+
+        try:
+            await bizhawk.guarded_write(
+                bizhawk_ctx,
+                [write8(ZMConstants.gIncomingItemId, item_data.id),
+                 write8(ZMConstants.gIncomingItemCount, copies),
+                 write(ZMConstants.gMultiworldItemSenderName, sender)],
+                guard_list)
+        except bizhawk.RequestFailedError:
+            return
+
+    async def game_watcher(self, client_ctx: BizHawkClientContext) -> None:
+        if self.dc_pending:
+            await client_ctx.disconnect()
+            return
+
+        if client_ctx.server is None or client_ctx.server.socket.closed or client_ctx.slot_data is None:
+            return
+
+        if not client_ctx.items_handling:
+            client_ctx.items_handling = 0b111 if client_ctx.slot_data["remote_items"] else 0b001
+            await client_ctx.send_msgs([{
+                "cmd": "ConnectUpdate",
+                "items_handling": client_ctx.items_handling
+            }])
+
+            # Need to make sure items handling updates and we get the correct list of received items before continuing.
+            await asyncio.sleep(0.75)
+            return
+
+        if self.death_link.update_pending:
+            await client_ctx.update_death_link(self.death_link.enabled)
+            self.death_link.update_pending = False
+
+        bizhawk_ctx = client_ctx.bizhawk_ctx
+
+        try:
+            read_result = iter(await bizhawk.read(bizhawk_ctx, [
+                read16(ZMConstants.gMainGameMode),
+                read16(ZMConstants.gGameModeSub1),
+            ]))
+        except bizhawk.RequestFailedError:
+            return
+
+        gMainGameMode = next_int(read_result)
+        gGameModeSub1 = next_int(read_result)
+
+        gameplay_state = (gMainGameMode, gGameModeSub1)
+
+        if not self.is_state_read_safe(gMainGameMode, gGameModeSub1):
+            return
+
+        await self.send_game_state(client_ctx, gameplay_state)
+
         if self.death_link.enabled:
             if (gameplay_state == (ZMConstants.GM_INGAME, ZMConstants.SUB_GAME_MODE_DYING)
                 or gMainGameMode == ZMConstants.GM_GAMEOVER):
@@ -422,132 +602,18 @@ class MZMClient(BizHawkClient):
                 return
 
         received_items = self.received_items
-        if (self.remote_items_acquired is None):
-            self.remote_items_acquired = list(itertools.islice(received_items.remote, gMultiworldItemCount))
-
-        if self.queued_item is not None and gMultiworldItemCount > self.queued_item.index:
-            self.remote_items_acquired.extend(self.queued_item.network_items)
-            self.queued_item = None
-
-        if self.queued_item is None and len(self.remote_items_acquired) < len(received_items.remote):
-            if client_ctx.items_handling & 0b110:
-                new_items = Counter(item.item for item in received_items.remote) - Counter(item.item for item in self.remote_items_acquired)
-                next_item, next_item_count = next(iter(new_items.items()))
-                copies = list(itertools.islice(filter(lambda item: item.item == next_item, reversed(received_items.remote)), next_item_count))
-                copies.reverse()
-            else:
-                copies = [received_items.remote[len(self.remote_items_acquired)]]
-            self.queued_item = QueuedItem(copies, len(self.remote_items_acquired))
-
-        if gMultiworldItemCount > len(received_items.remote):
-            self.remote_items_acquired = received_items.remote
+        await self.handle_received_items(client_ctx, received_items)
 
         # Update items if nonlocal
         if client_ctx.items_handling & 0b110:
-            acquired_items = Counter(item_data_table[client_ctx.item_names.lookup_in_game(item.item)]
-                                     for item in itertools.chain(received_items.starting,
-                                                                 received_items.local,
-                                                                 self.remote_items_acquired))
-            item_guard_list = guard_list + [guard8(ZMConstants.gPreventMovementTimer, 0)]
-            try:
-                read_result = await bizhawk.guarded_read(
-                    bizhawk_ctx,
-                    [read(ZMConstants.gEquipment + 12, 4),
-                     read8(ZMConstants.gEquipment + 18)],
-                    item_guard_list)
-            except bizhawk.RequestFailedError:
-                return
-            if not read_result:
-                return
-            beams, beam_activation, majors, major_activation = read_result[0]
-            beam_deactivation = beams ^ beam_activation
-            major_deactivation = majors ^ major_activation
-            beams = majors = 0
-            current_suit = new_suit = read_result[1][0]
-            if current_suit == ZMConstants.SUIT_SUITLESS:
-                return
-            for item, count in acquired_items.items():
-                if item.type == ItemType.tank:
-                    max_offset, current_offset = ((0, 6), (2, 8), (4, 10), (5, 11))[item.id]
-                    new_capacity = ZMConstants.sStartingHealthAmmo[item.id] + count * ZMConstants.sTankIncreaseAmount[gDifficulty][item.id]
-                    def read_amounts(size):
-                        return bizhawk.guarded_read(
-                            bizhawk_ctx,
-                            [read(ZMConstants.gEquipment + max_offset, size // 8),
-                             read(ZMConstants.gEquipment + current_offset, size // 8)],
-                            item_guard_list
-                        )
-                    def write_amounts(size, max, current, expect_current=None):
-                        return bizhawk.guarded_write(
-                            bizhawk_ctx,
-                            [write(ZMConstants.gEquipment + max_offset, max.to_bytes(size // 8, 'little')),
-                             write(ZMConstants.gEquipment + current_offset, current.to_bytes(size // 8, 'little'))],
-                            (item_guard_list + [guard(ZMConstants.gEquipment + current_offset, expect_current.to_bytes(size // 8, 'little'))])
-                                if expect_current is not None else item_guard_list
-                        )
-                    try:
-                        if item.id == ItemID.EnergyTank:
-                            read_result = await read_amounts(size)
-                            if read_result is None:
-                                continue
-                            capacity, current = map(get_int, read_result)
-                            if new_capacity > capacity:
-                                await write_amounts(16, new_capacity, new_capacity)
-                        else:
-                            size = 16 if item.id == ItemID.MissileTank else 8
-                            read_result = await read_amounts(size)
-                            if read_result is None:
-                                continue
-                            capacity, current = map(get_int, read_result)
-                            consumed = capacity - current
-                            await write_amounts(size, new_capacity, max(new_capacity - consumed, 0), current)
-                    except bizhawk.RequestFailedError:
-                        return
-                unknown_items = client_ctx.slot_data["unknown_items"] or self.local_set_events["EVENT_FULLY_POWERED_SUIT_OBTAINED"]
-                if item.type == ItemType.beam:
-                    beams |= item.bits
-                    if item.id != ItemID.PlasmaBeam or unknown_items:
-                        beam_activation |= item.bits
-                if item.type == ItemType.major:
-                    majors |= item.bits
-                    if item.id not in (ItemID.SpaceJump, ItemID.GravitySuit) or unknown_items:
-                        major_activation |= item.bits
-                    if item.id in (ItemID.VariaSuit, ItemID.GravitySuit) and unknown_items:
-                        new_suit = ZMConstants.SUIT_FULLY_POWERED
-            major_activation &= ~major_deactivation & 0xFF
-            beam_activation &= ~beam_deactivation & 0xFF
-            try:
-                await bizhawk.guarded_write(
-                    bizhawk_ctx,
-                    [write(ZMConstants.gEquipment + 12, bytes((beams, beam_activation, majors, major_activation))),
-                     write8(ZMConstants.gEquipment + 18, new_suit)],
-                    item_guard_list + [guard(ZMConstants.gEquipment + 18, current_suit)])
-                await bizhawk.guarded_write(
-                    bizhawk_ctx,
-                    [write16(ZMConstants.gMultiworldItemCount, len(self.remote_items_acquired))],
-                    item_guard_list + [guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount)])
-            except bizhawk.RequestFailedError:
-                return
+            await self.update_equipment(client_ctx,
+                                        gameplay_state,
+                                        itertools.chain(received_items.starting,
+                                                        received_items.local,
+                                                        self.remote_items_acquired))
 
-        if self.queued_item is not None and gMultiworldItemCount <= self.queued_item.index:
-            next_item = self.queued_item.network_items[0]
-            item_data = item_data_table[client_ctx.item_names.lookup_in_game(next_item.item)]
-            copies = len(self.queued_item.network_items)
-            if next_item.player == client_ctx.slot:
-                sender = TERMINATOR_CHAR
-            else:
-                sender = encode_str(client_ctx.player_names[next_item.player]) + TERMINATOR_CHAR
-
-            try:
-                await bizhawk.guarded_write(
-                    bizhawk_ctx,
-                    [write8(ZMConstants.gIncomingItemId, item_data.id),
-                     write8(ZMConstants.gIncomingItemCount, copies),
-                     write(ZMConstants.gMultiworldItemSenderName, sender)],
-                    guard_list + [guard8(ZMConstants.gIncomingItemId, ZMConstants.ITEM_NONE),
-                                  guard16(ZMConstants.gMultiworldItemCount, gMultiworldItemCount)])
-            except bizhawk.RequestFailedError:
-                return
+        if self.queued_item is not None:
+            await self.write_received_item(client_ctx, gameplay_state)
 
     def create_collection(self, ctx: BizHawkClientContext):
         def is_local(item: NetworkItem):
