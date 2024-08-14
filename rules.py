@@ -70,10 +70,7 @@ brinstar_main = {
                 )
             ),
             CanBombTunnelBlock,
-            any(
-                CanVertical,
-                CanWallJump
-            )
+            CanVerticalWall,
         ),
         "Brinstar Worm drop": all(
             MorphBall,
@@ -169,10 +166,7 @@ kraid_acidworm_area = {
         "Kraid Under Acid Worm": all(
             MissileCount(20),
             CanSingleBombBlock,
-            any(
-                CanVertical,
-                CanWallJump
-            )
+            CanVerticalWall
         ),
         "Kraid Zipline Activator Room": None
     }
@@ -259,10 +253,7 @@ norfair_right_shaft = {
             CanFly,
             all(
                 IceBeam,
-                any(
-                    CanVertical,
-                    CanWallJump
-                )
+                CanVerticalWall
             ),
             all(  # this method requires some jump extends
                 AdvancedLogic,
@@ -336,10 +327,7 @@ lower_norfair = {
                 CanBombTunnelBlock,
                 WaveBeam
             ),
-            any(
-                CanVertical,
-                CanWallJump,
-            )
+            CanVerticalWall,
         ),
         "Norfair Wave Beam": MissileCount(4),
         "Norfair Heated Room Below Wave - Left": None,
@@ -395,8 +383,7 @@ norfair_bottom = {
         "Norfair Larva Ceiling": None,
         "Norfair Right Shaft Bottom": all(
             any(
-                CanVertical,
-                CanWallJump,
+                CanVerticalWall,
                 IceBeam
             ),
             CanBallJump
@@ -405,15 +392,12 @@ norfair_bottom = {
 
 ridley_main = {
         "Ridley Imago Super Missile": all(
-            any(
-                CanVertical,
-                CanWallJump
-            ),
+            CanVerticalWall,
             any(
                 MissileCount(20),
                 all(
                     AdvancedLogic,
-                    MissileTanks(1)
+                    MissileTanks(1)  # Imago does not drop super refills
                 ),
                 ChargeBeam
             )

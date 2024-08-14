@@ -181,6 +181,10 @@ CanVertical = any(  # fka can_hj_sj_ibj_or_grip
     PowerGrip,
     CanFly
 )
+CanVerticalWall = any(
+    CanVertical,
+    CanWallJump
+)
 CanHiGrip = all(
     HiJump,
     PowerGrip
@@ -349,9 +353,8 @@ def norfair_right_shaft_access():
 
 def norfair_upper_right_shaft():
     return any(
-        CanVertical,
-        IceBeam,
-        CanWallJump
+        CanVerticalWall,
+        IceBeam
     )
 
 
@@ -555,8 +558,7 @@ def ridley_main_to_left_shaft():
     return all(
         SuperMissiles,
         any(
-            CanVertical,
-            CanWallJump,
+            CanVerticalWall,
             IceBeam
         ),
         any(
@@ -637,7 +639,7 @@ def ridley_central_to_ridley_room():
             CanFly,
             all(
                 IceBeam,
-                CanHiGrip
+                CanVerticalWall
             )
         )
     )
