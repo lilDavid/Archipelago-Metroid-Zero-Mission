@@ -14,6 +14,7 @@ def create_region(world: MultiWorld, player: int, region_name: str):
     for location_name, location_data in full_location_table.items():
         if location_data.region == region_name:
             location = Location(player, location_name, location_data.code, region)
+            location.game = world.game.get(player)
             region.locations.append(location)
 
     world.regions.append(region)

@@ -285,7 +285,7 @@ class MZMClient(BizHawkClient):
             ):
                 for location in location_table.values():
                     if location_flags & 1:
-                        checked_locations.append(location)
+                        checked_locations.append(location.code)
                     location_flags >>= 1
 
         # Deorem flags are in a weird arrangement, but he also drops Charge Beam so whatever just look for that check
