@@ -625,5 +625,5 @@ class MZMClient(BizHawkClient):
             self.received_items = self.create_collection(ctx)
         if cmd == "Bounced":
             tags = args.get("tags", [])
-            if "DeathLink" in tags and args["data"]["source"] != ctx.auth:
+            if "DeathLink" in tags:
                 self.death_link.pending = True
