@@ -338,6 +338,7 @@ class MZMClient(BizHawkClient):
             }])
 
         if self.local_set_events != set_events and client_ctx.slot is not None:
+            self.local_set_events = set_events
             event_bitfield = 0
             for i, flag in enumerate(TRACKER_EVENT_FLAGS):
                 if set_events[flag]:
@@ -349,9 +350,9 @@ class MZMClient(BizHawkClient):
                 "want_reply": False,
                 "operations": [{"operation": "or", "value": event_bitfield}]
             }])
-            self.local_set_events = set_events
 
         if self.local_area != gCurrentArea and client_ctx.slot is not None:
+            self.local_area = gCurrentArea
             await client_ctx.send_msgs([{
                 "cmd": "Set",
                 "key": f"mzm_area_{client_ctx.team}_{client_ctx.slot}",
