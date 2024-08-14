@@ -64,7 +64,10 @@ brinstar_main = {
         "Brinstar Speed Booster Shortcut": all(
             any(
                 CanBallspark,
-                AdvancedLogic
+                all(
+                    AdvancedLogic,
+                    CanBallJump
+                )
             ),
             CanBombTunnelBlock,
             any(
@@ -315,12 +318,12 @@ norfair_lowerrightshaft = {
 
 lower_norfair = {
         "Norfair Lava Dive Left": all(
-            MissileCount(5),
+            MissileCount(7),
             GravitySuit,
             CanFly
         ),
         "Norfair Lava Dive Right": all(
-            MissileCount(3),
+            MissileCount(5),
             any(
                 GravitySuit,
                 all(
@@ -548,7 +551,7 @@ tourian = {
             SuperMissiles,
             CanEnterMediumMorphTunnel  # to escape
         ),
-        "Mother Brain": all(  # TODO: determine reasonable logic for advanced
+        "Mother Brain": all(
             IceBeam,
             CanRegularBomb,  # only bomb can unlatch metroids
             any(

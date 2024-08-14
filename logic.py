@@ -241,7 +241,7 @@ def brinstar_main_to_brinstar_top():
             IceBeam,
             CanWallJump,
             PowerBombs
-        )
+        )  # truly cursed strat
     )
 
 
@@ -317,12 +317,8 @@ def kraid_left_shaft_access():
     )
 
 
-# TODO: double check this
 def kraid_left_shaft_to_bottom():
-    return any(
-        UnknownItem2,
-        CanReachEntrance("Lower Norfair -> Kraid")
-    )
+    return UnknownItem2
 
 
 def kraid_bottom_to_lower_norfair():
