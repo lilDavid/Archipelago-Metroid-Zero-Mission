@@ -150,8 +150,14 @@ class JunkFillWeights(OptionDict):
     }
 
 
-class RemoteItems(Toggle):
-    """Indicates you get items sent from your own world. This allows coop play of a world."""
+class RemoteItems(DefaultOnToggle):
+    """
+    Indicates you get items sent from your own world, allowing co-op play of a world.
+    When enabled, you will not lose the items you've collected from your own world if you reset or game-over.
+
+    Regardless of this setting, you can still play a single-player game without connecting to a server.
+    However, you will not benefit from your items being returned to you when you reload a save.
+    """
     display_name = "Remote Items"
 
 
