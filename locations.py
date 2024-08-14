@@ -129,11 +129,11 @@ chozodia_location_table = {
     "Chozodia Chozo Ghost Area Morph Tunnel Above Water": LocationData("Chozodia Ruins Test Area", AP_MZM_ID_BASE + 86),
     "Chozodia Chozo Ghost Area Underwater": LocationData("Chozodia Ruins Test Area", AP_MZM_ID_BASE + 87),
     "Chozodia Triple Crawling Pirates": LocationData("Chozodia Ruins", AP_MZM_ID_BASE + 88),  #TODO renamed
-    "Chozodia West of Glass Tube": LocationData("Chozodia Under Tube", AP_MZM_ID_BASE + 89),  #TODO renamed
+    "Chozodia Left of Glass Tube": LocationData("Chozodia Under Tube", AP_MZM_ID_BASE + 89),  #TODO renamed
     "Chozodia Lava Dive": LocationData("Chozodia Ruins Test Area", AP_MZM_ID_BASE + 90),  #TODO Renamed
     "Chozodia Original Power Bomb": LocationData("Chozodia Mothership Cockpit", AP_MZM_ID_BASE + 91),
     "Chozodia Next to Original Power Bomb": LocationData("Chozodia Mothership Cockpit", AP_MZM_ID_BASE + 92),
-    "Chozodia Southeast of Glass Tube": LocationData("Chozodia Under Tube", AP_MZM_ID_BASE + 93),  #TODO Renamed
+    "Chozodia Right of Glass Tube": LocationData("Chozodia Under Tube", AP_MZM_ID_BASE + 93),  #TODO Renamed
     "Chozodia Chozo Ghost Area Long Shinespark": LocationData("Chozodia Ruins Test Area", AP_MZM_ID_BASE + 94),
     "Chozodia Pirate Pitfall Trap": LocationData("Chozodia Mothership Central", AP_MZM_ID_BASE + 95),  #TODO renamed
     "Chozodia Behind Workbot": LocationData("Chozodia Mothership Central", AP_MZM_ID_BASE + 96),  #TODO Renamed

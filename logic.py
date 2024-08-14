@@ -296,10 +296,8 @@ def kraid_left_shaft_access():
     return all(
         any(
             CanHorizontalIBJ,
-            all(
-                PowerGrip,
-                HiJump
-            )
+            PowerGrip,
+            HiJump
         ),
         CanBallJump,
         CanBombTunnelBlock,
@@ -614,7 +612,7 @@ def ridley_speed_puzzles_access():
     return all(
         SpeedBooster,
         any(
-            CanVertical,
+            CanVerticalWall,
             IceBeam
         )
     )

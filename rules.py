@@ -380,7 +380,7 @@ norfair_behind_superdoor = {
     }
 
 norfair_bottom = {
-        "Norfair Larva Ceiling": None,
+        "Norfair Larva Ceiling": CanReachEntrance("Lower Norfair -> Bottom"),
         "Norfair Right Shaft Bottom": all(
             any(
                 CanVerticalWall,
@@ -523,7 +523,8 @@ ridley_room = {
 
 tourian = {
         "Tourian Left of Mother Brain": all(
-            ChozoGhostBoss,  # TODO: Double check if Mother Brain is also required
+            ChozoGhostBoss,
+            MotherBrainBoss,
             SpeedBooster,
             any(
                 SpaceJump,
@@ -559,7 +560,8 @@ tourian = {
 
 crateria_main = {
         "Crateria Landing Site Ballspark": all(
-            ChozoGhostBoss,  # TODO: Double check if Mother Brain is also required
+            ChozoGhostBoss,
+            MotherBrainBoss,
             CanBallspark,
             CanBallJump,
             any(
@@ -601,6 +603,10 @@ chozodia_ruins_crateria_entrance = {
                 PowerBombCount(2)
             ),
             any(
+                CanHiGrip,
+                CanFlyWall
+            ),
+            any(
                 AdvancedLogic,
                 ChozodiaCombat
             )
@@ -623,7 +629,7 @@ chozodia_ruins_test = {
             SpeedBooster,
             GravitySuit
         ),
-        "Chozodia Lava Dive": all(  # TODO split this lavadive into regular/advanced, current values are close to bare minimum
+        "Chozodia Lava Dive": all(  # TODO split this lavadive into regular/advanced? current values are close to bare minimum
             ChozoGhostBoss,
             any(
                 GravitySuit,
@@ -685,11 +691,11 @@ chozodia_under_tube = {
                 CanTrickySparks
             )
         ),
-        "Chozodia West of Glass Tube": all(
+        "Chozodia Left of Glass Tube": all(
             SpeedBooster,
             CanReachEntrance("Chozodia Glass Tube -> Chozo Ruins") # Required to access a save station after collecting to warp if necessary
         ),
-        "Chozodia Southeast of Glass Tube": all(
+        "Chozodia Right of Glass Tube": all(
             PowerBombs,
             CanFly
         )
@@ -727,8 +733,17 @@ chozodia_mothership = {
     }
 
 chozodia_cockpit = {
-        "Chozodia Original Power Bomb": None,
-        "Chozodia Next to Original Power Bomb": CanFly,
+        "Chozodia Original Power Bomb": any(
+            CanWallJump,
+            HiJump,
+            PowerGrip,
+            SpaceJump
+        ),  # cannot IBJ to escape
+        "Chozodia Next to Original Power Bomb": all(
+            PowerBombs,
+            CanFly,
+            CanReachLocation("Chozodia Original Power Bomb")
+        )
     }
 
 chozodia_mecha_ridley_hall = {
