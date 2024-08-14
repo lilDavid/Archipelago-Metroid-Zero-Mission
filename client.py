@@ -246,7 +246,7 @@ class MZMClient(BizHawkClient):
             return False
 
         client_ctx.game = self.game
-        client_ctx.items_handling = 0b000
+        client_ctx.items_handling = 0b111
         client_ctx.want_slot_data = True
         try:
             client_ctx.seed_name = seed_name_bytes.decode("utf-8")
@@ -324,6 +324,7 @@ class MZMClient(BizHawkClient):
 
         if self.local_checked_locations != checked_locations:
             self.local_checked_locations = checked_locations
+            self.received_items = self.create_collection(client_ctx)
             await client_ctx.send_msgs([{
                 "cmd": "LocationChecks",
                 "locations": list(checked_locations)
@@ -377,13 +378,10 @@ class MZMClient(BizHawkClient):
             self.queued_item = None
 
         if self.queued_item is None and len(self.remote_items_acquired) < len(received_items.remote):
-            if client_ctx.items_handling & 0b110:
-                new_items = Counter(item.item for item in received_items.remote) - Counter(item.item for item in self.remote_items_acquired)
-                next_item, next_item_count = next(iter(new_items.items()))
-                copies = list(itertools.islice(filter(lambda item: item.item == next_item, reversed(received_items.remote)), next_item_count))
-                copies.reverse()
-            else:
-                copies = [received_items.remote[len(self.remote_items_acquired)]]
+            new_items = Counter(item.item for item in received_items.remote) - Counter(item.item for item in self.remote_items_acquired)
+            next_item, next_item_count = next(iter(new_items.items()))
+            copies = list(itertools.islice(filter(lambda item: item.item == next_item, reversed(received_items.remote)), next_item_count))
+            copies.reverse()
             self.queued_item = QueuedItem(copies, len(self.remote_items_acquired))
 
         if gMultiworldItemCount > len(received_items.remote):
@@ -538,17 +536,6 @@ class MZMClient(BizHawkClient):
         if client_ctx.server is None or client_ctx.server.socket.closed or client_ctx.slot_data is None:
             return
 
-        if not client_ctx.items_handling:
-            client_ctx.items_handling = 0b111 if client_ctx.slot_data["remote_items"] else 0b001
-            await client_ctx.send_msgs([{
-                "cmd": "ConnectUpdate",
-                "items_handling": client_ctx.items_handling
-            }])
-
-            # Need to make sure items handling updates and we get the correct list of received items before continuing.
-            await asyncio.sleep(0.75)
-            return
-
         if self.death_link.update_pending:
             await client_ctx.update_death_link(self.death_link.enabled)
             self.death_link.update_pending = False
@@ -602,15 +589,14 @@ class MZMClient(BizHawkClient):
                 return
 
         received_items = self.received_items
+        if not client_ctx.slot_data["remote_items"]:
+            remote_items = [item for item in received_items.remote if item.player != client_ctx.slot or item.location <= 0]
+            received_items = self.received_items._replace(remote=remote_items)
+
         await self.handle_received_items(client_ctx, received_items)
 
-        # Update items if nonlocal
-        if client_ctx.items_handling & 0b110:
-            await self.update_equipment(client_ctx,
-                                        gameplay_state,
-                                        itertools.chain(received_items.starting,
-                                                        received_items.local,
-                                                        self.remote_items_acquired))
+        acquired_items = itertools.chain(received_items.starting, received_items.local, self.remote_items_acquired)
+        await self.update_equipment(client_ctx, gameplay_state, acquired_items)
 
         if self.queued_item is not None:
             await self.write_received_item(client_ctx, gameplay_state)
