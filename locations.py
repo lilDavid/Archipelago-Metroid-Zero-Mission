@@ -45,7 +45,7 @@ kraid_location_table = {
     "Kraid Save Room Tunnel": LocationData("Kraid Main", AP_MZM_ID_BASE + 20),  #TODO renamed
     "Kraid Zipline Morph Jump": LocationData("Kraid Main", AP_MZM_ID_BASE + 21),  #TODO renamed
     "Kraid Quad Ball Cannon Room": LocationData("Kraid Left Shaft", AP_MZM_ID_BASE + 22),
-    "Kraid Unknown Item Statue": LocationData("Kraid Bottom", AP_MZM_ID_BASE + 23), #TODO Renamed
+    "Kraid Unknown Item Statue": LocationData("Kraid Left Shaft", AP_MZM_ID_BASE + 23), #TODO Renamed
     "Kraid Acid Ballspark": LocationData("Kraid Main", AP_MZM_ID_BASE + 24),
     "Kraid Speed Booster": LocationData("Kraid Bottom", AP_MZM_ID_BASE + 25),
     "Kraid Under Acid Worm": LocationData("Kraid Acid Worm Area", AP_MZM_ID_BASE + 26),  #TODO renamed
