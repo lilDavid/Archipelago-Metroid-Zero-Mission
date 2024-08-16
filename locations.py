@@ -27,9 +27,9 @@ brinstar_location_table = {
     "Brinstar Ballspark": LocationData("Brinstar Main", AP_MZM_ID_BASE + 5), #TODO Renamed
     "Brinstar Ripper Climb": LocationData("Brinstar Main", AP_MZM_ID_BASE + 6),  # TODO Renamed
     "Brinstar Speed Booster Shortcut": LocationData("Brinstar Main", AP_MZM_ID_BASE + 7),  #TODO Renamed
-    "Brinstar Varia Suit": LocationData("Brinstar Top", AP_MZM_ID_BASE + 8),
+    "Brinstar Varia Suit": LocationData("Brinstar Top", AP_MZM_ID_BASE + 8), #may change region
     "Brinstar Worm drop": LocationData("Brinstar Main", AP_MZM_ID_BASE + 9),
-    "Brinstar Acid near Varia": LocationData("Brinstar Top", AP_MZM_ID_BASE + 10),
+    "Brinstar Acid near Varia": LocationData("Brinstar Top", AP_MZM_ID_BASE + 10), #may change region
     "Brinstar First Missile": LocationData("Brinstar Main", AP_MZM_ID_BASE + 11),
     "Brinstar Behind Hive": LocationData("Brinstar Main", AP_MZM_ID_BASE + 12),
     "Brinstar Under Bridge": LocationData("Brinstar Main", AP_MZM_ID_BASE + 13),

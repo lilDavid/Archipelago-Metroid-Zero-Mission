@@ -58,7 +58,8 @@ brinstar_main = {
             CanIBJ,
             all(
                 CanBallspark,
-                CanTrickySparks
+                CanTrickySparks,
+                AdvancedLogic  # mzmr says this is doable but i might make it require screw + space, it's so hard
             )
         ),
         "Brinstar Speed Booster Shortcut": all(
@@ -89,7 +90,8 @@ brinstar_main = {
 brinstar_top = {
         "Brinstar Varia Suit": all(
             any(
-                CanFly,
+                SpaceJump,
+                CanHorizontalIBJ,
                 CanHiGrip,
                 CanTrickySparks
             ),
@@ -109,8 +111,10 @@ brinstar_top = {
         ),
         "Brinstar Acid near Varia": all(
             any(
-                CanFly,
-                CanHiGrip
+                SpaceJump,
+                CanHorizontalIBJ,
+                CanHiGrip,
+                CanTrickySparks
             ),
             CanBallJump,
             CanLongBeam,
@@ -205,7 +209,7 @@ kraid_bottom = {
             KraidBoss,
             SpeedBooster
         ),
-        "Kraid Acid Fall": None,  # doesn't require anything more than access to the region
+        "Kraid Acid Fall": None,
         "Kraid": all(
             any(
                 UnknownItem2,
