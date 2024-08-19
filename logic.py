@@ -549,6 +549,18 @@ def bottom_norfair_to_ridley():
     )
 
 
+def bottom_norfair_to_screw():
+    return all(
+        RidleyBoss,
+        SpeedBooster,
+        CanBallCannon,
+        any(
+            IceBeam,
+            CanVerticalWall
+        )
+    )
+
+
 # LN elevator to the bottom long hall
 # connects to right shaft with no extra req's
 # this happens to cover the reqs for left pillar, fake floor, long room, and the ability to get to right shaft

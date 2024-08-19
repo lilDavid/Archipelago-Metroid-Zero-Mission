@@ -97,6 +97,7 @@ def create_regions_and_connections(world: MZMWorld):
     connect(multiworld, player, "Lower Norfair -> Kraid", "Lower Norfair", "Kraid Bottom", lower_norfair_to_kraid().create_rule(world))
     connect(multiworld, player, "Lower Norfair -> Bottom", "Lower Norfair", "Norfair Bottom", lower_norfair_to_bottom_norfair().create_rule(world))
     connect(multiworld, player, "Norfair -> Ridley Elevator", "Norfair Bottom", "Ridley Main", bottom_norfair_to_ridley().create_rule(world))
+    connect(multiworld, player, "Norfair Bottom -> Screw Attack", "Norfair Bottom", "Norfair Screw Attack Area", bottom_norfair_to_screw().create_rule(world))
     connect(multiworld, player, "Ridley Elevator -> Left Shaft", "Ridley Main", "Ridley Left Shaft", ridley_main_to_left_shaft().create_rule(world))
     connect(multiworld, player, "Ridley Elevator -> Right Shaft Shortcut", "Ridley Main", "Ridley Right Shaft", ridley_main_to_right_shaft().create_rule(world))
     connect(multiworld, player, "Ridley Left Shaft -> SW Puzzle", "Ridley Left Shaft", "Ridley SW Puzzle", ridley_left_shaft_to_sw_puzzle().create_rule(world))
