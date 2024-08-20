@@ -480,6 +480,13 @@ def lower_norfair_to_screwattack():
     )
 
 
+def screw_to_lower_norfair():
+    return any(
+        MissileCount(4),
+        ScrewAttack
+    )
+
+
 def lower_norfair_to_kraid():
     return all(
         ScrewAttack,
@@ -528,6 +535,10 @@ def lower_norfair_to_bottom_norfair():
     return all(
         MissileCount(2),
         SpeedBooster,
+        any(
+            VariaSuit,
+            Hellrun(1)
+        ),
         any(
             WaveBeam,
             CanTrickySparks

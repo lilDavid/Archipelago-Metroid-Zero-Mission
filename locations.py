@@ -137,7 +137,7 @@ chozodia_location_table = {
     "Chozodia Chozo Ghost Area Long Shinespark": LocationData("Chozodia Ruins Test Area", AP_MZM_ID_BASE + 94),
     "Chozodia Pirate Pitfall Trap": LocationData("Chozodia Mothership Central", AP_MZM_ID_BASE + 95),  #TODO renamed
     "Chozodia Behind Workbot": LocationData("Chozodia Mothership Central", AP_MZM_ID_BASE + 96),  #TODO Renamed
-    "Chozodia Mothership Ceiling Near ZSS Start": LocationData("Chozodia Mothership Central", AP_MZM_ID_BASE + 97),
+    "Chozodia Ceiling Near Map Station": LocationData("Chozodia Mothership Central", AP_MZM_ID_BASE + 97), #TODO renamed
     "Chozodia Under Mecha Ridley Hallway": LocationData("Chozodia Mecha Ridley Hallway", AP_MZM_ID_BASE + 98),
     "Chozodia Southeast Corner In Hull": LocationData("Chozodia Mothership Central", AP_MZM_ID_BASE + 99),
     "Chozo Ghost": LocationData("Chozodia Ruins Test Area", None),

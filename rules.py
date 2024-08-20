@@ -334,8 +334,29 @@ lower_norfair = {
             CanVerticalWall,
         ),
         "Norfair Wave Beam": MissileCount(4),
-        "Norfair Heated Room Below Wave - Left": None,
-        "Norfair Heated Room Below Wave - Right": None,
+        "Norfair Heated Room Below Wave - Left": all(
+            CanVerticalWall,
+            any(
+                VariaSuit,
+                Hellrun(2)
+            ),
+            any(
+                CanIBJ,
+                HiJump,
+                PowerGrip,
+                all(
+                    IceBeam,
+                    Bomb
+                )
+            )
+        ),
+        "Norfair Heated Room Below Wave - Right": all(
+            CanVerticalWall,
+            any(
+                VariaSuit,
+                Hellrun(2)
+            )
+        ),
     }
 
 norfair_screwattack = {
@@ -725,7 +746,7 @@ chozodia_mothership = {
             )
         ),
         "Chozodia Behind Workbot": MissileCount(5),
-        "Chozodia Mothership Ceiling Near ZSS Start": all(
+        "Chozodia Ceiling Near Map Station": all(
             Missiles,
             any(
                 PowerBombs,
