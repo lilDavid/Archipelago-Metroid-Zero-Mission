@@ -29,7 +29,6 @@ def connect(world: MultiWorld, player: int, entrance_name: str, source: str, tar
 
 
 def create_regions_and_connections(world: MZMWorld):
-    # create all regions and populate with locations
     player = world.player
     multiworld = world.multiworld
 
@@ -67,6 +66,7 @@ def create_regions_and_connections(world: MZMWorld):
     create_region(multiworld, player, "Chozodia Under Tube")
     create_region(multiworld, player, "Chozodia Mothership Central")
     create_region(multiworld, player, "Chozodia Mothership Cockpit")
+    create_region(multiworld, player, "Chozodia Original Power Bomb Room")
     create_region(multiworld, player, "Chozodia Mecha Ridley Hallway")
     create_region(multiworld, player, "Mission Accomplished!")
 
@@ -77,7 +77,6 @@ def create_regions_and_connections(world: MZMWorld):
     connect(multiworld, player, "Brinstar Past Hives -> Top", "Brinstar Past Hives", "Brinstar Top", brinstar_pasthives_to_brinstar_top().create_rule(world))
     connect(multiworld, player, "Brinstar Top -> Past Hives", "Brinstar Top", "Brinstar Past Hives", CanEnterMediumMorphTunnel.create_rule(world))
     connect(multiworld, player, "Brinstar -> Kraid Elevator", "Brinstar Start", "Kraid Main", CanSingleBombBlock.create_rule(world))
-    #TODO: account for layout patches in Brinstar -> Norfair elevator
     connect(multiworld, player, "Brinstar -> Norfair Elevator", "Brinstar Main", "Norfair Main", CanBombTunnelBlock.create_rule(world))
     connect(multiworld, player, "Brinstar -> Tourian Elevator", "Brinstar Main", "Tourian", all(MorphBall, KraidBoss, RidleyBoss).create_rule(world))
     connect(multiworld, player, "Brinstar -> Crateria Ballcannon", "Brinstar Start", "Upper Crateria", brinstar_crateria_ballcannon().create_rule(world))
@@ -119,4 +118,5 @@ def create_regions_and_connections(world: MZMWorld):
     connect(multiworld, player, "Chozodia Glass Tube -> Chozo Ruins", "Chozodia Glass Tube", "Chozodia Ruins", chozodia_tube_to_chozo_ruins().create_rule(world))
     connect(multiworld, player, "Chozozia Glass Tube -> Mothership Central", "Chozodia Glass Tube", "Chozodia Mothership Central", chozodia_tube_to_mothership_central().create_rule(world))
     connect(multiworld, player, "Chozodia Mothership -> Cockpit", "Chozodia Mothership Central", "Chozodia Mothership Cockpit", mothership_central_to_cockpit().create_rule(world))
+    connect(multiworld, player, "Chozodia Cockpit -> Original PB", "Chozodia Mothership Cockpit", "Chozodia Original Power Bomb Room", cockpit_to_original_pb().create_rule(world))
     connect(multiworld, player, "Chozodia Cockpit -> Mecha Ridley", "Chozodia Mothership Cockpit", "Chozodia Mecha Ridley Hallway", cockpit_to_mecha_ridley().create_rule(world))

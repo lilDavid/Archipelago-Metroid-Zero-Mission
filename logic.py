@@ -157,7 +157,6 @@ CanHorizontalIBJ = all(
     Requirement.setting_atleast("ibj_in_logic", 2)
 )
 CanWallJump = Requirement.setting_atleast("walljumps_in_logic", 1)
-#CanAdvancedWallJump = Requirement.setting_atleast("walljumps_in_logic", 2) #TODO
 CanTrickySparks = all(
     Requirement.setting_enabled("tricky_shinesparks"),
     SpeedBooster,
@@ -356,7 +355,6 @@ def norfair_upper_right_shaft():
     )
 
 
-# used for one item and the ridley shortcut
 def norfair_behind_ice_beam():
     return all(
         any(
@@ -572,9 +570,6 @@ def bottom_norfair_to_screw():
     )
 
 
-# LN elevator to the bottom long hall
-# connects to right shaft with no extra req's
-# this happens to cover the reqs for left pillar, fake floor, long room, and the ability to get to right shaft
 def ridley_main_to_left_shaft():
     return all(
         SuperMissiles,
@@ -631,6 +626,7 @@ def ridley_left_shaft_to_sw_puzzle():
     )
 
 
+# The alcove to the right of the right shaft
 def ridley_speed_puzzles_access():
     return all(
         SpeedBooster,
@@ -722,7 +718,8 @@ def chozo_ruins_to_chozodia_tube():
         CanFly
     )
 
-# Relevant for region/elevator rando
+
+# Specifically getting to the room with Crateria Upper Door location. Might need another empty region for region rando
 def chozodia_tube_to_chozo_ruins():
     return all(
         any(
@@ -819,7 +816,32 @@ def mothership_central_to_cockpit():
     )
 
 
-# From cockpit to Mecha Ridley hallway
+def cockpit_to_original_pb():
+    return all(
+        any(
+            CanWallJump,
+            HiJump,
+            PowerGrip,
+            SpaceJump
+        ),  # cannot IBJ to escape to cockpit
+        any(
+            CanIBJ,
+            all(
+                PowerGrip,
+                any(
+                    CanFlyWall,
+                    HiJump
+                )
+            ),
+            all(
+                AdvancedLogic,
+                IceBeam,
+                CanBallJump
+            )
+        )
+    )
+
+
 # This one stupid room is so randomly complicated lol
 def cockpit_to_mecha_ridley():
     return all(

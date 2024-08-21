@@ -16,7 +16,6 @@ class LocationData:
 
 # Location numbers/order and some names from Biospark's MZM Randomizer.
 # Events in any region must be at the end of its table for the client to work correctly
-# TODO: Double check that these are all correctly assigned to their right regions
 
 brinstar_location_table = {
     "Brinstar Morph Ball": LocationData("Brinstar Start", AP_MZM_ID_BASE + 0),
@@ -131,8 +130,8 @@ chozodia_location_table = {
     "Chozodia Triple Crawling Pirates": LocationData("Chozodia Ruins", AP_MZM_ID_BASE + 88),  #TODO renamed
     "Chozodia Left of Glass Tube": LocationData("Chozodia Under Tube", AP_MZM_ID_BASE + 89),  #TODO renamed
     "Chozodia Lava Dive": LocationData("Chozodia Ruins Test Area", AP_MZM_ID_BASE + 90),  #TODO Renamed
-    "Chozodia Original Power Bomb": LocationData("Chozodia Mothership Cockpit", AP_MZM_ID_BASE + 91),
-    "Chozodia Next to Original Power Bomb": LocationData("Chozodia Mothership Cockpit", AP_MZM_ID_BASE + 92),
+    "Chozodia Original Power Bomb": LocationData("Chozodia Original Power Bomb Room", AP_MZM_ID_BASE + 91),
+    "Chozodia Next to Original Power Bomb": LocationData("Chozodia Original Power Bomb Room", AP_MZM_ID_BASE + 92),
     "Chozodia Right of Glass Tube": LocationData("Chozodia Under Tube", AP_MZM_ID_BASE + 93),  #TODO Renamed
     "Chozodia Chozo Ghost Area Long Shinespark": LocationData("Chozodia Ruins Test Area", AP_MZM_ID_BASE + 94),
     "Chozodia Pirate Pitfall Trap": LocationData("Chozodia Mothership Central", AP_MZM_ID_BASE + 95),  #TODO renamed

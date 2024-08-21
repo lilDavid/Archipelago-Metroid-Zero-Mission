@@ -465,7 +465,6 @@ ridley_right_shaft = {
         )
     }
 
-# obviously, requires speed booster
 ridley_right_speed_puzzles = {
         "Ridley Bomb Puzzle": all(
             Bomb,
@@ -757,17 +756,11 @@ chozodia_mothership = {
         "Chozodia Southeast Corner In Hull": PowerBombs
     }
 
-chozodia_cockpit = {
-        "Chozodia Original Power Bomb": any(
-            CanWallJump,
-            HiJump,
-            PowerGrip,
-            SpaceJump
-        ),  # cannot IBJ to escape
+chozodia_pb_area = {
+        "Chozodia Original Power Bomb": None,
         "Chozodia Next to Original Power Bomb": all(
             PowerBombs,
-            CanFly,
-            CanReachLocation("Chozodia Original Power Bomb")
+            CanFly
         )
     }
 
@@ -823,7 +816,7 @@ access_rules = {
         **chozodia_ruins_test,
         **chozodia_under_tube,
         **chozodia_mothership,
-        **chozodia_cockpit,
+        **chozodia_pb_area,
         **chozodia_mecha_ridley_hall
     }
 
