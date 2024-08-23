@@ -842,7 +842,6 @@ def cockpit_to_original_pb():
     )
 
 
-# This one stupid room is so randomly complicated lol
 def cockpit_to_mecha_ridley():
     return all(
         CanBombTunnelBlock,
