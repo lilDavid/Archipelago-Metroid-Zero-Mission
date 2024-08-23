@@ -211,6 +211,7 @@ class MZMClient(BizHawkClient):
     def __init__(self) -> None:
         super().__init__()
         self.remote_items_acquired = None
+        self.received_items = ItemCollection([], [], [])
         self.local_checked_locations = set()
         self.local_set_events = {flag: False for flag in TRACKER_EVENT_FLAGS}
         self.local_area = 0
