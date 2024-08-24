@@ -449,7 +449,7 @@ class MZMClient(BizHawkClient):
                     )
                 try:
                     if item.id == ItemID.EnergyTank:
-                        read_result = await read_amounts(size)
+                        read_result = await read_amounts(16)
                         if read_result is None:
                             continue
                         capacity, current = map(get_int, read_result)
