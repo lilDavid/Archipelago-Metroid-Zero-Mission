@@ -427,7 +427,7 @@ item_clipdata_and_gfx: Mapping[Area, Mapping[int, Sequence[Tuple[Optional[int], 
         0: [(None, 0x1AC)],
         5: [(0xD5, 0x1AC)],
         7: [(0x1C8, None)],
-        9: [(0x3D, 0x92), ((0x1CA, 0x3B4))],
+        9: [(0x3D, 0x92), (0x1CA, 0x3B4)],
         14: [(0x46, 0xC0)],
     },
     Area.CHOZODIA: {

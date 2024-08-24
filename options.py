@@ -180,6 +180,17 @@ class JunkFillWeights(OptionDict):
     }
 
 
+class RemoteItems(DefaultOnToggle):
+    """
+    Indicates you get items sent from your own world, allowing co-op play of a world.
+    When enabled, you will not lose the items you've collected from your own world if you reset or game-over.
+
+    Regardless of this setting, you can still play a single-player game without connecting to a server.
+    However, you will not benefit from your items being returned to you when you reload a save.
+    """
+    display_name = "Remote Items"
+
+
 mzm_option_groups = [
     OptionGroup("World", [
         ChozodiaAccess,
@@ -209,6 +220,7 @@ mzm_option_groups = [
 @dataclass
 class MZMOptions(PerGameCommonOptions):
     goal: Goal
+    remote_items: RemoteItems
     death_link: DeathLink
     chozodia_access: ChozodiaAccess
     skip_chozodia_stealth: SkipChozodiaStealth
