@@ -146,7 +146,7 @@ def add_item_sprites(rom: bytes, item_gfx_addresses: Sequence[Tuple[int, int]]) 
 
 def use_unknown_item_sprites(rom: bytes,
                              gfx_ptr_address: int,
-                             item_gfx_addresses: Sequence[Tuple[int, int]]) -> bytes:
+                             item_gfx_addresses: Sequence[Tuple[int, int, int]]) -> bytes:
     def write_palette_pointer(rombuffer: bytearray, palette_ptr: int, index: int):
         write_data(rombuffer,
                    palette_ptr.to_bytes(4, "little"),
