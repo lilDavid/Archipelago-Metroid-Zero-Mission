@@ -212,6 +212,18 @@ ChozodiaCombat = all(
     EnergyTanks(4)
 )
 
+# Goal
+ReachedGoal = any(
+    all(
+        Requirement.setting_is("goal", 0)
+    ),
+    all(
+        Requirement.setting_is("goal", 1),
+        MotherBrainBoss,
+        ChozoGhostBoss
+    ),
+)
+
 
 # Regional connection requirements
 

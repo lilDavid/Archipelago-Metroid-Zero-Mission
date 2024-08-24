@@ -5,17 +5,17 @@ from __future__ import annotations
 
 from pathlib import Path
 import struct
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence, Tuple
 
 from BaseClasses import ItemClassification, Location
 import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes
 
 from . import rom_data
-from .data import encode_str, get_rom_address, get_width_of_encoded_string
+from .data import encode_str, get_rom_address, get_symbol, get_width_of_encoded_string
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
-from .options import ChozodiaAccess, DisplayNonLocalItems
+from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -28,20 +28,27 @@ class MZMPatchExtensions(APPatchExtension):
     game = "Metroid Zero Mission"
 
     @staticmethod
-    def add_decompressed_graphics(caller: APProcedurePatch, rom: bytes) -> bytes:
-        return rom_data.add_item_sprites(rom)
+    def add_decompressed_graphics(caller: APProcedurePatch,
+                                  rom: bytes,
+                                  item_gfx_addresses: Sequence[Tuple[int, int]]) -> bytes:
+        return rom_data.add_item_sprites(rom, item_gfx_addresses)
 
     @staticmethod
-    def add_unknown_item_graphics(caller: APProcedurePatch, rom: bytes) -> bytes:
-        return rom_data.use_unknown_item_sprites(rom)
+    def add_unknown_item_graphics(caller: APProcedurePatch,
+                                  rom: bytes,
+                                  item_gfx_addresses: Sequence[Tuple[int, int]]) -> bytes:
+        return rom_data.use_unknown_item_sprites(rom, item_gfx_addresses)
 
     @staticmethod
-    def apply_background_patches(caller: APProcedurePatch, rom: bytes) -> bytes:
-        return rom_data.apply_always_background_patches(rom)
+    def apply_background_patches(caller: APProcedurePatch, rom: bytes, room_entry_table_addr: int) -> bytes:
+        return rom_data.apply_always_background_patches(rom, room_entry_table_addr)
 
     @staticmethod
-    def apply_layout_patches(caller: APProcedurePatch, rom: bytes) -> bytes:
-        return rom_data.apply_layout_patches(rom)
+    def apply_layout_patches(caller: APProcedurePatch,
+                             rom: bytes,
+                             room_entry_table_addr: int,
+                             patches: Sequence[str]) -> bytes:
+        return rom_data.apply_layout_patches(rom, room_entry_table_addr, set(patches))
 
 
 class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
@@ -55,14 +62,44 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
         self.procedure = [
             ("apply_bsdiff4", ["basepatch.bsdiff"]),
             ("apply_tokens", ["token_data.bin"]),
-            ("add_decompressed_graphics", []),
-            ("apply_background_patches", []),
+            ("add_decompressed_graphics", [self.get_item_gfx_addresses()]),
+            ("apply_background_patches", [get_rom_address("sAreaRoomEntryPointers")]),
         ]
 
     @classmethod
     def get_source_data(cls) -> bytes:
         with open(get_base_rom_path(), "rb") as stream:
             return stream.read()
+
+    def add_vanilla_unknown_item_sprites(self):
+        self.procedure.append(("add_unknown_item_graphics", [get_rom_address("sItemGfxPointers"), self.get_unknown_item_gfx_addresses()]))
+
+    def add_layout_patches(self):
+        self.procedure.append(("apply_layout_patches", [get_rom_address("sAreaRoomEntryPointers"), list(rom_data.expansion_required_patches)]))
+
+    @staticmethod
+    def get_item_gfx_addresses() -> Sequence[Tuple[int, int]]:
+        return [
+            (get_rom_address("sChozoStatueLongBeamGfx"), get_rom_address("sRandoLongBeamGfx")),
+            (get_rom_address("sChargeBeamGfx"), get_rom_address("sRandoChargeBeamGfx")),
+            (get_rom_address("sChozoStatueIceBeamGfx"), get_rom_address("sRandoIceBeamGfx")),
+            (get_rom_address("sChozoStatueWaveBeamGfx"), get_rom_address("sRandoWaveBeamGfx")),
+            (get_rom_address("sChozoStatueBombsGfx"), get_rom_address("sRandoBombGfx")),
+            (get_rom_address("sChozoStatueVariaGfx"), get_rom_address("sRandoVariaSuitGfx")),
+            (get_rom_address("sMorphBallGfx"), get_rom_address("sRandoMorphBallGfx")),
+            (get_rom_address("sChozoStatueSpeedboosterGfx"), get_rom_address("sRandoSpeedBoosterGfx")),
+            (get_rom_address("sChozoStatueHighJumpGfx"), get_rom_address("sRandoHiJumpGfx")),
+            (get_rom_address("sChozoStatueScrewAttackGfx"), get_rom_address("sRandoScrewAttackGfx")),
+            (get_rom_address("sPowerGripGfx"), get_rom_address("sRandoPowerGripGfx")),
+        ]
+
+    @staticmethod
+    def get_unknown_item_gfx_addresses() -> Sequence[Tuple[int, int, int]]:
+        return [
+            (get_rom_address("sChozoStatuePlasmaBeamGfx"), get_rom_address("sRandoPlasmaBeamGfx"), get_symbol("sChozoStatuePlasmaBeamPal")),
+            (get_rom_address("sChozoStatueGravitySuitGfx"), get_rom_address("sRandoGravitySuitGfx"), get_symbol("sChozoStatueGravitySuitPal")),
+            (get_rom_address("sChozoStatueSpaceJumpGfx"), get_rom_address("sRandoSpaceJumpGfx"), get_symbol("sChozoStatueSpaceJumpPal")),
+        ]
 
 
 def get_base_rom_path(file_name: str = "") -> Path:
@@ -110,16 +147,32 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         multiworld.player_name[player].encode("utf-8")[:64],
         multiworld.seed_name.encode("utf-8")[:64],
 
+        world.options.goal.value,
         world.options.unknown_items_always_usable.value,
-        world.options.skip_chozodia_stealth.value,
-        True,  # Make Power Bombs usable without Bomb
         True,  # Remove Gravity Suit heat resistance
+        True,  # Make Power Bombs usable without Bomb
+        world.options.skip_chozodia_stealth.value,
+        world.options.start_with_maps.value,
+        world.options.fast_item_banners.value,
     )
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2xBBBB", *seed_info)
+        struct.pack("<H64s64s2x7B", *seed_info)
     )
+
+    # Set goal
+    if world.options.goal.value != Goal.option_mecha_ridley:
+        patch.write_token(
+            APTokenTypes.WRITE,
+            get_rom_address("sHatchLockEventsChozodia", 8 * 15 + 1),  # sHatchLockEventsChozodia[15].event
+            (0x27).to_bytes(1, 'little'),  # EVENT_MOTHER_BRAIN_KILLED
+        )
+        patch.write_token(
+            APTokenTypes.WRITE,
+            get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * 6),  # sNumberOfHatchLockEventsPerArea[AREA_CHOZODIA]
+            (16).to_bytes(2, 'little')
+        )
 
     # Place items
     next_name_address = get_rom_address("sRandoItemAndPlayerNames")

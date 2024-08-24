@@ -779,7 +779,8 @@ chozodia_mecha_ridley_hall = {
                     )
                 )
             ),
-            CanEnterHighMorphTunnel  # To escape
+            CanEnterHighMorphTunnel,  # To escape
+            ReachedGoal
         ),
         "Chozodia Space Pirate's Ship": MechaRidleyBoss
 }

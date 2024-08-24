@@ -66,6 +66,14 @@ class ItemID(IntEnum):
     APItemFiller = 19
     APItemProgression = 20
     APItemUseful = 21
+    SpazerBeam = 22
+    GrappleBeam = 23
+    SpringBall = 24
+    XRayScope = 25
+    ReserveTank = 26
+    WallJump = 27
+    PowerBeam = 28
+    SpiderBall = 29
 
 
 tank_data_table = {
@@ -100,4 +108,17 @@ item_data_table: Dict[str, ItemData] = {
     **tank_data_table,
     **major_item_data_table,
     **extra_item_data_table,
+}
+
+mzm_item_name_groups = {
+    "Beams": {name for name, data in major_item_data_table.items() if data.type == ItemType.beam and data.id != ItemID.Bomb},
+    "Upgrades": {
+        "Bomb",
+        *(name for name, data in major_item_data_table.items() if data.type == ItemType.major)
+    },
+    "Major Items": set(major_item_data_table.keys()),
+    "Missiles": {
+        "Missile Tank",
+        "Super Missile Tank",
+    },
 }

@@ -17,15 +17,15 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         "Hi-Jump Boots": ItemID.HiJump,
         "Speed Booster": ItemID.SpeedBooster,
         "Wave Beam": ItemID.WaveBeam,
-        # "Spazer Beam":
-        # "Spring Ball":
+        "Spazer Beam": ItemID.SpazerBeam,
+        "Spring Ball": ItemID.SpringBall,
         "Varia Suit": ItemID.VariaSuit,
         "Plasma Beam": ItemID.PlasmaBeam,
-        # "Grappling Beam":
+        "Grappling Beam": ItemID.GrappleBeam,
         "Morph Ball": ItemID.MorphBall,
-        # "Reserve Tank":
+        "Reserve Tank": ItemID.ReserveTank,
         "Gravity Suit": ItemID.GravitySuit,
-        # "X-Ray Scope":
+        "X-Ray Scope": ItemID.XRayScope,
         "Space Jump": ItemID.SpaceJump,
         "Screw Attack": ItemID.ScrewAttack,
     },
@@ -33,20 +33,20 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         "Missile": ItemID.MissileTank,
         "Super": ItemID.SuperMissileTank,
         "PowerBomb": ItemID.PowerBombTank,
-        # "Grapple":
-        # "XRay":
+        "Grapple": ItemID.GrappleBeam,
+        "XRay": ItemID.XRayScope,
         "ETank": ItemID.EnergyTank,
-        # "ReserveTank":
+        "ReserveTank": ItemID.ReserveTank,
         "Charge": ItemID.ChargeBeam,
         "Ice": ItemID.IceBeam,
         "Wave": ItemID.WaveBeam,
-        # "Spazer":
+        "Spazer": ItemID.SpazerBeam,
         "Plasma": ItemID.PlasmaBeam,
         "Varia": ItemID.VariaSuit,
         "Gravity": ItemID.GravitySuit,
         "Morph": ItemID.MorphBall,
         "Bombs": ItemID.Bomb,
-        # "SpringBall":
+        "SpringBall": ItemID.SpringBall,
         "ScrewAttack": ItemID.ScrewAttack,
         "HiJump": ItemID.HiJump,
         "SpaceJump": ItemID.SpaceJump,
@@ -69,7 +69,7 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         # "CardLowerNorfairBoss":
     },
     "Metroid Prime": {
-        # "Power Beam":
+        "Power Beam": ItemID.PowerBeam,
         "Ice Beam": ItemID.IceBeam,
         "Wave Beam": ItemID.WaveBeam,
         "Plasma Beam": ItemID.PlasmaBeam,
@@ -81,15 +81,13 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         # "Thermal Visor":
         "Charge Beam": ItemID.ChargeBeam,
         # "Super Missile":
-        # "Grapple Beam":
+        "Grapple Beam": ItemID.GrappleBeam,
         # "X-Ray Visor":
         # "Ice Spreader":
-        "Space Jump Boots": ItemID.HiJump,
+        "Space Jump Boots": ItemID.SpaceJump,
         "Morph Ball": ItemID.MorphBall,
-        # "Combat Visor":
         # "Boost Ball":
-        # "Spider Ball":
-        # "Power Suit":
+        "Spider Ball": ItemID.SpiderBall,
         "Gravity Suit": ItemID.GravitySuit,
         "Varia Suit": ItemID.VariaSuit,
         # "Phazon Suit":
@@ -97,6 +95,34 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         # "Wavebuster":
         # "Missile Launcher":
         # "Power Bomb (Main)":
+        "Progressive Power Beam": ItemID.PowerBeam,
+        "Progressive Ice Beam": ItemID.IceBeam,
+        "Progressive Wave Beam": ItemID.WaveBeam,
+        "Progressive Plasma Beam": ItemID.PlasmaBeam,
+    },
+    "Super Metroid Map Rando": {
+        "ETank": ItemID.EnergyTank,
+        "Missile": ItemID.MissileTank,
+        "Super": ItemID.SuperMissileTank,
+        "PowerBomb": ItemID.PowerBombTank,
+        "Bombs": ItemID.Bomb,
+        "Charge": ItemID.ChargeBeam,
+        "Ice": ItemID.IceBeam,
+        "HiJump": ItemID.HiJump,
+        "SpeedBooster": ItemID.SpeedBooster,
+        "Wave": ItemID.WaveBeam,
+        "Spazer": ItemID.SpazerBeam,
+        "SpringBall": ItemID.SpringBall,
+        "Varia": ItemID.VariaSuit,
+        "Gravity": ItemID.GravitySuit,
+        "XRayScope": ItemID.XRayScope,
+        "Plasma": ItemID.PlasmaBeam,
+        "Grapple": ItemID.GrappleBeam,
+        "SpaceJump": ItemID.SpaceJump,
+        "ScrewAttack": ItemID.ScrewAttack,
+        "Morph": ItemID.MorphBall,
+        "ReserveTank": ItemID.ReserveTank,
+        "WallJump": ItemID.WallJump,
     },
 }
 

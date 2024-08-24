@@ -1,7 +1,7 @@
 import typing
 from pathlib import Path
 from collections import Counter
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 from BaseClasses import ItemClassification, Tutorial
 import settings
@@ -9,8 +9,8 @@ from worlds.AutoWorld import WebWorld, World
 
 from .client import MZMClient
 from .data import data_path
-from .items import item_data_table, major_item_data_table, MZMItem
-from .locations import full_location_table
+from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
+from .locations import full_location_table, mzm_location_name_groups
 from .options import MZMOptions, MorphBallPlacement, mzm_option_groups
 from .regions import create_regions_and_connections
 from .rom import MZMProcedurePatch, write_tokens
@@ -58,7 +58,7 @@ class MZMWorld(World):
     options_dataclass = MZMOptions
     options: MZMOptions
     topology_present = True
-    settings: MZMSettings
+    settings: ClassVar[MZMSettings]
 
     web = MZMWeb()
 
@@ -66,6 +66,9 @@ class MZMWorld(World):
 
     item_name_to_id = {name: data.code for name, data in item_data_table.items()}
     location_name_to_id = {name: data.code for name, data in full_location_table.items()}
+
+    item_name_groups = mzm_item_name_groups
+    location_name_groups = mzm_location_name_groups
 
     junk_fill: List[str]
 
@@ -115,15 +118,16 @@ class MZMWorld(World):
         patch.write_file("basepatch.bsdiff", data_path("basepatch.bsdiff"))
         write_tokens(self, patch)
         if not self.options.unknown_items_always_usable:
-            patch.procedure.append(("add_unknown_item_graphics", []))
+            patch.add_vanilla_unknown_item_sprites()
         if self.options.layout_patches:
-            patch.procedure.append(("apply_layout_patches", []))
+            patch.add_layout_patches()
 
         output_filename = self.multiworld.get_out_file_name_base(self.player)
         patch.write(output_path / f"{output_filename}{patch.patch_file_ending}")
 
     def fill_slot_data(self) -> Dict[str, Any]:
         return {
+            "goal": self.options.goal.value,
             "unknown_items": self.options.unknown_items_always_usable.value,
             "layout_patches": self.options.layout_patches.value,
             "logic_difficulty": self.options.logic_difficulty.value,
@@ -143,7 +147,7 @@ class MZMWorld(World):
                        self.item_name_to_id[name],
                        self.player)
 
-    def create_tanks(self, item_name: str, count: int, progression_count: int = None):
+    def create_tanks(self, item_name: str, count: int, progression_count: Optional[int] = None):
         if progression_count is None:
             progression_count = count
         for _ in range(progression_count):

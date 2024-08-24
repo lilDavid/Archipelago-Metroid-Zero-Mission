@@ -11,6 +11,18 @@ from Options import (
 )
 
 
+class Goal(Choice):
+    """
+    What you will be required to do to beat the game.
+    Mecha Ridley: Mecha Ridley is always open and can be reached as long as you have the right items.
+    Bosses: The door to Mecha Ridley is locked until Kraid, Ridley, Mother Brain, and the Chozo Ghost are defeated.
+    """
+    display_name = "Goal"
+    option_mecha_ridley = 0
+    option_bosses = 1
+    default = option_bosses
+
+
 class ChozodiaAccess(Choice):
     """
     Open: You can access Chozodia at any time by using a Power Bomb to open the doors.
@@ -37,6 +49,11 @@ class UnknownItemsAlwaysUsable(DefaultOnToggle):
 class SkipChozodiaStealth(DefaultOnToggle):
     """After escaping Tourian, place Samus in the save room just outside of the Chozo Ghost's room in Chozodia."""
     display_name = "Skip Chozodia Stealth"
+
+
+class StartWithMaps(DefaultOnToggle):
+    """Start the game with all map stations visited."""
+    display_name = "Start with Maps"
 
 
 class LogicDifficulty(Choice):
@@ -122,6 +139,14 @@ class MorphBallPlacement(Choice):
     default = option_early
 
 
+class FastItemBanners(DefaultOnToggle):
+    """
+    Makes the banner that appears when you collect an item much quicker, and makes it play a sound
+    related to the item when it appears.
+    """
+    display_name = "Fast Item Banners"
+
+
 class DisplayNonLocalItems(Choice):
     """
     How to display items that will be sent to other players.
@@ -162,6 +187,7 @@ mzm_option_groups = [
         UnknownItemsAlwaysUsable,
         LayoutPatches,
         MorphBallPlacement,  # TODO: Shuffle settings group?
+        StartWithMaps,
     ]),
     OptionGroup("Logic", [
         LogicDifficulty,
@@ -171,6 +197,7 @@ mzm_option_groups = [
         TrickyShinesparks
     ]),
     OptionGroup("Cosmetic", [
+        FastItemBanners,
         DisplayNonLocalItems,
     ]),
     OptionGroup("Item & Location Options", [
@@ -181,17 +208,20 @@ mzm_option_groups = [
 
 @dataclass
 class MZMOptions(PerGameCommonOptions):
+    goal: Goal
     death_link: DeathLink
     chozodia_access: ChozodiaAccess
     skip_chozodia_stealth: SkipChozodiaStealth
     unknown_items_always_usable: UnknownItemsAlwaysUsable
     layout_patches: LayoutPatches
     morph_ball: MorphBallPlacement
+    start_with_maps: StartWithMaps
     logic_difficulty: LogicDifficulty
     ibj_in_logic: IBJInLogic
     heatruns_lavadives: HeatRunsAndLavaDives
     walljumps_in_logic: WalljumpsInLogic
     tricky_shinesparks: TrickyShinesparks
+    fast_item_banners: FastItemBanners
     display_nonlocal_items: DisplayNonLocalItems
     start_inventory_from_pool: StartInventoryPool
     junk_fill_weights: JunkFillWeights
