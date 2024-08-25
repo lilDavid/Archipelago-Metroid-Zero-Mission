@@ -408,7 +408,6 @@ class MZMClient(BizHawkClient):
             # Ensure game state hasn't changed
             guard16(ZMConstants.gMainGameMode, gMainGameMode),
             guard16(ZMConstants.gGameModeSub1, gGameModeSub1),
-            guard8(ZMConstants.gPreventMovementTimer, 0)
         ]
         acquired_items = Counter(item_data_table[client_ctx.item_names.lookup_in_game(item.item)] for item in items)
         try:
