@@ -36,8 +36,9 @@ class MZMPatchExtensions(APPatchExtension):
     @staticmethod
     def add_unknown_item_graphics(caller: APProcedurePatch,
                                   rom: bytes,
+                                  gfx_ptr_address: int,
                                   item_gfx_addresses: Sequence[Tuple[int, int, int]]) -> bytes:
-        return rom_data.use_unknown_item_sprites(rom, item_gfx_addresses)
+        return rom_data.use_unknown_item_sprites(rom, gfx_ptr_address, item_gfx_addresses)
 
     @staticmethod
     def apply_background_patches(caller: APProcedurePatch, rom: bytes, room_entry_table_addr: int) -> bytes:
@@ -72,7 +73,7 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
             return stream.read()
 
     def add_vanilla_unknown_item_sprites(self):
-        self.procedure.append(("add_unknown_item_graphics", [self.get_unknown_item_gfx_addresses()]))
+        self.procedure.append(("add_unknown_item_graphics", [get_rom_address("sItemGfxPointers"), self.get_unknown_item_gfx_addresses()]))
 
     def add_layout_patches(self):
         self.procedure.append(("apply_layout_patches", [get_rom_address("sAreaRoomEntryPointers"), list(rom_data.expansion_required_patches)]))
