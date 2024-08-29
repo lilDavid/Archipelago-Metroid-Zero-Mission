@@ -482,7 +482,9 @@ class MZMClient(BizHawkClient):
                 bizhawk_ctx,
                 [write(ZMConstants.gEquipment + 12, bytes((beams, beam_activation, majors, major_activation))),
                  write8(ZMConstants.gEquipment + 18, new_suit)],
-                guard_list + [guard(ZMConstants.gEquipment + 18, current_suit)])
+                guard_list + [
+                    guard8(ZMConstants.gEquipment + 18, current_suit),
+                    guard8(ZMConstants.gPreventMovementTimer, 0)])
             await bizhawk.guarded_write(
                 bizhawk_ctx,
                 [write16(ZMConstants.gMultiworldItemCount, len(self.remote_items_acquired))],
