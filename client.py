@@ -585,7 +585,7 @@ class MZMClient(BizHawkClient):
         if self.death_link.enabled and self.death_link.pending:
             self.death_link.sent_this_death = True
             try:
-                await bizhawk.guarded_write(bizhawk_ctx, [write8(ZMConstants.gEquipment + 6, 0)], guard_list)
+                await bizhawk.guarded_write(bizhawk_ctx, [write16(ZMConstants.gEquipment + 6, 0)], guard_list)
             except bizhawk.RequestFailedError:
                 return
 
