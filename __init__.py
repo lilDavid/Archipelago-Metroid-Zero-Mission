@@ -137,6 +137,7 @@ class MZMWorld(World):
             "tricky_shinesparks": self.options.tricky_shinesparks.value,
             "death_link": self.options.death_link.value,
             "remote_items": self.options.remote_items.value,
+            "chozodia_access": self.options.chozodia_access.value,
         }
 
     def get_filler_item_name(self) -> str:
