@@ -420,7 +420,8 @@ class MZMClient(BizHawkClient):
             return
         if not read_result:
             return
-        beams, beam_activation, majors, major_activation = read_result[0]
+        current_majors = read_result[0]
+        beams, beam_activation, majors, major_activation = current_majors
         beam_deactivation = beams ^ beam_activation
         major_deactivation = majors ^ major_activation
         beams = majors = 0
@@ -483,8 +484,8 @@ class MZMClient(BizHawkClient):
                 [write(ZMConstants.gEquipment + 12, bytes((beams, beam_activation, majors, major_activation))),
                  write8(ZMConstants.gEquipment + 18, new_suit)],
                 guard_list + [
-                    guard8(ZMConstants.gEquipment + 18, current_suit),
-                    guard8(ZMConstants.gPreventMovementTimer, 0)])
+                    guard(ZMConstants.gEquipment + 12, current_majors),
+                    guard8(ZMConstants.gEquipment + 18, current_suit)])
             await bizhawk.guarded_write(
                 bizhawk_ctx,
                 [write16(ZMConstants.gMultiworldItemCount, len(self.remote_items_acquired))],
