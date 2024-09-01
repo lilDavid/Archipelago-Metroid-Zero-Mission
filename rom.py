@@ -5,14 +5,14 @@ from __future__ import annotations
 
 from pathlib import Path
 import struct
-from typing import TYPE_CHECKING, Sequence, Tuple
+from typing import TYPE_CHECKING, Sequence
 
 from BaseClasses import ItemClassification, Location
 import Utils
-from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes
+from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
 
 from . import rom_data
-from .data import encode_str, get_rom_address, get_symbol, get_width_of_encoded_string
+from .data import encode_str, get_rom_address, get_width_of_encoded_string, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
@@ -26,6 +26,13 @@ MD5_MZMUS = "ebbce58109988b6da61ebb06c7a432d5"
 
 class MZMPatchExtensions(APPatchExtension):
     game = "Metroid Zero Mission"
+
+    @staticmethod
+    def check_symbol_hash(caller: APProcedurePatch, rom: bytes, hash: str):
+        if hash != symbols_hash:
+            raise InvalidDataError("Memory addresses don't match. This patch was generated with a "
+                                   "different version of the apworld.")
+        return rom
 
     @staticmethod
     def add_decompressed_graphics(caller: APProcedurePatch, rom: bytes):
@@ -53,6 +60,7 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     def __init__(self, *args, **kwargs):
         super(MZMProcedurePatch, self).__init__(*args, **kwargs)
         self.procedure = [
+            ("check_symbol_hash", [symbols_hash]),
             ("apply_bsdiff4", ["basepatch.bsdiff"]),
             ("apply_tokens", ["token_data.bin"]),
             ("add_decompressed_graphics", []),

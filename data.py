@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from io import StringIO
 import itertools
 import json
@@ -89,15 +90,20 @@ character_widths = [
     6, 6, 5, 6, 5, 6, 6, 6, 6, 6, 6, 8, 8, 8, 8, 8
 ]
 
+symbols_hash = None
 ram_symbols = None
 rom_symbols = None
 
 
 def _get_symbols():
-    global ram_symbols, rom_symbols
+    global ram_symbols, rom_symbols, symbols_hash
 
-    symbol_data = data_path("extracted_symbols.json").decode("utf-8")
-    symbols = json.loads(symbol_data)
+    symbol_data = data_path("extracted_symbols.json")
+    hasher = hashlib.md5()
+    hasher.update(symbol_data)
+    symbols_hash = hasher.hexdigest()
+
+    symbols = json.loads(symbol_data.decode("utf-8"))
     ram_symbols = symbols["ewram"] | symbols["iwram"]
     rom_symbols = symbols["rom"]
 
