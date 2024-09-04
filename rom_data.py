@@ -281,6 +281,7 @@ class Clipdata(IntEnum):
     BEAM_BLOCK_REFORM = 0x62
     LARGE_BEAM_BLOCK_SW_NO_REFORM = 0x63
     LARGE_BEAM_BLOCK_SE_NO_REFORM = 0x64
+    PITFALL_BLOCK_SLOW = 0x66
     BOMB_BLOCK_REFORM = 0x67
     SPEED_BOOSTER_BLOCK_REFORM = 0x6A
     SCREW_ATTACK_BLOCK_NO_REFORM = 0x6B
@@ -495,6 +496,7 @@ expansion_required_patches = {
     "brinstar_top",
     "norfair_brinstar_elevator",
     "crateria_water_speedway",
+    "crateria_left_of_grip"
 }
 
 
@@ -602,5 +604,37 @@ def apply_layout_patches(rom: bytes, room_entry_table_addr: int, patches: Set[st
     kraid_right_shaft_clipdata.set(0xB, 0x38,
                                          Clipdata.LARGE_BEAM_BLOCK_SE_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     write_data(rombuffer, kraid_right_shaft_clipdata.to_compressed_data(), kraid_right_shaft.clipdata.rom_address())
+
+    # Change Ridley ballcannon room to allow escape from the bottom without needing the ballcannon
+    ridley_ballcannon = get_backgrounds(Area.RIDLEY, 23)
+    ridley_ballcannon_clipdata = BackgroundTilemap.from_info(ridley_ballcannon.clipdata, 186)
+    ridley_ballcannon_bg1 = BackgroundTilemap.from_info(ridley_ballcannon.bg1, 488)
+    for x in range(3, 5):
+        ridley_ballcannon_clipdata.set(x, 0xD, Clipdata.AIR, Clipdata.PITFALL_BLOCK)
+    ridley_ballcannon_bg1.set(3, 0xD, 0x0000, 0x00A6)
+    ridley_ballcannon_bg1.set(4, 0xD, 0x0000, 0x00A7)
+    ridley_ballcannon_clipdata.set(4, 0xF, Clipdata.PITFALL_BLOCK_SLOW, Clipdata.AIR)
+    ridley_ballcannon_bg1.set(4, 0xF, 0x00B9, 0x0000)
+    write_data(rombuffer, ridley_ballcannon_clipdata.to_compressed_data(), ridley_ballcannon.clipdata.rom_address())
+    write_data(rombuffer, ridley_ballcannon_bg1.to_compressed_data(), ridley_ballcannon.bg1.rom_address())
+
+    if "crateria_left_of_grip" in patches:
+        crateria_left_of_grip = get_backgrounds(Area.CRATERIA, 15)
+        crateria_left_of_grip_clipdata = BackgroundTilemap.from_info(crateria_left_of_grip.clipdata, 237)
+        crateria_left_of_grip_bg1 = BackgroundTilemap.from_info(crateria_left_of_grip.bg1, 515)
+        crateria_left_of_grip_clipdata.set(6, 0xD, Clipdata.BEAM_BLOCK_REFORM, Clipdata.SOLID)
+        crateria_left_of_grip_clipdata.set(7, 0xD, Clipdata.BEAM_BLOCK_REFORM, Clipdata.SOLID)
+        crateria_left_of_grip_bg1.set(6, 0xD, 0x0130, 0x00A9)
+        crateria_left_of_grip_bg1.set(7, 0xD, 0x0130, 0x00AA)
+        crateria_left_of_grip_bg1.set(6, 0xE, 0x00A9, 0x00B9)
+        crateria_left_of_grip_bg1.set(7, 0xE, 0x00AA, 0x00BA)
+        crateria_left_of_grip_bg1.set(6, 0xF, 0x00B9, 0x00C9)
+        crateria_left_of_grip_bg1.set(7, 0xF, 0x00BA, 0x00CA)
+        crateria_left_of_grip_bg1.set(6, 0x10, 0x00C9, 0x00D9)
+        crateria_left_of_grip_bg1.set(7, 0x10, 0x00CA, 0x00DA)
+        crateria_left_of_grip_bg1.set(6, 0x11, 0x00D9, 0x00E9)
+        crateria_left_of_grip_bg1.set(7, 0x11, 0x00DA, 0x00EA)
+        write_data(rombuffer, crateria_left_of_grip_clipdata.to_compressed_data(), crateria_left_of_grip.clipdata.rom_address())
+        write_data(rombuffer, crateria_left_of_grip_bg1.to_compressed_data(), crateria_left_of_grip.bg1.rom_address())
 
     return bytes(rombuffer)
