@@ -59,7 +59,8 @@ brinstar_main = {
             all(
                 CanBallspark,
                 CanTrickySparks,
-                AdvancedLogic  # mzmr says this is doable but i might make it require screw + space, it's so hard
+                CanWallJump,
+                AdvancedLogic
             )
         ),
         "Brinstar Speed Booster Shortcut": all(
