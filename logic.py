@@ -426,10 +426,7 @@ def norfair_lower_right_shaft():
         ScrewAttack,
         all(
             SpeedBooster,
-            any(
-                CanBallCannon,
-                CanReachEntrance("Norfair Right Shaft -> Lower Norfair")
-            )
+            CanBallCannon
         )
     )
 

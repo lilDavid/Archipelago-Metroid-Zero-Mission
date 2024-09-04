@@ -59,8 +59,7 @@ brinstar_main = {
             all(
                 CanBallspark,
                 CanTrickySparks,
-                CanWallJump,
-                AdvancedLogic
+                AdvancedLogic  # mzmr says this is doable but i might make it require screw + space, it's so hard
             )
         ),
         "Brinstar Speed Booster Shortcut": all(
@@ -492,7 +491,7 @@ ridley_central = {
             ),
             any(
                 CanBallCannon,
-                LayoutPatches
+                LayoutPatches  # TODO: make this layout patch
             )
         ),
         "Ridley Lower Ball Cannon Puzzle": all(
@@ -598,14 +597,7 @@ crateria_main = {
     }
 
 crateria_upper = {
-        "Crateria Power Grip": any(
-            all(
-                CanVertical,
-                LayoutPatches
-            ),
-            PowerGrip,
-            CanIBJ
-        ),
+        "Crateria Power Grip": CanVertical,
         "Crateria Statue Water": UnknownItem1,
         "Crateria Unknown Item Statue": None,
         "Crateria East Ballspark": all(
