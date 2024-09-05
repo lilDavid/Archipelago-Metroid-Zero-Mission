@@ -12,7 +12,7 @@ from .data import data_path
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, mzm_location_name_groups
 from .options import MZMOptions, MorphBallPlacement, mzm_option_groups
-from .regions import create_regions
+from .regions import create_regions_and_connections
 from .rom import MZMProcedurePatch, write_tokens
 from .rules import set_rules
 
@@ -41,7 +41,7 @@ class MZMWeb(WebWorld):
         "English",
         "multiworld_en.md",
         "multiworld/en",
-        ["lil David, NoiseCrush"]
+        ["N/A"]
     )
 
     tutorials = [setup]
@@ -65,7 +65,7 @@ class MZMWorld(World):
     required_client_version = (0, 5, 0)
 
     item_name_to_id = {name: data.code for name, data in item_data_table.items()}
-    location_name_to_id = full_location_table
+    location_name_to_id = {name: data.code for name, data in full_location_table.items()}
 
     item_name_groups = mzm_item_name_groups
     location_name_groups = mzm_location_name_groups
@@ -82,14 +82,14 @@ class MZMWorld(World):
         self.options.local_items.value.add("Nothing")
 
     def create_regions(self) -> None:
-        create_regions(self)
+        create_regions_and_connections(self)
 
         self.place_event("Kraid Defeated", "Kraid")
         self.place_event("Ridley Defeated", "Ridley")
         self.place_event("Mother Brain Defeated", "Mother Brain")
         self.place_event("Chozo Ghost Defeated", "Chozo Ghost")
         self.place_event("Mecha Ridley Defeated", "Mecha Ridley")
-        self.place_event("Mission Complete", "Chozodia Space Pirate's Ship")
+        self.place_event("Mission Accomplished!", "Chozodia Space Pirate's Ship")
 
     def create_items(self) -> None:
         item_pool: List[MZMItem] = []
@@ -109,7 +109,7 @@ class MZMWorld(World):
     def set_rules(self) -> None:
         set_rules(self, full_location_table)
         self.multiworld.completion_condition[self.player] = lambda state: (
-            state.has("Mission Complete", self.player))
+            state.has("Mission Accomplished!", self.player))
 
     def generate_output(self, output_directory: str):
         output_path = Path(output_directory)
@@ -118,21 +118,26 @@ class MZMWorld(World):
         patch.write_file("basepatch.bsdiff", data_path("basepatch.bsdiff"))
         write_tokens(self, patch)
         if not self.options.unknown_items_always_usable:
-            patch.procedure.append(("add_unknown_item_graphics", []))
+            patch.add_vanilla_unknown_item_sprites()
         if self.options.layout_patches:
-            patch.procedure.append(("apply_layout_patches", []))
+            patch.add_layout_patches()
 
         output_filename = self.multiworld.get_out_file_name_base(self.player)
         patch.write(output_path / f"{output_filename}{patch.patch_file_ending}")
 
     def fill_slot_data(self) -> Dict[str, Any]:
         return {
+            "goal": self.options.goal.value,
             "unknown_items": self.options.unknown_items_always_usable.value,
             "layout_patches": self.options.layout_patches.value,
+            "logic_difficulty": self.options.logic_difficulty.value,
             "ibj_logic": self.options.ibj_in_logic.value,
             "heatruns": self.options.heatruns_lavadives.value,
             "walljump_logic": self.options.walljumps_in_logic.value,
-            "death_link": self.options.death_link.value
+            "tricky_shinesparks": self.options.tricky_shinesparks.value,
+            "death_link": self.options.death_link.value,
+            "remote_items": self.options.remote_items.value,
+            "chozodia_access": self.options.chozodia_access.value,
         }
 
     def get_filler_item_name(self) -> str:
@@ -144,7 +149,7 @@ class MZMWorld(World):
                        self.item_name_to_id[name],
                        self.player)
 
-    def create_tanks(self, item_name: str, count: int, progression_count: int = None):
+    def create_tanks(self, item_name: str, count: int, progression_count: Optional[int] = None):
         if progression_count is None:
             progression_count = count
         for _ in range(progression_count):

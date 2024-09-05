@@ -1,94 +1,122 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-from BaseClasses import Region
-from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
-                        ridley_location_table, tourian_location_table, crateria_location_table,
-                        chozodia_location_table, MZMLocation)
-from . import logic
+from typing import TYPE_CHECKING, Dict, List, Optional
+from BaseClasses import Region, Location, MultiWorld
+from .logic import *
+from .locations import full_location_table
 
 if TYPE_CHECKING:
     from . import MZMWorld
 
 
-# TODO: Split regions up into sub-regions based on shared-access logic rules
+def create_region(world: MultiWorld, player: int, region_name: str):
+    region = Region(region_name, player, world)
 
-def create_regions(world: MZMWorld):
-    # create all regions and populate with locations
-    menu = Region("Menu", world.player, world.multiworld)
-    world.multiworld.regions.append(menu)
+    for location_name, location_data in full_location_table.items():
+        if location_data.region == region_name:
+            location = Location(player, location_name, location_data.code, region)
+            location.game = world.game.get(player)
+            region.locations.append(location)
 
-    brinstar = Region("Brinstar", world.player, world.multiworld)
-    brinstar.add_locations(brinstar_location_table, MZMLocation)
-    world.multiworld.regions.append(brinstar)
+    world.regions.append(region)
 
-    kraid = Region("Kraid", world.player, world.multiworld)
-    kraid.add_locations(kraid_location_table, MZMLocation)
-    world.multiworld.regions.append(kraid)
 
-    norfair = Region("Norfair", world.player, world.multiworld)
-    norfair.add_locations(norfair_location_table, MZMLocation)
-    world.multiworld.regions.append(norfair)
+def connect(world: MultiWorld, player: int, entrance_name: str, source: str, target: str,
+            rule: Optional[Requirement] = None):
 
-    ridley = Region("Ridley", world.player, world.multiworld)
-    ridley.add_locations(ridley_location_table, MZMLocation)
-    world.multiworld.regions.append(ridley)
+    source_region = world.get_region(source, player)
+    target_region = world.get_region(target, player)
+    source_region.connect(target_region, entrance_name, rule)
 
-    tourian = Region("Tourian", world.player, world.multiworld)
-    tourian.add_locations(tourian_location_table, MZMLocation)
-    world.multiworld.regions.append(tourian)
 
-    crateria = Region("Crateria", world.player, world.multiworld)
-    crateria.add_locations(crateria_location_table, MZMLocation)
-    world.multiworld.regions.append(crateria)
+def create_regions_and_connections(world: MZMWorld):
+    player = world.player
+    multiworld = world.multiworld
 
-    chozodia = Region("Chozodia", world.player, world.multiworld)
-    chozodia.add_locations(chozodia_location_table, MZMLocation)
-    world.multiworld.regions.append(chozodia)
+    create_region(multiworld, player, "Menu")
+    create_region(multiworld, player, "Brinstar Start")
+    create_region(multiworld, player, "Brinstar Main")
+    create_region(multiworld, player, "Brinstar Top")
+    create_region(multiworld, player, "Brinstar Past Hives")
+    create_region(multiworld, player, "Kraid Main")
+    create_region(multiworld, player, "Kraid Acid Worm Area")
+    create_region(multiworld, player, "Kraid Left Shaft")
+    create_region(multiworld, player, "Kraid Bottom")
+    create_region(multiworld, player, "Norfair Main")
+    create_region(multiworld, player, "Norfair Right Shaft")
+    create_region(multiworld, player, "Norfair Upper Right Shaft")
+    create_region(multiworld, player, "Norfair Behind Ice Beam")
+    create_region(multiworld, player, "Norfair Lower Right Shaft")
+    create_region(multiworld, player, "Lower Norfair")
+    create_region(multiworld, player, "Norfair Screw Attack Area")
+    create_region(multiworld, player, "Norfair Behind Super Door")
+    create_region(multiworld, player, "Norfair Bottom")
+    create_region(multiworld, player, "Ridley Main")
+    create_region(multiworld, player, "Ridley Left Shaft")
+    create_region(multiworld, player, "Ridley SW Puzzle")
+    create_region(multiworld, player, "Ridley Right Shaft")
+    create_region(multiworld, player, "Ridley Speed Puzzles")
+    create_region(multiworld, player, "Central Ridley")
+    create_region(multiworld, player, "Ridley Room")
+    create_region(multiworld, player, "Tourian")
+    create_region(multiworld, player, "Crateria")
+    create_region(multiworld, player, "Upper Crateria")
+    create_region(multiworld, player, "Chozodia Ruins")
+    create_region(multiworld, player, "Chozodia Ruins Test Area")
+    create_region(multiworld, player, "Chozodia Glass Tube")
+    create_region(multiworld, player, "Chozodia Under Tube")
+    create_region(multiworld, player, "Chozodia Mothership Central")
+    create_region(multiworld, player, "Chozodia Mothership Cockpit")
+    create_region(multiworld, player, "Chozodia Original Power Bomb Room")
+    create_region(multiworld, player, "Chozodia Mecha Ridley Hallway")
+    create_region(multiworld, player, "Mission Accomplished!")
 
-    mission_complete = Region("Mission Complete", world.player, world.multiworld)
-    world.multiworld.regions.append(mission_complete)
-
-    menu.connect(brinstar)
-
-    brinstar.connect(norfair, "Brinstar-Norfair elevator",
-                     lambda state: logic.can_bomb_block(state, world.player))
-
-    brinstar.connect(kraid, "Brinstar-Kraid elevator",
-                     lambda state: logic.can_bomb_block(state, world.player) or state.has("Screw Attack", world.player))
-
-    # this works for now. it's kind of tricky, cause all you need just to get there is PBs and bombs,
-    # but to actually do anything (including get to ship) you need IBJ/speed/sj. it only checks for speed
-    # since the only thing you'd potentially need this entrance for is Landing Site Ballspark
-    brinstar.connect(crateria, "Brinstar-Crateria ball cannon", lambda state: (
-            logic.has_power_bombs(state, world.player)
-            and logic.can_ballcannon(state, world.player)
-            and logic.can_hj_sj_ibj_or_grip(state, world.player)
-            and state.has("Speed Booster", world.player)
-    ))
-
-    brinstar.connect(tourian, "Brinstar-Tourian elevator",
-                     lambda state: state.has_all({"Kraid Defeated", "Ridley Defeated"}, world.player))
-
-    norfair.connect(crateria, "Norfair-Crateria elevator",
-                    lambda state: logic.can_long_beam(state, world.player))
-
-    norfair.connect(ridley, "Norfair-Ridley elevator", lambda state: (
-            ((logic.norfair_to_save_behind_hijump(state, world.player)
-              and logic.has_missile_count(state, world.player, 4)
-              and state.has_all({"Wave Beam", "Speed Booster"}, world.player)
-              )
-             or logic.norfair_shortcut(state, world.player))
-            and (logic.has_missile_count(state, world.player, 6)
-                 or logic.has_power_bombs(state, world.player))
-    ))
-
-    crateria.connect(chozodia, "Crateria-Chozodia Upper Door", lambda state: (
-            logic.has_power_bombs(state, world.player)
-            and (logic.can_ibj(state, world.player)
-                 or logic.can_space_jump(state, world.player)
-                 or (state.has("Speed Booster", world.player) and logic.can_walljump(state, world.player)))
-            and (state.has("Mother Brain Defeated", world.player) or not world.options.chozodia_access.value)))
-
-    crateria.connect(chozodia, "Crateria-Chozodia Lower Door", lambda state: (
-            logic.has_power_bombs(state, world.player)
-            and (state.has("Mother Brain Defeated", world.player) or not world.options.chozodia_access.value)))
+    connect(multiworld, player, "Game Start", "Menu", "Brinstar Start")
+    connect(multiworld, player, "Brinstar Start -> Main Shaft", "Brinstar Start", "Brinstar Main", MorphBall.create_rule(world))
+    connect(multiworld, player, "Brinstar Main -> Brinstar Top", "Brinstar Main", "Brinstar Top", brinstar_main_to_brinstar_top().create_rule(world))
+    connect(multiworld, player, "Brinstar Main -> Past Hives", "Brinstar Main", "Brinstar Past Hives", brinstar_past_hives().create_rule(world))
+    connect(multiworld, player, "Brinstar Past Hives -> Top", "Brinstar Past Hives", "Brinstar Top", brinstar_pasthives_to_brinstar_top().create_rule(world))
+    connect(multiworld, player, "Brinstar Top -> Past Hives", "Brinstar Top", "Brinstar Past Hives", CanEnterMediumMorphTunnel.create_rule(world))
+    connect(multiworld, player, "Brinstar -> Kraid Elevator", "Brinstar Start", "Kraid Main", CanSingleBombBlock.create_rule(world))
+    connect(multiworld, player, "Brinstar -> Norfair Elevator", "Brinstar Main", "Norfair Main", CanBombTunnelBlock.create_rule(world))
+    connect(multiworld, player, "Brinstar -> Tourian Elevator", "Brinstar Main", "Tourian", all(MorphBall, KraidBoss, RidleyBoss).create_rule(world))
+    connect(multiworld, player, "Brinstar -> Crateria Ballcannon", "Brinstar Start", "Upper Crateria", brinstar_crateria_ballcannon().create_rule(world))
+    connect(multiworld, player, "Kraid Main -> Acid Worm Area", "Kraid Main", "Kraid Acid Worm Area", kraid_upper_right().create_rule(world))
+    connect(multiworld, player, "Kraid Main -> Left Shaft", "Kraid Main", "Kraid Left Shaft", kraid_left_shaft_access().create_rule(world))
+    connect(multiworld, player, "Kraid Left Shaft -> Bottom", "Kraid Left Shaft", "Kraid Bottom", kraid_left_shaft_to_bottom().create_rule(world))
+    connect(multiworld, player, "Kraid -> Lower Norfair Shortcut", "Kraid Bottom", "Lower Norfair", kraid_bottom_to_lower_norfair().create_rule(world))
+    connect(multiworld, player, "Norfair -> Crateria Elevator", "Norfair Main", "Crateria", norfair_main_to_crateria().create_rule(world))
+    connect(multiworld, player, "Norfair Elevator -> Right Shaft", "Norfair Main", "Norfair Right Shaft", norfair_right_shaft_access().create_rule(world))
+    connect(multiworld, player, "Norfair Right Shaft -> Upper", "Norfair Right Shaft", "Norfair Upper Right Shaft", norfair_upper_right_shaft().create_rule(world))
+    connect(multiworld, player, "Norfair Upper Right -> Behind Ice Beam", "Norfair Upper Right Shaft", "Norfair Behind Ice Beam", norfair_behind_ice_beam().create_rule(world))
+    connect(multiworld, player, "Norfair Ridley Shortcut", "Norfair Behind Ice Beam", "Norfair Bottom", norfair_behind_ice_to_bottom().create_rule(world))
+    connect(multiworld, player, "Norfair Right Shaft -> Lower Shaft", "Norfair Right Shaft", "Norfair Lower Right Shaft", norfair_lower_right_shaft().create_rule(world))
+    connect(multiworld, player, "Norfair Right Shaft -> Lower Norfair", "Norfair Lower Right Shaft", "Lower Norfair", norfair_lower_right_shaft_to_lower_norfair().create_rule(world))
+    connect(multiworld, player, "Lower Norfair -> Screw Attack", "Lower Norfair", "Norfair Screw Attack Area", lower_norfair_to_screwattack().create_rule(world))
+    connect(multiworld, player, "Lower Norfair -> Behind Super Missile Door", "Lower Norfair", "Norfair Behind Super Door", lower_norfair_to_spaceboost_room().create_rule(world))
+    connect(multiworld, player, "Lower Norfair -> Kraid", "Lower Norfair", "Kraid Bottom", lower_norfair_to_kraid().create_rule(world))
+    connect(multiworld, player, "Lower Norfair -> Bottom", "Lower Norfair", "Norfair Bottom", lower_norfair_to_bottom_norfair().create_rule(world))
+    connect(multiworld, player, "Norfair -> Ridley Elevator", "Norfair Bottom", "Ridley Main", bottom_norfair_to_ridley().create_rule(world))
+    connect(multiworld, player, "Norfair Bottom -> Screw Attack", "Norfair Bottom", "Norfair Screw Attack Area", bottom_norfair_to_screw().create_rule(world))
+    connect(multiworld, player, "Norfair Screw Attack -> Lower Norfair", "Norfair Screw Attack Area", "Lower Norfair", screw_to_lower_norfair().create_rule(world))
+    connect(multiworld, player, "Ridley Elevator -> Left Shaft", "Ridley Main", "Ridley Left Shaft", ridley_main_to_left_shaft().create_rule(world))
+    connect(multiworld, player, "Ridley Elevator -> Right Shaft Shortcut", "Ridley Main", "Ridley Right Shaft", ridley_main_to_right_shaft().create_rule(world))
+    connect(multiworld, player, "Ridley Left Shaft -> SW Puzzle", "Ridley Left Shaft", "Ridley SW Puzzle", ridley_left_shaft_to_sw_puzzle().create_rule(world))
+    connect(multiworld, player, "Ridley Left Shaft -> Right Shaft", "Ridley Left Shaft", "Ridley Right Shaft")
+    connect(multiworld, player, "Ridley Right Shaft -> Speed Puzzles", "Ridley Right Shaft", "Ridley Speed Puzzles", ridley_speed_puzzles_access().create_rule(world))
+    connect(multiworld, player, "Ridley Right Shaft -> Central", "Ridley Right Shaft", "Central Ridley", ridley_right_shaft_to_central().create_rule(world))
+    connect(multiworld, player, "Ridley Central -> Ridley's Room", "Central Ridley", "Ridley Room", ridley_central_to_ridley_room().create_rule(world))
+    connect(multiworld, player, "Tourian Escape -> Chozodia", "Tourian", "Chozodia Ruins Test Area", MotherBrainBoss.create_rule(world))
+    connect(multiworld, player, "Crateria -> Upper", "Crateria", "Upper Crateria", crateria_main_to_crateria_upper().create_rule(world))
+    connect(multiworld, player, "Crateria -> Chozodia Lower Door", "Crateria", "Chozodia Under Tube", crateria_to_under_tube().create_rule(world))
+    connect(multiworld, player, "Crateria -> Chozodia Upper Door", "Upper Crateria", "Chozodia Ruins", crateria_upper_to_chozo_ruins().create_rule(world))
+    connect(multiworld, player, "Chozo Ruins -> Chozo Ruins Test", "Chozodia Ruins", "Chozodia Ruins Test Area", chozo_ruins_to_ruins_test().create_rule(world))
+    connect(multiworld, player, "Chozo Ruins Test -> Chozo Ruins", "Chozodia Ruins Test Area", "Chozodia Ruins", ChozoGhostBoss.create_rule(world))
+    connect(multiworld, player, "Chozo Ruins -> Glass Tube", "Chozodia Ruins", "Chozodia Glass Tube", chozo_ruins_to_chozodia_tube().create_rule(world))
+    connect(multiworld, player, "Chozodia Under Tube -> Crateria", "Chozodia Under Tube", "Crateria", under_tube_to_crateria().create_rule(world))
+    connect(multiworld, player, "Chozodia Under Tube -> Glass Tube", "Chozodia Under Tube", "Chozodia Glass Tube", under_tube_to_tube().create_rule(world))
+    connect(multiworld, player, "Chozodia Glass Tube -> Under Tube", "Chozodia Glass Tube", "Chozodia Under Tube", tube_to_under_tube().create_rule(world))
+    connect(multiworld, player, "Chozodia Glass Tube -> Chozo Ruins", "Chozodia Glass Tube", "Chozodia Ruins", chozodia_tube_to_chozo_ruins().create_rule(world))
+    connect(multiworld, player, "Chozozia Glass Tube -> Mothership Central", "Chozodia Glass Tube", "Chozodia Mothership Central", chozodia_tube_to_mothership_central().create_rule(world))
+    connect(multiworld, player, "Chozodia Mothership -> Cockpit", "Chozodia Mothership Central", "Chozodia Mothership Cockpit", mothership_central_to_cockpit().create_rule(world))
+    connect(multiworld, player, "Chozodia Cockpit -> Original PB", "Chozodia Mothership Cockpit", "Chozodia Original Power Bomb Room", cockpit_to_original_pb().create_rule(world))
+    connect(multiworld, player, "Chozodia Cockpit -> Mecha Ridley", "Chozodia Mothership Cockpit", "Chozodia Mecha Ridley Hallway", cockpit_to_mecha_ridley().create_rule(world))
