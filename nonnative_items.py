@@ -125,6 +125,7 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         "WallJump": ItemID.WallJump,
     },
     "Super Junkoid": {
+        # I'm not super familiar with Junkoid, this is based on a list of SJ to SM items that Ninjakakes lent me.
         "Heart": ItemID.EnergyTank,
         "Magic Bolt": ItemID.MissileTank,
         "Baseball": ItemID.SuperMissileTank,
@@ -152,29 +153,29 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         "Missile": ItemID.MissileTank,
         "Super Missile": ItemID.SuperMissileTank,
         "Power Bomb": ItemID.PowerBombTank,
-        # "Small Ammo":
+        # "Small Ammo": - Subversion uses an Ammo system, Missiles, Supers, and PB's all share one ammo count and these two raise that. There is only one of each Missile, Super, and PB in the world.
         # "Large Ammo":
         "Bombs": ItemID.Bomb,
         "Charge Beam": ItemID.ChargeBeam,
-        # "Hypercharge":
-        # "Accel Charge":
-        # "Damage Amp":
+        # "Hypercharge": - Turns your charged beam into Hyper Beam
+        # "Accel Charge": - Accelerates the speed of Charge Beam
+        # "Damage Amp": - Increases Beam damage
         "Ice Beam": ItemID.IceBeam,
         "HiJump": ItemID.HiJump,
-        # "Gravity Boots":
+        # "Gravity Boots": - Forced Sphere 1 item. You basically cannot jump without it.
         "Speed Booster": ItemID.SpeedBooster,
         "Wave Beam": ItemID.WaveBeam,
         "Spazer": ItemID.SpazerBeam,
         "Speed Ball": ItemID.SpringBall,
         "Varia Suit": ItemID.VariaSuit,
         "Aqua Suit": ItemID.GravitySuit,
-        # "Metroid Suit":
+        # "Metroid Suit": - Lava/Laser protection, but also makes you take damage from the cold
         "X-Ray Scope": ItemID.XRayScope,
-        # "Dark Visor":
+        # "Dark Visor": - Shows things to the player that otherwise cannot be seen/interacted with
         "Plasma Beam": ItemID.PlasmaBeam,
         "Grapple Beam": ItemID.GrappleBeam,
         "Space Jump": ItemID.SpaceJump,
-        # "Space Jump Boost":
+        # "Space Jump Boost": By default Space Jump in Subversion only allows you one additional jump. These add to that.
         "Screw Attack": ItemID.ScrewAttack,
         "Morph Ball": ItemID.MorphBall,
         "Refuel Tank": ItemID.ReserveTank,
