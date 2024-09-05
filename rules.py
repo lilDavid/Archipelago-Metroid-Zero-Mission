@@ -492,7 +492,7 @@ ridley_central = {
             ),
             any(
                 CanBallCannon,
-                LayoutPatches  # TODO: make this layout patch
+                LayoutPatches
             )
         ),
         "Ridley Lower Ball Cannon Puzzle": all(
@@ -598,7 +598,14 @@ crateria_main = {
     }
 
 crateria_upper = {
-        "Crateria Power Grip": CanVertical,
+        "Crateria Power Grip": any(
+            all(
+                CanVertical,
+                LayoutPatches
+            ),
+            PowerGrip,
+            CanIBJ
+        ),
         "Crateria Statue Water": UnknownItem1,
         "Crateria Unknown Item Statue": None,
         "Crateria East Ballspark": all(
