@@ -150,9 +150,9 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
     },
     "Subversion": {
         "Energy Tank": ItemID.EnergyTank,
-        "Missile": ItemID.MissileTank,
-        "Super Missile": ItemID.SuperMissileTank,
-        "Power Bomb": ItemID.PowerBombTank,
+        # "Missile":
+        # "Super Missile": 
+        # "Power Bomb":
         # "Small Ammo": - Subversion uses an Ammo system, Missiles, Supers, and PB's all share one ammo count and these two raise that. There is only one of each Missile, Super, and PB in the world.
         # "Large Ammo":
         "Bombs": ItemID.Bomb,
