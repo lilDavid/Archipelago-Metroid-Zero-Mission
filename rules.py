@@ -147,12 +147,11 @@ kraid_main = {
         ),
         "Kraid Acid Ballspark": all(
             any(
-                CanIBJ,
+                CanHorizontalIBJ,
                 HiJump,
                 PowerGrip
             ),
             CanBombTunnelBlock,
-            CanBallJump,
             GravitySuit,
             CanBallspark
         ),
@@ -377,6 +376,7 @@ norfair_behind_superdoor = {
                     PowerGrip
                 ),
                 all(
+                    AdvancedLogic,  # Getting the freeze on the enemy at the right time is tricky
                     IceBeam,
                     any(
                         CanEnterMediumMorphTunnel,
@@ -468,11 +468,20 @@ ridley_right_shaft = {
 
 ridley_right_speed_puzzles = {
         "Ridley Bomb Puzzle": all(
-            Bomb,
             PowerGrip,
             any(
-                CanWallJump,
-                SpaceJump
+                all(
+                    Bomb,
+                    any(
+                        CanWallJump,
+                        SpaceJump
+                    )
+                ),
+                all(
+                    AdvancedLogic,
+                    PowerBombCount(2),
+                    HiJump
+                )
             )
         ),
         "Ridley Speed Jump": WaveBeam
@@ -607,7 +616,7 @@ crateria_upper = {
             CanIBJ
         ),
         "Crateria Statue Water": UnknownItem1,
-        "Crateria Unknown Item Statue": None,
+        "Crateria Unknown Item Statue": CanBallJump,
         "Crateria East Ballspark": all(
             CanBallspark,
             any(
@@ -629,10 +638,10 @@ chozodia_ruins_crateria_entrance = {
         "Chozodia Upper Crateria Door":
             CanReachEntrance("Crateria -> Chozodia Upper Door"),  # Specifically need to access this entrance, not just the region as it's one-way
         "Chozodia Ruins East of Upper Crateria Door": Missiles,
-        "Chozodia Triple Crawling Pirates": all(  # Rename to Triple Crawling Pirates
+        "Chozodia Triple Crawling Pirates": all(
             any(
                 Bomb,
-                PowerBombCount(2)
+                PowerBombCount(3)
             ),
             any(
                 CanHiGrip,
