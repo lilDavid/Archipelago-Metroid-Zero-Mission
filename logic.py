@@ -116,6 +116,7 @@ CanRegularBomb = all(
     MorphBall,
     Bomb
 )
+# Morph tunnels or bomb chains--any block that Screw Attack can't break
 CanBombTunnelBlock = all(
     MorphBall,
     any(
@@ -210,6 +211,18 @@ ChozodiaCombat = all(
         PlasmaBeam
     ),
     EnergyTanks(4)
+)
+RuinsTestEscape = all(
+    any(
+            all(
+                AdvancedLogic,
+                CanHiGrip,
+                CanWallJump
+            ),
+            CanIBJ,
+            Requirement.item("Space Jump")  # Need SJ to escape, but it doesn't need to be active yet
+    ),
+    CanEnterMediumMorphTunnel
 )
 
 # Goal
@@ -349,6 +362,10 @@ def norfair_main_to_crateria():
         any(
             CanLongBeam,
             CanBallspark
+        ),
+        any(
+            LayoutPatches,
+            CanEnterMediumMorphTunnel
         )
     )
 
@@ -428,6 +445,7 @@ def norfair_lower_right_shaft():
             SpeedBooster,
             any(
                 CanBallCannon,
+                # TODO: This does nothing. Figure out a way to make it do what you intended
                 CanReachEntrance("Norfair Right Shaft -> Lower Norfair")
             )
         )
@@ -577,7 +595,11 @@ def bottom_norfair_to_screw():
     return all(
         RidleyBoss,
         SpeedBooster,
-        CanBallCannon,
+        any(
+            CanBallCannon,
+            CanTrickySparks,
+            AdvancedLogic
+        ),
         any(
             IceBeam,
             CanVerticalWall
@@ -677,9 +699,34 @@ def ridley_central_to_ridley_room():
     )
 
 
+def tourian_to_chozodia():
+    return all(
+        MotherBrainBoss,
+        RuinsTestEscape
+    )
+
+
 # Getting to Unknown 1 and everything above
 def crateria_main_to_crateria_upper():
-    return CanBallJump
+    return any(
+        CanBallJump,
+        all(
+            LayoutPatches,
+            CanFly
+        ),
+        all(
+            AdvancedLogic,
+            ScrewAttack,
+            any(
+                SpaceJump,
+                all(
+                    PowerBombs,
+                    CanTrickySparks,
+                    CanWallJump
+                )
+            )
+        )
+    )
 
 
 # Upper Crateria door to Ruins, the two items right by it, and the Triple Crawling Pirates
@@ -705,22 +752,13 @@ def chozo_ruins_to_ruins_test():
         PowerBombs,
         any(
             Bomb,
-            PowerBombCount(2)
+            PowerBombCount(3)
         ),
         any(
             AdvancedLogic,
             ChozodiaCombat
         ),
-        any(  # Required to exit the Ruins Test
-            all(
-                AdvancedLogic,
-                CanHiGrip,
-                CanWallJump
-            ),
-            CanIBJ,
-            Requirement.item("Space Jump")  # Need SJ to escape, but it doesn't need to be active yet
-        ),
-        CanEnterMediumMorphTunnel  # Required to exit the Ruins Test
+        RuinsTestEscape
     )
 
 

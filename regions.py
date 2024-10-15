@@ -105,7 +105,7 @@ def create_regions_and_connections(world: MZMWorld):
     connect(multiworld, player, "Ridley Right Shaft -> Speed Puzzles", "Ridley Right Shaft", "Ridley Speed Puzzles", ridley_speed_puzzles_access().create_rule(world))
     connect(multiworld, player, "Ridley Right Shaft -> Central", "Ridley Right Shaft", "Central Ridley", ridley_right_shaft_to_central().create_rule(world))
     connect(multiworld, player, "Ridley Central -> Ridley's Room", "Central Ridley", "Ridley Room", ridley_central_to_ridley_room().create_rule(world))
-    connect(multiworld, player, "Tourian Escape -> Chozodia", "Tourian", "Chozodia Ruins Test Area", MotherBrainBoss.create_rule(world))
+    connect(multiworld, player, "Tourian Escape -> Chozodia", "Tourian", "Chozodia Ruins Test Area", tourian_to_chozodia().create_rule(world))
     connect(multiworld, player, "Crateria -> Upper", "Crateria", "Upper Crateria", crateria_main_to_crateria_upper().create_rule(world))
     connect(multiworld, player, "Crateria -> Chozodia Lower Door", "Crateria", "Chozodia Under Tube", crateria_to_under_tube().create_rule(world))
     connect(multiworld, player, "Crateria -> Chozodia Upper Door", "Upper Crateria", "Chozodia Ruins", crateria_upper_to_chozo_ruins().create_rule(world))
