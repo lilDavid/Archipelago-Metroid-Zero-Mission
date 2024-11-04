@@ -23,6 +23,23 @@ class Goal(Choice):
     default = option_bosses
 
 
+# TODO: Update rules for Hard mode logic
+class GameDifficulty(Choice):
+    """
+    Which difficulty you will play on.
+    Normal: Easy and Normal will be available, and hard will not.
+    Hard: Hard will be the only available difficulty.
+    Either: All difficulty options will be available.
+    Hard has a small effect on logic due to enemy placements. If Either is selected, logic will not require any tricks
+    that can't be done on all three difficulties.
+    """
+    display_name = "Game Difficulty"
+    option_normal = 1
+    option_hard = 2
+    option_either = 3
+    default = option_either
+
+
 class ChozodiaAccess(Choice):
     """
     Open: You can access Chozodia at any time by using a Power Bomb to open the doors.
@@ -220,6 +237,7 @@ mzm_option_groups = [
 @dataclass
 class MZMOptions(PerGameCommonOptions):
     goal: Goal
+    game_difficulty: GameDifficulty
     remote_items: RemoteItems
     death_link: DeathLink
     chozodia_access: ChozodiaAccess

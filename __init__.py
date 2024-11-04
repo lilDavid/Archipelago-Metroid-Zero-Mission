@@ -128,6 +128,7 @@ class MZMWorld(World):
     def fill_slot_data(self) -> Dict[str, Any]:
         return {
             "goal": self.options.goal.value,
+            "game_difficulty": self.options.game_difficulty.value,
             "unknown_items": self.options.unknown_items_always_usable.value,
             "layout_patches": self.options.layout_patches.value,
             "logic_difficulty": self.options.logic_difficulty.value,
