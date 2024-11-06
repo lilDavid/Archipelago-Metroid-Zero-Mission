@@ -12,7 +12,7 @@ import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
 
 from . import rom_data
-from .data import encode_str, get_rom_address, get_width_of_encoded_string, symbols_hash
+from .data import TERMINATOR_CHAR, encode_str, get_rom_address, get_width_of_encoded_string, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
@@ -91,6 +91,12 @@ def get_base_rom_path(file_name: str = "") -> Path:
         return Path(Utils.user_path(file_name))
 
 
+goal_texts = {
+    Goal.option_mecha_ridley: "Infiltrate and destroy\nthe Space Pirates' mother ship.",
+    Goal.option_bosses: "Exterminate all Metroid\norganisms and defeat Mother Brain.",
+}
+
+
 def get_item_sprite_and_name(location: Location, world: MZMWorld):
     player = world.player
     nonlocal_item_handling = world.options.display_nonlocal_items
@@ -121,7 +127,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
     # Basic information about the seed
     seed_info = (
         player,
-        multiworld.player_name[player].encode("utf-8")[:64],
+        world.player_name.encode("utf-8")[:64],
         multiworld.seed_name.encode("utf-8")[:64],
 
         world.options.goal.value,
@@ -169,7 +175,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         for name in (player_name, item_name):
             if name not in names:
                 names[name] = next_name_address | 0x8000000
-                terminated = name + 0xFF00.to_bytes(2, "little")
+                terminated = name + TERMINATOR_CHAR
                 patch.write_token(
                     APTokenTypes.WRITE,
                     next_name_address,
@@ -211,5 +217,19 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
             get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * 5),
             struct.pack("<H", 4)  # Acknowledge Mother Brain event locks
         )
+
+    # Write new intro text
+    intro_text = (f"AP {multiworld.seed_name}\n"
+                  f"P{player} - {world.player_name}\n"
+                  f"Version {Utils.version_tuple.as_simple_string()}\n"
+                  "\n"
+                  f"YOUR MISSION: {goal_texts[world.options.goal.value]}")
+    encoded_intro = encode_str(intro_text) + TERMINATOR_CHAR
+    assert len(encoded_intro) <= 2 * 235  # Original intro text is 235 halfwords
+    patch.write_token(
+        APTokenTypes.WRITE,
+        get_rom_address("sEnglishText_Story_PlanetZebes"),
+        encoded_intro
+    )
 
     patch.write_file("token_data.bin", patch.get_token_binary())

@@ -4,7 +4,6 @@ Classes and functions related to interfacing with the BizHawk Client for Metroid
 
 from __future__ import annotations
 
-import asyncio
 import itertools
 import struct
 from typing import TYPE_CHECKING, Counter, Dict, Iterable, Iterator, List, NamedTuple, Optional, Set, Tuple
@@ -14,8 +13,8 @@ import Utils
 import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
 
-from .data import encode_str, get_symbol
-from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
+from .data import encode_str, get_symbol, TERMINATOR_CHAR
+from .items import ItemID, ItemType, item_data_table
 from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table)
@@ -100,9 +99,6 @@ TRACKER_EVENT_FLAGS = [
     "EVENT_DEOREM_KILLED",
     *EVENT_FLAGS.keys(),
 ]
-
-
-TERMINATOR_CHAR = 0xFF00.to_bytes(2, "little")
 
 
 def cmd_deathlink(self):
