@@ -80,9 +80,9 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
 
 
 def get_base_rom_path(file_name: str = "") -> Path:
-    options = Utils.get_options()
+    from . import MZMWorld
     if not file_name:
-        file_name = options["mzm_options"]["rom_file"]
+        file_name = MZMWorld.settings.rom_file
 
     file_path = Path(file_name)
     if file_path.exists():
