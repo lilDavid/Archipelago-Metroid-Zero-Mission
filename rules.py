@@ -607,13 +607,16 @@ crateria_main = {
     }
 
 crateria_upper = {
-        "Crateria Power Grip": any(
-            all(
-                CanVertical,
-                LayoutPatches
-            ),
-            PowerGrip,
-            CanIBJ
+        "Crateria Power Grip": all(
+            CanBallJump,
+            any(
+                all(
+                    CanVertical,
+                    LayoutPatches
+                ),
+                PowerGrip,
+                CanIBJ
+            )
         ),
         "Crateria Statue Water": UnknownItem1,
         "Crateria Unknown Item Statue": CanBallJump,
