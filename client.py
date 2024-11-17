@@ -116,6 +116,11 @@ def cmd_deathlink(self):
     )
 
 
+def cmd_kill(self):
+    """Receive a death link on command."""
+    self.ctx.client_handler.death_link.pending = True
+
+
 class DeathLinkCtx:
     enabled: bool = False
     update_pending = False
@@ -151,6 +156,7 @@ class ZMConstants:
     ITEM_NONE = 0xFF
     SUIT_FULLY_POWERED = 1
     SUIT_SUITLESS = 2
+    SPOSE_SAVING_LOADING_GAME = 44
 
     # Structs
     Equipment = "<HHBBHHBBBBBBBBBB"
@@ -168,6 +174,7 @@ class ZMConstants:
     gGameModeSub1 = get_symbol("gGameModeSub1")
     gPreventMovementTimer = get_symbol("gPreventMovementTimer")
     gDifficulty = get_symbol("gDifficulty")
+    gSamusData = get_symbol("gSamusData")
     gEquipment = get_symbol("gEquipment")
     gEventsTriggered = get_symbol("gEventsTriggered")
     gCurrentArea = get_symbol("gCurrentArea")
@@ -256,6 +263,7 @@ class MZMClient(BizHawkClient):
             return False
 
         client_ctx.command_processor.commands["deathlink"] = cmd_deathlink
+        # client_ctx.command_processor.commands["kill"] = cmd_kill
         self.death_link = DeathLinkCtx()
 
         self.dc_pending = False
@@ -588,7 +596,16 @@ class MZMClient(BizHawkClient):
         if self.death_link.enabled and self.death_link.pending:
             self.death_link.sent_this_death = True
             try:
-                await bizhawk.guarded_write(bizhawk_ctx, [write16(ZMConstants.gEquipment + 6, 0)], guard_list)
+                samus_pose = next_int(iter(await bizhawk.read(
+                    bizhawk_ctx,
+                    [read8(ZMConstants.gSamusData + 0)]  # gSamusData.pose
+                )))
+                if samus_pose != ZMConstants.SPOSE_SAVING_LOADING_GAME:
+                    await bizhawk.guarded_write(
+                        bizhawk_ctx,
+                        [write16(ZMConstants.gEquipment + 6, 0)],  # gEquipment.currentEnergy
+                        guard_list + [guard8(ZMConstants.gSamusData + 0, samus_pose)]  # gSamusData.pose
+                    )
             except bizhawk.RequestFailedError:
                 return
 
