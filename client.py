@@ -13,11 +13,12 @@ import Utils
 import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
 
-from .data import encode_str, get_symbol, TERMINATOR_CHAR
+from .data import get_symbol
 from .items import ItemID, ItemType, item_data_table
 from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table)
+from .text import TERMINATOR_CHAR, encode_str
 
 if TYPE_CHECKING:
     from worlds._bizhawk.context import BizHawkClientContext

@@ -12,10 +12,11 @@ import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
 
 from . import rom_data
-from .data import TERMINATOR_CHAR, encode_str, get_rom_address, get_width_of_encoded_string, symbols_hash
+from .data import get_rom_address, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
+from .text import TERMINATOR_CHAR, encode_str, get_width_of_encoded_string
 
 if TYPE_CHECKING:
     from . import MZMWorld
