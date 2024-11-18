@@ -105,9 +105,12 @@ def get_item_sprite_and_name(location: Location, world: MZMWorld):
         if sprite is not None:
             return sprite, None
 
-    sprite = (ItemID.APItemProgression  # Traps appear as fake AP progression items for now
-              if item.classification == ItemClassification.trap
-              else ItemID.APItemFiller + item.classification.as_flag().bit_length())
+    if item.classification.as_flag() == ItemClassification.filler:
+        sprite = ItemID.APItemFiller
+    elif item.classification.as_flag() == ItemClassification.useful:
+        sprite = ItemID.APItemUseful
+    else:  # Including traps
+        sprite = ItemID.APItemProgression
     name = encode_str(item.name[:32])
     pad = ((224 - get_width_of_encoded_string(name)) // 2) & 0xFF
     name = struct.pack("<HH", 0x8000 | pad, 0x8105) + name
