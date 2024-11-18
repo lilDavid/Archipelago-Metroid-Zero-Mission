@@ -18,7 +18,7 @@ from .items import ItemID, ItemType, item_data_table
 from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table)
-from .text import TERMINATOR_CHAR, trim_string
+from .text import LINE_WIDTH, TERMINATOR_CHAR, Message
 
 if TYPE_CHECKING:
     from worlds._bizhawk.context import BizHawkClientContext
@@ -515,16 +515,18 @@ class MZMClient(BizHawkClient):
         item_data = item_data_table[client_ctx.item_names.lookup_in_game(next_item.item)]
         copies = len(self.queued_item.network_items)
         if next_item.player == client_ctx.slot:
-            sender = TERMINATOR_CHAR
+            sender = Message([TERMINATOR_CHAR])
         else:
-            sender = trim_string(client_ctx.player_names[next_item.player], 224 - 79) + TERMINATOR_CHAR
+            sender = (Message(client_ctx.player_names[next_item.player])
+                        .trim_to_max_width(LINE_WIDTH - 79)
+                        .append(TERMINATOR_CHAR))
 
         try:
             await bizhawk.guarded_write(
                 bizhawk_ctx,
                 [write8(ZMConstants.gIncomingItemId, item_data.id),
                  write8(ZMConstants.gIncomingItemCount, copies),
-                 write(ZMConstants.gMultiworldItemSenderName, sender)],
+                 write(ZMConstants.gMultiworldItemSenderName, sender.to_bytes())],
                 guard_list)
         except bizhawk.RequestFailedError:
             return

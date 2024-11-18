@@ -16,7 +16,7 @@ from .data import get_rom_address, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
-from .text import TERMINATOR_CHAR, center_string, encode_str, trim_string
+from .text import TERMINATOR_CHAR, Message
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -115,7 +115,9 @@ def get_item_sprite_and_name(location: Location, world: MZMWorld):
     sprite = (ItemID.APItemProgression  # Traps appear as fake AP progression items for now
               if item.classification == ItemClassification.trap
               else ItemID.APItemFiller + item.classification.as_flag().bit_length())
-    name = center_string((0x8105).to_bytes(2, "little") + trim_string(item.name))
+    name = Message(item.name).trim_to_max_width().insert(0, 0x8105)
+    pad = ((224 - name.display_width()) // 2) & 0xFF
+    name.insert(0, 0x8000 | pad)
     return sprite, name
 
 
@@ -169,7 +171,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         if item.player == player:
             player_name = None
         else:
-            player_name = encode_str(multiworld.player_name[item.player])
+            player_name = Message(multiworld.player_name[item.player])
 
         for name in (player_name, item_name):
             if name not in names:
@@ -223,12 +225,12 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
                   f"Version {Utils.version_tuple.as_simple_string()}\n"
                   "\n"
                   f"YOUR MISSION: {goal_texts[world.options.goal.value]}")
-    encoded_intro = encode_str(intro_text) + TERMINATOR_CHAR
-    assert len(encoded_intro) <= 2 * 235  # Original intro text is 235 halfwords
+    encoded_intro = Message(intro_text).append(TERMINATOR_CHAR)
+    assert len(encoded_intro) <= 235  # Original intro text is 235 characters
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sEnglishText_Story_PlanetZebes"),
-        encoded_intro
+        encoded_intro.to_bytes()
     )
 
     patch.write_file("token_data.bin", patch.get_token_binary())
