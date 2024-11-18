@@ -97,7 +97,7 @@ class MZMWorld(World):
         for name in major_item_data_table:
             item_pool.append(self.create_item(name))
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks
-        item_pool.extend(self.create_tanks("Missile Tank", 50, 7))  # First 35/250 missiles
+        item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # First 40/250 missiles
         item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3))  # First 6/30 supers
         item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 2))  # First 4/18 power bombs
 
