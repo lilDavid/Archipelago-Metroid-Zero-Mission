@@ -75,9 +75,6 @@ class MZMWorld(World):
     def generate_early(self):
         self.junk_fill = list(Counter(self.options.junk_fill_weights).elements())
 
-        if self.options.morph_ball == MorphBallPlacement.option_early:
-            self.multiworld.local_early_items[self.player]["Morph Ball"] = 1
-
         # Only this player should have effectively empty locations if they so choose.
         self.options.local_items.value.add("Nothing")
 
@@ -91,17 +88,27 @@ class MZMWorld(World):
         self.place_event("Mecha Ridley Defeated", "Mecha Ridley")
         self.place_event("Mission Accomplished!", "Chozodia Space Pirate's Ship")
 
+        if self.options.morph_ball == MorphBallPlacement.option_early:
+            self.get_location("Brinstar Morph Ball").place_locked_item(self.create_item("Morph Ball"))
+
+
     def create_items(self) -> None:
         item_pool: List[MZMItem] = []
 
+        item_pool_size = 100
+        if self.options.morph_ball == MorphBallPlacement.option_early:
+            item_pool_size -= 1
+
         for name in major_item_data_table:
+            if self.options.morph_ball == MorphBallPlacement.option_early and name == "Morph Ball":
+                continue
             item_pool.append(self.create_item(name))
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks
         item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # First 40/250 missiles
         item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3))  # First 6/30 supers
         item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 2))  # First 4/18 power bombs
 
-        while len(item_pool) < 100:
+        while len(item_pool) < item_pool_size:
             item_pool.append(self.create_filler())
 
         self.multiworld.itempool += item_pool
