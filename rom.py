@@ -16,7 +16,7 @@ from .data import get_rom_address, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
-from .text import TERMINATOR_CHAR, encode_str, get_width_of_encoded_string
+from .text import TERMINATOR_CHAR, center_string, encode_str, trim_string
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -115,9 +115,7 @@ def get_item_sprite_and_name(location: Location, world: MZMWorld):
     sprite = (ItemID.APItemProgression  # Traps appear as fake AP progression items for now
               if item.classification == ItemClassification.trap
               else ItemID.APItemFiller + item.classification.as_flag().bit_length())
-    name = encode_str(item.name[:32])
-    pad = ((224 - get_width_of_encoded_string(name)) // 2) & 0xFF
-    name = struct.pack("<HH", 0x8000 | pad, 0x8105) + name
+    name = center_string((0x8105).to_bytes(2, "little") + trim_string(item.name))
     return sprite, name
 
 

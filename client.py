@@ -18,7 +18,7 @@ from .items import ItemID, ItemType, item_data_table
 from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table)
-from .text import TERMINATOR_CHAR, encode_str
+from .text import TERMINATOR_CHAR, trim_string
 
 if TYPE_CHECKING:
     from worlds._bizhawk.context import BizHawkClientContext
@@ -517,7 +517,7 @@ class MZMClient(BizHawkClient):
         if next_item.player == client_ctx.slot:
             sender = TERMINATOR_CHAR
         else:
-            sender = encode_str(client_ctx.player_names[next_item.player]) + TERMINATOR_CHAR
+            sender = trim_string(client_ctx.player_names[next_item.player], 224 - 79) + TERMINATOR_CHAR
 
         try:
             await bizhawk.guarded_write(

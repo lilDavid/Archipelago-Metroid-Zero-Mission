@@ -1,6 +1,7 @@
 from io import StringIO
 import itertools
 import struct
+from typing import List
 
 from .data import data_path
 
@@ -116,6 +117,10 @@ def encode_str(msg: str) -> bytes:
 
 
 def get_width_of_encoded_character(char: int):
+    if char & 0xFF00 == 0x8000:  # Padding control char
+        return char & 0x00FF
+    if char & 0xFF00 == 0x8100:  # Text color control char
+        return 0
     if char >= 1184:
         return 10
     if char >= len(character_widths):
@@ -123,9 +128,31 @@ def get_width_of_encoded_character(char: int):
     return character_widths[char]
 
 
+def _encoded_characters(msg: bytes):
+    return map(lambda t: get_width_of_encoded_character(*t), struct.iter_unpack("<H", msg))
+
+
 def get_width_of_encoded_string(msg: bytes):
-    return sum(map(lambda t: get_width_of_encoded_character(*t), struct.iter_unpack("<H", msg)))
+    return sum(_encoded_characters(msg))
 
 
 def get_width_of_string(msg: str):
     return get_width_of_encoded_string(encode_str(msg))
+
+
+def trim_string(msg: str, max_width: int = 224):
+    total_width = 0
+    working_string: List[int] = []
+    for char in _encoded_characters(msg):
+        next_width = total_width + get_width_of_encoded_character(char)
+        if next_width > max_width:
+            break
+        working_string += char
+        total_width = next_width
+    return bytes(itertools.chain.from_iterable(c.to_bytes(2, "little") for c in working_string))
+
+
+def center_string(msg: bytes):
+    width = get_width_of_encoded_string(msg)
+    pad = ((224 - width) // 2) & 0xFF
+    return (0x8000 | pad).to_bytes(2, "little") + msg
