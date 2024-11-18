@@ -123,8 +123,8 @@ def _get_charmap():
                 continue  # TODO: Check if there are any multi-codepoint sequences and if we want to encode those
             enc = int(enc, 16).to_bytes(2, "little")
             char_table[char] = enc
-    char_table["\\'"] = 0x0047
-    char_table["\\n"] = 0xFE00
+    char_table["\'"] = (0x0047).to_bytes(2, "little")
+    char_table["\n"] = (0xFE00).to_bytes(2, "little")
 
 
 _get_symbols()
