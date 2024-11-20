@@ -3,7 +3,7 @@ from pathlib import Path
 from collections import Counter
 from typing import Any, ClassVar, Dict, List, Optional
 
-from BaseClasses import ItemClassification, Tutorial
+from BaseClasses import Item, ItemClassification, Tutorial
 import settings
 from worlds.AutoWorld import WebWorld, World
 
@@ -155,6 +155,10 @@ class MZMWorld(World):
                        force_classification if force_classification is not None else item_data_table[name].progression,
                        self.item_name_to_id[name],
                        self.player)
+
+    # Overridden so the extra minor items can be forced filler
+    def create_filler(self) -> Item:
+        return self.create_item(self.get_filler_item_name(), ItemClassification.filler)
 
     def create_tanks(self, item_name: str, count: int, progression_count: Optional[int] = None):
         if progression_count is None:
