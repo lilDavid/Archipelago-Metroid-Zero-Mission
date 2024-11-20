@@ -78,9 +78,9 @@ class ItemID(IntEnum):
 
 tank_data_table = {
     "Energy Tank": ItemData(ItemID.EnergyTank, progression, ItemType.tank, None),
-    "Missile Tank": ItemData(ItemID.MissileTank, filler, ItemType.tank, None),
-    "Super Missile Tank": ItemData(ItemID.SuperMissileTank, filler, ItemType.tank, None),
-    "Power Bomb Tank": ItemData(ItemID.PowerBombTank, filler, ItemType.tank, None),
+    "Missile Tank": ItemData(ItemID.MissileTank, progression, ItemType.tank, None),
+    "Super Missile Tank": ItemData(ItemID.SuperMissileTank, progression, ItemType.tank, None),
+    "Power Bomb Tank": ItemData(ItemID.PowerBombTank, progression, ItemType.tank, None),
 }
 
 major_item_data_table = {

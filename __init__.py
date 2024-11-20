@@ -160,9 +160,9 @@ class MZMWorld(World):
         if progression_count is None:
             progression_count = count
         for _ in range(progression_count):
-            yield self.create_item(item_name, ItemClassification.progression)
-        for _ in range(count - progression_count):
             yield self.create_item(item_name)
+        for _ in range(count - progression_count):
+            yield self.create_item(item_name, ItemClassification.filler)
 
     def place_event(self, name: str, location_name: Optional[str] = None):
         if location_name is None:
