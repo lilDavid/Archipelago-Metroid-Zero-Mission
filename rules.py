@@ -172,7 +172,8 @@ kraid_acidworm_area = {
             CanSingleBombBlock,
             CanVerticalWall
         ),
-        "Kraid Zipline Activator Room": None
+        "Kraid Zipline Activator Room": None,
+        "Kraid Zipline Activator": None
     }
 
 # past acid worm skip

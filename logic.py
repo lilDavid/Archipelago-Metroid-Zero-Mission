@@ -52,6 +52,7 @@ def any(*args: Requirement):
     return Requirement(lambda world, state: builtins.any(req.rule(world, state) for req in args))
 
 
+Ziplines = Requirement.item("Ziplines Activated")
 KraidBoss = Requirement.item("Kraid Defeated")
 RidleyBoss = Requirement.item("Ridley Defeated")
 MotherBrainBoss = Requirement.item("Mother Brain Defeated")
@@ -203,8 +204,7 @@ CanEnterMediumMorphTunnel = any(
         HiJump
     )
 )
-# Kraid ziplines
-Ziplines = CanReachEntrance("Kraid Main -> Acid Worm Area")
+
 ChozodiaCombat = all(
     any(
         IceBeam,

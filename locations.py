@@ -53,6 +53,7 @@ kraid_location_table = {
     "Kraid Zipline Activator Room": LocationData("Kraid Acid Worm Area", AP_MZM_ID_BASE + 29),
     "Kraid Speed Jump": LocationData("Kraid Main", AP_MZM_ID_BASE + 30),
     "Kraid Upper Right Morph Ball Cannon": LocationData("Kraid Main", AP_MZM_ID_BASE + 31),
+    "Kraid Zipline Activator": LocationData("Kraid Acid Worm Area", None),
     "Kraid": LocationData("Kraid Bottom", None)
 }
 
