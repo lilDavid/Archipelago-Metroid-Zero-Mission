@@ -131,10 +131,11 @@ brinstar_top = {
 brinstar_pasthives = {
         "Brinstar Post-Hive In Wall": None,
         "Brinstar Behind Bombs": all(
+            Missiles,
             CanBombTunnelBlock,
             CanBallJump
         ),
-        "Brinstar Bomb": None,
+        "Brinstar Bomb": Missiles,
         "Brinstar Post-Hive Pillar": None
     }
 
