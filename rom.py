@@ -112,9 +112,12 @@ def get_item_sprite_and_name(location: Location, world: MZMWorld):
         if sprite is not None:
             return sprite, None
 
-    sprite = (ItemID.APItemProgression  # Traps appear as fake AP progression items for now
-              if item.classification == ItemClassification.trap
-              else ItemID.APItemFiller + item.classification.as_flag().bit_length())
+    if item.classification.as_flag() == ItemClassification.filler:
+        sprite = ItemID.APItemFiller
+    elif item.classification.as_flag() == ItemClassification.useful:
+        sprite = ItemID.APItemUseful
+    else:  # Including traps
+        sprite = ItemID.APItemProgression
     name = Message(item.name).trim_to_max_width().insert(0, 0x8105)
     pad = ((224 - name.display_width()) // 2) & 0xFF
     name.insert(0, 0x8000 | pad)

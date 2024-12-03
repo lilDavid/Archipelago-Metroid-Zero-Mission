@@ -3,7 +3,7 @@ from pathlib import Path
 from collections import Counter
 from typing import Any, ClassVar, Dict, List, Optional
 
-from BaseClasses import ItemClassification, Tutorial
+from BaseClasses import Item, ItemClassification, Tutorial
 import settings
 from worlds.AutoWorld import WebWorld, World
 
@@ -75,9 +75,6 @@ class MZMWorld(World):
     def generate_early(self):
         self.junk_fill = list(Counter(self.options.junk_fill_weights).elements())
 
-        if self.options.morph_ball == MorphBallPlacement.option_early:
-            self.multiworld.local_early_items[self.player]["Morph Ball"] = 1
-
         # Only this player should have effectively empty locations if they so choose.
         self.options.local_items.value.add("Nothing")
 
@@ -91,17 +88,27 @@ class MZMWorld(World):
         self.place_event("Mecha Ridley Defeated", "Mecha Ridley")
         self.place_event("Mission Accomplished!", "Chozodia Space Pirate's Ship")
 
+        if self.options.morph_ball == MorphBallPlacement.option_early:
+            self.get_location("Brinstar Morph Ball").place_locked_item(self.create_item("Morph Ball"))
+
+
     def create_items(self) -> None:
         item_pool: List[MZMItem] = []
 
+        item_pool_size = 100
+        if self.options.morph_ball == MorphBallPlacement.option_early:
+            item_pool_size -= 1
+
         for name in major_item_data_table:
+            if self.options.morph_ball == MorphBallPlacement.option_early and name == "Morph Ball":
+                continue
             item_pool.append(self.create_item(name))
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks
-        item_pool.extend(self.create_tanks("Missile Tank", 50, 7))  # First 35/250 missiles
+        item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # First 40/250 missiles
         item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3))  # First 6/30 supers
         item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 2))  # First 4/18 power bombs
 
-        while len(item_pool) < 100:
+        while len(item_pool) < item_pool_size:
             item_pool.append(self.create_filler())
 
         self.multiworld.itempool += item_pool
@@ -150,13 +157,17 @@ class MZMWorld(World):
                        self.item_name_to_id[name],
                        self.player)
 
+    # Overridden so the extra minor items can be forced filler
+    def create_filler(self) -> Item:
+        return self.create_item(self.get_filler_item_name(), ItemClassification.filler)
+
     def create_tanks(self, item_name: str, count: int, progression_count: Optional[int] = None):
         if progression_count is None:
             progression_count = count
         for _ in range(progression_count):
-            yield self.create_item(item_name, ItemClassification.progression)
-        for _ in range(count - progression_count):
             yield self.create_item(item_name)
+        for _ in range(count - progression_count):
+            yield self.create_item(item_name, ItemClassification.filler)
 
     def place_event(self, name: str, location_name: Optional[str] = None):
         if location_name is None:
