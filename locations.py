@@ -93,7 +93,7 @@ ridley_location_table = {
     "Ridley Imago Super Missile": LocationData("Ridley Main", AP_MZM_ID_BASE + 61),
     "Ridley After Sidehopper Hall Upper": LocationData("Central Ridley", AP_MZM_ID_BASE + 62),
     "Ridley After Sidehopper Hall Lower": LocationData("Central Ridley", AP_MZM_ID_BASE + 63),
-    "Ridley Long Hall": LocationData("Ridley Left Shaft", AP_MZM_ID_BASE + 64),
+    "Ridley Long Hall": LocationData("Ridley Right Shaft", AP_MZM_ID_BASE + 64),
     "Ridley Center Pillar": LocationData("Central Ridley", AP_MZM_ID_BASE + 65),
     "Ridley Ball Room Lower": LocationData("Central Ridley", AP_MZM_ID_BASE + 66),
     "Ridley Ball Room Upper": LocationData("Central Ridley", AP_MZM_ID_BASE + 67),

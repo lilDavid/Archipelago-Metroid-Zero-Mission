@@ -122,7 +122,7 @@ brinstar_top = {
             any(
                 VariaSuit,
                 GravitySuit,
-                Hellrun(2),
+                Hellrun(1),
             )
         ),
         "Brinstar Upper Pillar": None
@@ -270,7 +270,14 @@ norfair_right_shaft = {
     }
 
 norfair_upper_right = {
-        "Norfair Ice Beam": None,
+        "Norfair Ice Beam": any(
+            CanFlyWall,
+            PowerGrip,
+            all(
+                HiJump,
+                AdvancedLogic
+            )
+        ),
         "Norfair Heated Room above Ice Beam": any(
             VariaSuit,
             Hellrun(1)
@@ -286,8 +293,11 @@ norfair_lowerrightshaft = {
             any(
                 Bomb,
                 all(
-                    SpaceJump,
-                    PowerBombs
+                    PowerBombs,
+                    any(
+                        SpaceJump,
+                        AdvancedLogic  # Placing a PB in a specific place by the door hits only the top bomb chain
+                    )
                 )
             ),
             CanReachLocation("Norfair Heated Room Under Brinstar Elevator")
@@ -308,7 +318,10 @@ norfair_lowerrightshaft = {
             CanEnterHighMorphTunnel,
             any(
                 HiJump,
-                CanWallJump
+                all(
+                    CanWallJump,
+                    AdvancedLogic
+                )
             )
         )
     }
@@ -409,12 +422,25 @@ norfair_behind_superdoor = {
 
 norfair_bottom = {
         "Norfair Larva Ceiling": CanReachEntrance("Lower Norfair -> Bottom"),
-        "Norfair Right Shaft Bottom": all(
-            any(
-                CanVerticalWall,
-                IceBeam
+        "Norfair Right Shaft Bottom": any(
+            # going from the right "stairs"
+            all(
+                any(
+                    CanVerticalWall,
+                    IceBeam
+                ),
+                CanBallJump
             ),
-            CanBallJump
+            # using the shot blocks to the left
+            all(
+                # AdvancedLogic,  # placing in advance of logic difficulty rework, as this method is not obvious
+                Missiles,
+                any(
+                    CanFlyWall,
+                    IceBeam
+                ),
+                PowerGrip
+            )
         )
     }
 
@@ -438,8 +464,10 @@ ridley_left_shaft = {
         "Ridley Long Hall": None
     }
 
+
 ridley_sw_puzzle = {
         "Ridley Southwest Puzzle Top": all(
+            CanReachLocation("Ridley Southwest Puzzle Bottom"),
             MissileCount(5),
             any(
                 CanWallJump,
@@ -447,7 +475,40 @@ ridley_sw_puzzle = {
                 SpaceJump
             )
         ),
-        "Ridley Southwest Puzzle Bottom": None
+        "Ridley Southwest Puzzle Bottom": all(
+            SpeedBooster,
+            MorphBall,
+            any(
+                CanIBJ,
+                all(
+                    PowerGrip,
+                    any(
+                        HiJump,
+                        SpaceJump,
+                        CanWallJump
+                    )
+                )
+            ),
+            Missiles,
+            any(
+                PowerGrip,
+                all(
+                    AdvancedLogic,
+                    any(
+                        SpaceJump,
+                        CanWallJump
+                    )
+                )
+            ),
+            any(
+                PowerGrip,
+                PowerBombs,
+                all(
+                    LongBeam,
+                    WaveBeam
+                )
+            )
+        )
     }
 
 ridley_right_shaft = {

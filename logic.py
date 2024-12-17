@@ -386,6 +386,7 @@ def norfair_upper_right_shaft():
 
 def norfair_behind_ice_beam():
     return all(
+        CanReachLocation("Norfair Ice Beam"),
         any(
             CanLongBeam,
             WaveBeam
@@ -422,6 +423,7 @@ def norfair_behind_ice_to_bottom():
             )
         ),
         any(
+            CanIBJ,
             all(
                 AdvancedLogic,
                 PowerBombs,
@@ -578,6 +580,23 @@ def lower_norfair_to_bottom_norfair():
     )
 
 
+def bottom_norfair_to_lower_shaft():
+    return any(
+        all(
+            Missiles,
+            CanFlyWall,
+            any(
+                PowerGrip,
+                CanIBJ
+            )
+        ),
+        all(
+            SpeedBooster,
+            AdvancedLogic
+        ),
+    )
+
+
 def bottom_norfair_to_ridley():
     return any(
         all(
@@ -648,18 +667,7 @@ def ridley_main_to_right_shaft():
 def ridley_left_shaft_to_sw_puzzle():
     return all(
         SpeedBooster,
-        any(
-            PowerGrip,
-            SpaceJump
-        ),
-        any(
-            PowerGrip,
-            PowerBombs,
-            all(
-                LongBeam,
-                WaveBeam
-            )
-        )
+        CanVerticalWall
     )
 
 
