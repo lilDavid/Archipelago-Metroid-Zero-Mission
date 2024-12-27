@@ -513,6 +513,7 @@ def lower_norfair_to_screwattack():
     )
 
 
+# This is necessary if your only way to the Screw Attack region is the ballcannon near the Ridley elevator
 def screw_to_lower_norfair():
     return any(
         MissileCount(4),
@@ -752,6 +753,7 @@ def crateria_upper_to_chozo_ruins():
             Requirement.setting_is("chozodia_access", 0)
         )
     )
+
 
 # Ruins to Chozo Ghost, the three items in that general area, and the lava dive item
 def chozo_ruins_to_ruins_test():

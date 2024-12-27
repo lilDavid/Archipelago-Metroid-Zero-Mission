@@ -322,7 +322,7 @@ class MZMClient(BizHawkClient):
                     location_flags >>= 1
 
         # Deorem flags are in a weird arrangement, but he also drops Charge Beam so whatever just look for that check
-        if not self.local_set_events["EVENT_DEOREM_KILLED"] and brinstar_location_table["Brinstar Worm drop"] in checked_locations:
+        if not self.local_set_events["EVENT_DEOREM_KILLED"] and brinstar_location_table["Brinstar Worm Drop"] in checked_locations:
             set_events["EVENT_DEOREM_KILLED"] = True
 
         for name, number in EVENT_FLAGS.items():

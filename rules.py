@@ -74,7 +74,7 @@ brinstar_main = {
             CanBombTunnelBlock,
             CanVerticalWall,
         ),
-        "Brinstar Worm drop": all(
+        "Brinstar Worm Drop": all(
             MorphBall,
             Missiles
         ),
@@ -110,7 +110,7 @@ brinstar_top = {
             ),
             CanBombTunnelBlock
         ),
-        "Brinstar Acid near Varia": all(
+        "Brinstar Acid Near Varia": all(
             any(
                 SpaceJump,
                 CanHorizontalIBJ,
@@ -177,7 +177,7 @@ kraid_acidworm_area = {
         "Kraid Zipline Activator": None
     }
 
-# past acid worm skip
+# past the long acid pool
 kraid_left_shaft = {
         "Kraid Behind Giant Hoppers": CanEnterHighMorphTunnel,
         "Kraid Quad Ball Cannon Room": all(
@@ -203,9 +203,6 @@ kraid_left_shaft = {
         )
     }
 
-# req either unknown 2 or norfair backdoor
-# 3 locations: Unknown 2 + Speed + Kraid + Acid Fall
-# Connects back to Kraid main and Norfair
 kraid_bottom = {
         "Kraid Speed Booster": any(
             KraidBoss,
@@ -278,7 +275,7 @@ norfair_upper_right = {
                 AdvancedLogic
             )
         ),
-        "Norfair Heated Room above Ice Beam": any(
+        "Norfair Heated Room Above Ice Beam": any(
             VariaSuit,
             Hellrun(1)
         )
@@ -461,9 +458,7 @@ ridley_main = {
 ridley_left_shaft = {
         "Ridley West Pillar": None,
         "Ridley Fake Floor": None,
-        "Ridley Long Hall": None
     }
-
 
 ridley_sw_puzzle = {
         "Ridley Southwest Puzzle Top": all(
@@ -512,6 +507,7 @@ ridley_sw_puzzle = {
     }
 
 ridley_right_shaft = {
+        "Ridley Long Hall": None,
         "Ridley Northeast Corner": any(
             CanFly,
             all(
@@ -736,7 +732,7 @@ chozodia_ruins_test = {
             SpeedBooster,
             GravitySuit
         ),
-        "Chozodia Lava Dive": all(  # TODO split this lavadive into regular/advanced? current values are close to bare minimum
+        "Chozodia Lava Dive": all(
             ChozoGhostBoss,
             any(
                 GravitySuit,
@@ -761,7 +757,7 @@ chozodia_ruins_test = {
                 )
             )
         ),
-        "Chozo Ghost": None  # Regional access requirements should cover what is needed
+        "Chozo Ghost": None
     }
 
 chozodia_under_tube = {
