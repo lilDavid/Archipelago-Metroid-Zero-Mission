@@ -7,11 +7,12 @@ from BaseClasses import Item, ItemClassification, Tutorial
 import settings
 from worlds.AutoWorld import WebWorld, World
 
+from . import rom_data
 from .client import MZMClient
 from .data import data_path
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, mzm_location_name_groups
-from .options import MZMOptions, MorphBallPlacement, mzm_option_groups
+from .options import LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups
 from .regions import create_regions_and_connections
 from .rom import MZMProcedurePatch, write_tokens
 from .rules import set_rules
@@ -71,9 +72,15 @@ class MZMWorld(World):
     location_name_groups = mzm_location_name_groups
 
     junk_fill: List[str]
+    enabled_layout_patches: List[str] = []
 
     def generate_early(self):
         self.junk_fill = list(Counter(self.options.junk_fill_weights).elements())
+
+        if self.options.layout_patches.value == LayoutPatches.option_true:
+            self.enabled_layout_patches = rom_data.layout_patches
+        elif self.options.layout_patches.value == LayoutPatches.option_choice:
+            self.enabled_layout_patches = list(self.options.selected_patches.value)
 
         # Only this player should have effectively empty locations if they so choose.
         self.options.local_items.value.add("Nothing")
@@ -126,8 +133,8 @@ class MZMWorld(World):
         write_tokens(self, patch)
         if not self.options.unknown_items_always_usable:
             patch.add_vanilla_unknown_item_sprites()
-        if self.options.layout_patches:
-            patch.add_layout_patches()
+        if self.options.layout_patches.value:
+            patch.add_layout_patches(self.enabled_layout_patches)
 
         output_filename = self.multiworld.get_out_file_name_base(self.player)
         patch.write(output_path / f"{output_filename}{patch.patch_file_ending}")
@@ -138,6 +145,7 @@ class MZMWorld(World):
             "game_difficulty": self.options.game_difficulty.value,
             "unknown_items": self.options.unknown_items_always_usable.value,
             "layout_patches": self.options.layout_patches.value,
+            "selected_layout_patches": self.enabled_layout_patches,
             "logic_difficulty": self.options.logic_difficulty.value,
             "ibj_logic": self.options.ibj_in_logic.value,
             "heatruns": self.options.heatruns_lavadives.value,

@@ -6,9 +6,11 @@ from schema import And, Schema
 from dataclasses import dataclass
 
 from Options import (
-    Choice, DeathLink, DefaultOnToggle, OptionDict, OptionGroup, StartInventoryPool, Toggle,
+    Choice, DeathLink, DefaultOnToggle, OptionDict, OptionGroup, OptionSet, StartInventoryPool, Toggle,
     PerGameCommonOptions, Visibility
 )
+
+from . import rom_data
 
 
 class Goal(Choice):
@@ -135,13 +137,24 @@ class TrickyShinesparks(Toggle):
     display_name = "Tricky Shinesparks"
 
 
-class LayoutPatches(DefaultOnToggle):
+class LayoutPatches(Choice):
     """
     Slightly modify the layout of some rooms to reduce softlocks.
     NOTE: You can warp to the starting room from any save station or Samus' ship by holding L+R while selecting "No"
     when asked to save.
     """
     display_name = "Layout Patches"
+    option_false = 0
+    option_true = 1
+    option_choice = 2
+
+
+class SelectedPatches(OptionSet):
+    """
+    If Layout Patches is set to Choice, list of layout patches to apply.
+    """
+    display_name = "Selected Layout Patches"
+    valid_keys = rom_data.layout_patches
 
 
 class MorphBallPlacement(Choice):
@@ -214,6 +227,7 @@ mzm_option_groups = [
         SkipChozodiaStealth,
         UnknownItemsAlwaysUsable,
         LayoutPatches,
+        SelectedPatches,
         MorphBallPlacement,  # TODO: Shuffle settings group?
         StartWithMaps,
     ]),
@@ -244,6 +258,7 @@ class MZMOptions(PerGameCommonOptions):
     skip_chozodia_stealth: SkipChozodiaStealth
     unknown_items_always_usable: UnknownItemsAlwaysUsable
     layout_patches: LayoutPatches
+    selected_patches: SelectedPatches
     morph_ball: MorphBallPlacement
     start_with_maps: StartWithMaps
     logic_difficulty: LogicDifficulty

@@ -15,7 +15,7 @@ from . import rom_data
 from .data import get_rom_address, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
-from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
+from .options import ChozodiaAccess, DisplayNonLocalItems, Goal, LayoutPatches
 from .text import TERMINATOR_CHAR, Message
 
 if TYPE_CHECKING:
@@ -76,8 +76,8 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     def add_vanilla_unknown_item_sprites(self):
         self.procedure.append(("add_unknown_item_graphics", []))
 
-    def add_layout_patches(self):
-        self.procedure.append(("apply_layout_patches", [list(rom_data.expansion_required_patches)]))
+    def add_layout_patches(self, selected_patches: Sequence[str]):
+        self.procedure.append(("apply_layout_patches", [selected_patches]))
 
 
 def get_base_rom_path(file_name: str = "") -> Path:
