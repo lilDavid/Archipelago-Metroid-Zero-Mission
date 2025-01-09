@@ -129,7 +129,7 @@ brinstar_top = {
     }
 
 brinstar_pasthives = {
-        "Brinstar Post-Hive In Wall": None,
+        "Brinstar Post-Hive in Wall": None,
         "Brinstar Behind Bombs": all(
             Missiles,
             CanBombTunnelBlock,
@@ -832,7 +832,7 @@ chozodia_mothership = {
                 MissileCount(6)
             )
         ),
-        "Chozodia Southeast Corner In Hull": PowerBombs
+        "Chozodia Southeast Corner in Hull": PowerBombs
     }
 
 chozodia_pb_area = {
