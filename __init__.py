@@ -88,6 +88,7 @@ class MZMWorld(World):
     def create_regions(self) -> None:
         create_regions_and_connections(self)
 
+        self.place_event("Ziplines Activated", "Kraid Zipline Activator")
         self.place_event("Kraid Defeated", "Kraid")
         self.place_event("Ridley Defeated", "Ridley")
         self.place_event("Mother Brain Defeated", "Mother Brain")

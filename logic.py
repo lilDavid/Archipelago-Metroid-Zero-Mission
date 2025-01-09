@@ -52,6 +52,7 @@ def any(*args: Requirement):
     return Requirement(lambda world, state: builtins.any(req.rule(world, state) for req in args))
 
 
+Ziplines = Requirement.item("Ziplines Activated")
 KraidBoss = Requirement.item("Kraid Defeated")
 RidleyBoss = Requirement.item("Ridley Defeated")
 MotherBrainBoss = Requirement.item("Mother Brain Defeated")
@@ -203,8 +204,7 @@ CanEnterMediumMorphTunnel = any(
         HiJump
     )
 )
-# Kraid ziplines
-Ziplines = CanReachEntrance("Kraid Main -> Acid Worm Area")
+
 ChozodiaCombat = all(
     any(
         IceBeam,
@@ -386,6 +386,7 @@ def norfair_upper_right_shaft():
 
 def norfair_behind_ice_beam():
     return all(
+        CanReachLocation("Norfair Ice Beam"),
         any(
             CanLongBeam,
             WaveBeam
@@ -422,6 +423,7 @@ def norfair_behind_ice_to_bottom():
             )
         ),
         any(
+            CanIBJ,
             all(
                 AdvancedLogic,
                 PowerBombs,
@@ -511,6 +513,7 @@ def lower_norfair_to_screwattack():
     )
 
 
+# This is necessary if your only way to the Screw Attack region is the ballcannon near the Ridley elevator
 def screw_to_lower_norfair():
     return any(
         MissileCount(4),
@@ -575,6 +578,23 @@ def lower_norfair_to_bottom_norfair():
             CanTrickySparks
         ),
         CanEnterMediumMorphTunnel
+    )
+
+
+def bottom_norfair_to_lower_shaft():
+    return any(
+        all(
+            Missiles,
+            CanFlyWall,
+            any(
+                PowerGrip,
+                CanIBJ
+            )
+        ),
+        all(
+            SpeedBooster,
+            AdvancedLogic
+        ),
     )
 
 
@@ -648,18 +668,7 @@ def ridley_main_to_right_shaft():
 def ridley_left_shaft_to_sw_puzzle():
     return all(
         SpeedBooster,
-        any(
-            PowerGrip,
-            SpaceJump
-        ),
-        any(
-            PowerGrip,
-            PowerBombs,
-            all(
-                LongBeam,
-                WaveBeam
-            )
-        )
+        CanVerticalWall
     )
 
 
@@ -744,6 +753,7 @@ def crateria_upper_to_chozo_ruins():
             Requirement.setting_is("chozodia_access", 0)
         )
     )
+
 
 # Ruins to Chozo Ghost, the three items in that general area, and the lava dive item
 def chozo_ruins_to_ruins_test():

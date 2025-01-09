@@ -74,7 +74,7 @@ brinstar_main = {
             CanBombTunnelBlock,
             CanVerticalWall,
         ),
-        "Brinstar Worm drop": all(
+        "Brinstar Worm Drop": all(
             MorphBall,
             Missiles
         ),
@@ -110,7 +110,7 @@ brinstar_top = {
             ),
             CanBombTunnelBlock
         ),
-        "Brinstar Acid near Varia": all(
+        "Brinstar Acid Near Varia": all(
             any(
                 SpaceJump,
                 CanHorizontalIBJ,
@@ -122,19 +122,20 @@ brinstar_top = {
             any(
                 VariaSuit,
                 GravitySuit,
-                Hellrun(2),
+                Hellrun(1),
             )
         ),
         "Brinstar Upper Pillar": None
     }
 
 brinstar_pasthives = {
-        "Brinstar Post-Hive In Wall": None,
+        "Brinstar Post-Hive in Wall": None,
         "Brinstar Behind Bombs": all(
+            Missiles,
             CanBombTunnelBlock,
             CanBallJump
         ),
-        "Brinstar Bomb": None,
+        "Brinstar Bomb": Missiles,
         "Brinstar Post-Hive Pillar": None
     }
 
@@ -172,10 +173,11 @@ kraid_acidworm_area = {
             CanSingleBombBlock,
             CanVerticalWall
         ),
-        "Kraid Zipline Activator Room": None
+        "Kraid Zipline Activator Room": None,
+        "Kraid Zipline Activator": None
     }
 
-# past acid worm skip
+# past the long acid pool
 kraid_left_shaft = {
         "Kraid Behind Giant Hoppers": CanEnterHighMorphTunnel,
         "Kraid Quad Ball Cannon Room": all(
@@ -201,9 +203,6 @@ kraid_left_shaft = {
         )
     }
 
-# req either unknown 2 or norfair backdoor
-# 3 locations: Unknown 2 + Speed + Kraid + Acid Fall
-# Connects back to Kraid main and Norfair
 kraid_bottom = {
         "Kraid Speed Booster": any(
             KraidBoss,
@@ -268,8 +267,15 @@ norfair_right_shaft = {
     }
 
 norfair_upper_right = {
-        "Norfair Ice Beam": None,
-        "Norfair Heated Room above Ice Beam": any(
+        "Norfair Ice Beam": any(
+            CanFlyWall,
+            PowerGrip,
+            all(
+                HiJump,
+                AdvancedLogic
+            )
+        ),
+        "Norfair Heated Room Above Ice Beam": any(
             VariaSuit,
             Hellrun(1)
         )
@@ -284,8 +290,11 @@ norfair_lowerrightshaft = {
             any(
                 Bomb,
                 all(
-                    SpaceJump,
-                    PowerBombs
+                    PowerBombs,
+                    any(
+                        SpaceJump,
+                        AdvancedLogic  # Placing a PB in a specific place by the door hits only the top bomb chain
+                    )
                 )
             ),
             CanReachLocation("Norfair Heated Room Under Brinstar Elevator")
@@ -306,7 +315,10 @@ norfair_lowerrightshaft = {
             CanEnterHighMorphTunnel,
             any(
                 HiJump,
-                CanWallJump
+                all(
+                    CanWallJump,
+                    AdvancedLogic
+                )
             )
         )
     }
@@ -407,12 +419,25 @@ norfair_behind_superdoor = {
 
 norfair_bottom = {
         "Norfair Larva Ceiling": CanReachEntrance("Lower Norfair -> Bottom"),
-        "Norfair Right Shaft Bottom": all(
-            any(
-                CanVerticalWall,
-                IceBeam
+        "Norfair Right Shaft Bottom": any(
+            # going from the right "stairs"
+            all(
+                any(
+                    CanVerticalWall,
+                    IceBeam
+                ),
+                CanBallJump
             ),
-            CanBallJump
+            # using the shot blocks to the left
+            all(
+                # AdvancedLogic,  # placing in advance of logic difficulty rework, as this method is not obvious
+                Missiles,
+                any(
+                    CanFlyWall,
+                    IceBeam
+                ),
+                PowerGrip
+            )
         )
     }
 
@@ -433,11 +458,11 @@ ridley_main = {
 ridley_left_shaft = {
         "Ridley West Pillar": None,
         "Ridley Fake Floor": None,
-        "Ridley Long Hall": None
     }
 
 ridley_sw_puzzle = {
         "Ridley Southwest Puzzle Top": all(
+            CanReachLocation("Ridley Southwest Puzzle Bottom"),
             MissileCount(5),
             any(
                 CanWallJump,
@@ -445,10 +470,44 @@ ridley_sw_puzzle = {
                 SpaceJump
             )
         ),
-        "Ridley Southwest Puzzle Bottom": None
+        "Ridley Southwest Puzzle Bottom": all(
+            SpeedBooster,
+            MorphBall,
+            any(
+                CanIBJ,
+                all(
+                    PowerGrip,
+                    any(
+                        HiJump,
+                        SpaceJump,
+                        CanWallJump
+                    )
+                )
+            ),
+            Missiles,
+            any(
+                PowerGrip,
+                all(
+                    AdvancedLogic,
+                    any(
+                        SpaceJump,
+                        CanWallJump
+                    )
+                )
+            ),
+            any(
+                PowerGrip,
+                PowerBombs,
+                all(
+                    LongBeam,
+                    WaveBeam
+                )
+            )
+        )
     }
 
 ridley_right_shaft = {
+        "Ridley Long Hall": None,
         "Ridley Northeast Corner": any(
             CanFly,
             all(
@@ -673,7 +732,7 @@ chozodia_ruins_test = {
             SpeedBooster,
             GravitySuit
         ),
-        "Chozodia Lava Dive": all(  # TODO split this lavadive into regular/advanced? current values are close to bare minimum
+        "Chozodia Lava Dive": all(
             ChozoGhostBoss,
             any(
                 GravitySuit,
@@ -698,7 +757,7 @@ chozodia_ruins_test = {
                 )
             )
         ),
-        "Chozo Ghost": None  # Regional access requirements should cover what is needed
+        "Chozo Ghost": None
     }
 
 chozodia_under_tube = {
@@ -773,7 +832,7 @@ chozodia_mothership = {
                 MissileCount(6)
             )
         ),
-        "Chozodia Southeast Corner In Hull": PowerBombs
+        "Chozodia Southeast Corner in Hull": PowerBombs
     }
 
 chozodia_pb_area = {
