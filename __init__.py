@@ -72,7 +72,7 @@ class MZMWorld(World):
     location_name_groups = mzm_location_name_groups
 
     junk_fill: List[str]
-    enabled_layout_patches: List[str] = []
+    enabled_layout_patches: List[str]
 
     def generate_early(self):
         self.junk_fill = list(Counter(self.options.junk_fill_weights).elements())
@@ -81,6 +81,8 @@ class MZMWorld(World):
             self.enabled_layout_patches = rom_data.layout_patches
         elif self.options.layout_patches.value == LayoutPatches.option_choice:
             self.enabled_layout_patches = list(self.options.selected_patches.value)
+        else:
+            self.enabled_layout_patches = []
 
         # Only this player should have effectively empty locations if they so choose.
         self.options.local_items.value.add("Nothing")
