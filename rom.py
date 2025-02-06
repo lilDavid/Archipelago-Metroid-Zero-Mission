@@ -3,6 +3,8 @@ Classes and functions related to creating a ROM patch
 """
 from __future__ import annotations
 
+import hashlib
+import logging
 from pathlib import Path
 import struct
 from typing import TYPE_CHECKING, Sequence
@@ -15,7 +17,7 @@ from . import rom_data
 from .data import get_rom_address, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
-from .options import ChozodiaAccess, DisplayNonLocalItems, Goal, LayoutPatches
+from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
 from .text import TERMINATOR_CHAR, Message
 
 if TYPE_CHECKING:
@@ -23,6 +25,7 @@ if TYPE_CHECKING:
 
 
 MD5_MZMUS = "ebbce58109988b6da61ebb06c7a432d5"
+MD5_MZMUS_VC = "e23c14997c2ea4f11e5996908e577125"
 
 
 class MZMPatchExtensions(APPatchExtension):
@@ -34,6 +37,18 @@ class MZMPatchExtensions(APPatchExtension):
             raise InvalidDataError("Memory addresses don't match. This patch was generated with a "
                                    "different version of the apworld.")
         return rom
+
+    @staticmethod
+    def support_vc(caller: APProcedurePatch, rom: bytes):
+        hasher = hashlib.md5()
+        hasher.update(rom)
+        if hasher.hexdigest() == MD5_MZMUS:
+            return rom
+
+        logging.warning("You appear to be using a Virtual Console ROM. "
+                        "This is not officially supported and may cause bugs.")
+        entry_point = (0xEA00002E).to_bytes(4, 'little')  # b 0x80000C0
+        return entry_point + rom[4:]
 
     @staticmethod
     def add_decompressed_graphics(caller: APProcedurePatch, rom: bytes):
@@ -62,6 +77,7 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
         super(MZMProcedurePatch, self).__init__(*args, **kwargs)
         self.procedure = [
             ("check_symbol_hash", [symbols_hash]),
+            ("support_vc", []),
             ("apply_bsdiff4", ["basepatch.bsdiff"]),
             ("apply_tokens", ["token_data.bin"]),
             ("add_decompressed_graphics", []),

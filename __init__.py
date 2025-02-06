@@ -14,7 +14,7 @@ from .items import item_data_table, major_item_data_table, mzm_item_name_groups,
 from .locations import full_location_table, mzm_location_name_groups
 from .options import LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups
 from .regions import create_regions_and_connections
-from .rom import MZMProcedurePatch, write_tokens
+from .rom import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_tokens
 from .rules import set_rules
 
 
@@ -23,7 +23,7 @@ class MZMSettings(settings.Group):
         """File name of the Metroid: Zero Mission ROM."""
         description = "Metroid: Zero Mission (U) ROM file"
         copy_to = "Metroid - Zero Mission (USA).gba"
-        md5s = [MZMProcedurePatch.hash]
+        md5s = [MD5_MZMUS, MD5_MZMUS_VC]
 
     class RomStart(str):
         """
