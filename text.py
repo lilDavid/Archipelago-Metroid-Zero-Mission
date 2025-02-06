@@ -173,7 +173,7 @@ class Message:
             next_width = total_width + get_width_of_encoded_character(char)
             if next_width > max_width:
                 break
-            buffer += char
+            buffer.append(char)
             total_width = next_width
         if self.buffer[-1] == TERMINATOR_CHAR and buffer[-1] != TERMINATOR_CHAR:
             buffer.append(TERMINATOR_CHAR)

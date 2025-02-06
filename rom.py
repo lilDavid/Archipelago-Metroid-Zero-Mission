@@ -179,13 +179,14 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         for name in (player_name, item_name):
             if name not in names:
                 names[name] = next_name_address | 0x8000000
-                terminated = name + TERMINATOR_CHAR
+                name.append(TERMINATOR_CHAR)
+                name_bytes = name.to_bytes()
                 patch.write_token(
                     APTokenTypes.WRITE,
                     next_name_address,
-                    terminated
+                    name_bytes
                 )
-                next_name_address += len(terminated)
+                next_name_address += len(name_bytes)
 
         location_id = location.address - AP_MZM_ID_BASE
         placement = names[player_name], names[item_name], item_id
