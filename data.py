@@ -37,8 +37,11 @@ def get_symbol(symbol: str, offset: int = 0) -> int:
     return symbols[symbol] + offset
 
 
-def get_rom_address(name: str, offset=0):
-    address = get_symbol(name, offset)
+def get_rom_address(ptr: str | int, offset=0):
+    if isinstance(ptr, str):
+        address = get_symbol(ptr, offset)
+    else:
+        address = ptr + offset
     if not address & 0x8000000:
-        raise ValueError(f"{name}+{offset} is not in ROM (address: {address:07x})")
+        raise ValueError(f"{ptr}+{offset} is not in ROM (address: {address:07x})")
     return address & 0x8000000 - 1
