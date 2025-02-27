@@ -14,7 +14,7 @@ import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
 
 from . import rom_data
-from .data import get_rom_address, symbols_hash
+from .data import APWORLD_VERSION, get_rom_address, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
@@ -240,9 +240,10 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         )
 
     # Write new intro text
+    world_version = f" / APworld {APWORLD_VERSION}" if APWORLD_VERSION is not None else ""
     intro_text = (f"AP {multiworld.seed_name}\n"
                   f"P{player} - {world.player_name}\n"
-                  f"Version {Utils.version_tuple.as_simple_string()}\n"
+                  f"Version {Utils.version_tuple.as_simple_string()}{world_version}\n"
                   "\n"
                   f"YOUR MISSION: {goal_texts[world.options.goal.value]}")
     encoded_intro = Message(intro_text).append(TERMINATOR_CHAR)

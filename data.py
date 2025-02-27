@@ -45,3 +45,6 @@ def get_rom_address(ptr: str | int, offset=0):
     if not address & 0x8000000:
         raise ValueError(f"{ptr}+{offset} is not in ROM (address: {address:07x})")
     return address & 0x8000000 - 1
+
+
+APWORLD_VERSION: str | None = None
