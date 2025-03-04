@@ -75,6 +75,11 @@ class StartWithMaps(DefaultOnToggle):
     display_name = "Start with Maps"
 
 
+class BuffPowerBombDrops(Toggle):
+    """Make Power Bombs drop from enemies twice as often and give 2 units of ammo."""
+    display_name = "Buff Power Bomb Drops"
+
+
 class LogicDifficulty(Choice):
     """
     Determines the general difficulty of the game's logic. On advanced difficulty, more niche techniques and game
@@ -230,6 +235,7 @@ mzm_option_groups = [
         SelectedPatches,
         MorphBallPlacement,  # TODO: Shuffle settings group?
         StartWithMaps,
+        BuffPowerBombDrops,
     ]),
     OptionGroup("Logic", [
         LogicDifficulty,
@@ -261,6 +267,7 @@ class MZMOptions(PerGameCommonOptions):
     selected_patches: SelectedPatches
     morph_ball: MorphBallPlacement
     start_with_maps: StartWithMaps
+    buff_pb_drops: BuffPowerBombDrops
     logic_difficulty: LogicDifficulty
     ibj_in_logic: IBJInLogic
     heatruns_lavadives: HeatRunsAndLavaDives
