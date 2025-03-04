@@ -116,10 +116,10 @@ class MZMWorld(World):
             if self.options.morph_ball == MorphBallPlacement.option_early and name == "Morph Ball":
                 continue
             item_pool.append(self.create_item(name))
-        item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks
-        item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # First 40/250 missiles
-        item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3))  # First 6/30 supers
-        item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 2))  # First 4/18 power bombs
+        item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks progression
+        item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # 40 progression missiles out of 250
+        item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3, 5))  # 6 progression + 10 useful supers out of 30
+        item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 2, 3))  # 4 progression + 6 useful power bombs out of 18
 
         while len(item_pool) < item_pool_size:
             item_pool.append(self.create_filler())
@@ -175,12 +175,17 @@ class MZMWorld(World):
     def create_filler(self) -> Item:
         return self.create_item(self.get_filler_item_name(), ItemClassification.filler)
 
-    def create_tanks(self, item_name: str, count: int, progression_count: Optional[int] = None):
+    def create_tanks(self, item_name: str, count: int,
+                     progression_count: Optional[int] = None, useful_count: Optional[int] = None):
         if progression_count is None:
             progression_count = count
+        if useful_count is None:
+            useful_count = 0
         for _ in range(progression_count):
             yield self.create_item(item_name)
-        for _ in range(count - progression_count):
+        for _ in range(useful_count):
+            yield self.create_item(item_name, ItemClassification.useful)
+        for _ in range(count - progression_count - useful_count):
             yield self.create_item(item_name, ItemClassification.filler)
 
     def place_event(self, name: str, location_name: Optional[str] = None):
