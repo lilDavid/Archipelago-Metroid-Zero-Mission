@@ -13,6 +13,9 @@ from Options import (
 from . import rom_data
 
 
+PIXEL_SIZE = 4
+
+
 class Goal(Choice):
     """
     What you will be required to do to beat the game.
@@ -197,6 +200,20 @@ class DisplayNonLocalItems(Choice):
     default = option_match_series
 
 
+class ElevatorSpeed(Choice):
+    """
+    Speed up elevators.
+
+    Fast: Double the vanilla speed
+    Way Too Fast: Triple the vanilla speed
+    """
+    display_name = "Elevator Speed"
+    option_vanilla = PIXEL_SIZE * 2
+    option_fast = option_vanilla * 2
+    option_way_too_fast = option_vanilla * 3
+    default = option_fast
+
+
 class JunkFillWeights(OptionDict):
     """
     Specify the distribution of extra capacity expansions that should be used to fill vacancies in the pool.
@@ -245,6 +262,7 @@ mzm_option_groups = [
         TrickyShinesparks
     ]),
     OptionGroup("Cosmetic", [
+        ElevatorSpeed,
         FastItemBanners,
         DisplayNonLocalItems,
     ]),
@@ -273,6 +291,7 @@ class MZMOptions(PerGameCommonOptions):
     heatruns_lavadives: HeatRunsAndLavaDives
     walljumps_in_logic: WalljumpsInLogic
     tricky_shinesparks: TrickyShinesparks
+    elevator_speed: ElevatorSpeed
     fast_item_banners: FastItemBanners
     display_nonlocal_items: DisplayNonLocalItems
     start_inventory_from_pool: StartInventoryPool
