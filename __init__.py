@@ -99,7 +99,10 @@ class MZMWorld(World):
         self.place_event("Mission Accomplished!", "Chozodia Space Pirate's Ship")
 
         if self.options.morph_ball == MorphBallPlacement.option_early:
-            self.get_location("Brinstar Morph Ball").place_locked_item(self.create_item("Morph Ball"))
+            if "Morph Ball" in self.options.start_inventory_from_pool:
+                self.options.morph_ball = MorphBallPlacement(MorphBallPlacement.option_normal)
+            else:
+                self.get_location("Brinstar Morph Ball").place_locked_item(self.create_item("Morph Ball"))
 
 
     def create_items(self) -> None:
