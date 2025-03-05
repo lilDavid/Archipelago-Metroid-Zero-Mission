@@ -28,15 +28,16 @@ class Goal(Choice):
     default = option_bosses
 
 
-# TODO: Update rules for Hard mode logic
+# TODO: test Hard mode logic more
 class GameDifficulty(Choice):
     """
-    Which difficulty you will play on.
-    Normal: Easy and Normal will be available, and hard will not.
+    Which in-game difficulty you will play on.
+    Normal: Easy and Normal will be available, and Hard will not.
     Hard: Hard will be the only available difficulty.
     Either: All difficulty options will be available.
     Hard has a small effect on logic due to enemy placements. If Either is selected, logic will not require any tricks
-    that can't be done on all three difficulties.
+    that can't be done on all three difficulties. Either also forces logic to assume Hard Mode tank amounts, which may
+    slightly influence item placements.
     """
     display_name = "Game Difficulty"
     option_normal = 1
@@ -85,17 +86,37 @@ class BuffPowerBombDrops(Toggle):
 
 class LogicDifficulty(Choice):
     """
-    Determines the general difficulty of the game's logic. On advanced difficulty, more niche techniques and game
-    knowledge may be required to collect items or progress, and you may be required to complete areas or bosses
-    with the minimum required resources. Examples of "tricks" this may put in logic include entering invisible tunnels,
-    jump extends, and Acid Worm skip.
+    Determines the difficulty of room traversal and game knowledge required by the game's logic.
+    Simple: For beginners to Zero Mission randomizer. Should be comfortable to anyone who has beaten the game. Includes
+    mostly routes similar to vanilla or otherwise intuitive to players that have not sequence broken the game.
+    Normal: For players with more familiarity with the game. Should be comfortable to anyone who has sequence broken or
+    skipped items. Includes developer-intended sequence breaks, unintuitive paths, and some tricks.
+    Advanced: For experts who want all their skills challenged. Should be comfortable to MZM Randomizer veterans and
+    speedrunners. Includes all tricks, very difficult shinespark chains, crumble jumps, Acid Worm Skip, etc.
 
-    Other specific tricks (such as difficult Shinesparks and horizontal IBJ) have individual difficulty settings that
-    this does not affect.
+    This setting does not affect the difficulty of non-suited runs through heated rooms or acid/lava.
+    Specific tricks can be included or excluded in other options.
     """
     display_name = "Logic Difficulty"
-    option_normal = 0
-    option_advanced = 1
+    option_simple = 0
+    option_normal = 1
+    option_advanced = 2
+
+
+class CombatLogicDifficulty(Choice):
+    """
+    Determines the difficulty of combat required by the game's logic.
+    Relaxed: Requires the player have an ample amount of resources to defeat bosses and traverse areas. Should be
+    comfortable to anyone who has beaten the game. Bosses will not be a problem.
+    Normal: Requires the player have enough resources to defeat bosses and traverse areas with some wiggle room.
+    Bosses may be somewhat challenging.
+    Minimal: Requires only the minimum amount of resources to complete the game. You may have to fight bosses like in
+    a low% run or find progression items deep in late-game areas with low energy.
+    """
+    display_name = "Combat Logic Difficulty"
+    option_relaxed = 0
+    option_normal = 1
+    option_minimal = 2
 
 
 class IBJInLogic(Choice):
@@ -112,8 +133,8 @@ class IBJInLogic(Choice):
     option_horizontal_and_vertical = 2
 
 
-# TODO: split into none/simple/advanced
-class HeatRunsAndLavaDives(Toggle):
+# TODO: split into none/comfortable/minimal
+class HazardRuns(Toggle):
     """
     Allows for traversing heated rooms and acid/lava dives without the appropriate suit(s) in logic.
 
@@ -121,7 +142,7 @@ class HeatRunsAndLavaDives(Toggle):
     run. When disabled, you will not be required to endure any environmental damage before receiving the appropriate
     mitigating suit.
     """
-    display_name = "Heat Runs/Lava Dives"
+    display_name = "Hazard Runs"
 
 
 class WalljumpsInLogic(DefaultOnToggle):
@@ -134,6 +155,7 @@ class WalljumpsInLogic(DefaultOnToggle):
     display_name = "Wall Jumps In Logic"
 
 
+# TODO: turn into a general trick include/exclude option
 class TrickyShinesparks(Toggle):
     """
     If enabled, logic will include long, difficult, and/or unintuitive Shinesparks as valid methods of collecting
@@ -155,6 +177,7 @@ class LayoutPatches(Choice):
     option_false = 0
     option_true = 1
     option_choice = 2
+    default = option_true
 
 
 class SelectedPatches(OptionSet):
@@ -256,8 +279,9 @@ mzm_option_groups = [
     ]),
     OptionGroup("Logic", [
         LogicDifficulty,
+        CombatLogicDifficulty,
         IBJInLogic,
-        HeatRunsAndLavaDives,
+        HazardRuns,
         WalljumpsInLogic,
         TrickyShinesparks
     ]),
@@ -287,8 +311,9 @@ class MZMOptions(PerGameCommonOptions):
     start_with_maps: StartWithMaps
     buff_pb_drops: BuffPowerBombDrops
     logic_difficulty: LogicDifficulty
+    combat_logic_difficulty: CombatLogicDifficulty
     ibj_in_logic: IBJInLogic
-    heatruns_lavadives: HeatRunsAndLavaDives
+    hazard_runs: HazardRuns
     walljumps_in_logic: WalljumpsInLogic
     tricky_shinesparks: TrickyShinesparks
     elevator_speed: ElevatorSpeed

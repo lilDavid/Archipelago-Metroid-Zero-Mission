@@ -85,7 +85,7 @@ tank_data_table = {
 
 major_item_data_table = {
     "Long Beam": ItemData(ItemID.LongBeam, progression, ItemType.beam, 0x1),
-    "Charge Beam": ItemData(ItemID.ChargeBeam, useful, ItemType.beam, 0x10),
+    "Charge Beam": ItemData(ItemID.ChargeBeam, progression, ItemType.beam, 0x10),
     "Ice Beam": ItemData(ItemID.IceBeam, progression, ItemType.beam, 0x2),
     "Wave Beam": ItemData(ItemID.WaveBeam, progression, ItemType.beam, 0x4),
     "Plasma Beam": ItemData(ItemID.PlasmaBeam, progression, ItemType.beam, 0x8),

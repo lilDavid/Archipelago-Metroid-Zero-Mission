@@ -12,7 +12,7 @@ from .client import MZMClient
 from .data import data_path
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, mzm_location_name_groups
-from .options import LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups
+from .options import LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty
 from .regions import create_regions_and_connections
 from .rom import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_tokens
 from .rules import set_rules
@@ -116,10 +116,20 @@ class MZMWorld(World):
             if self.options.morph_ball == MorphBallPlacement.option_early and name == "Morph Ball":
                 continue
             item_pool.append(self.create_item(name))
+
+        # TODO: factor in hazard runs when determining etank progression count
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks progression
-        item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # 40 progression missiles out of 250
-        item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3, 5))  # 6 progression + 10 useful supers out of 30
+        # Set only the minimum required ammo to satisfy combat/traversal logic as Progression
         item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 2, 3))  # 4 progression + 6 useful power bombs out of 18
+        if self.options.combat_logic_difficulty == CombatLogicDifficulty.option_relaxed:
+            item_pool.extend(self.create_tanks("Missile Tank", 50, 10))  # 50 progression missiles out of 250
+            item_pool.extend(self.create_tanks("Super Missile Tank", 15, 4, 5))  # 8 progression + 10 useful supers out of 30
+        elif self.options.combat_logic_difficulty == CombatLogicDifficulty.option_normal:
+            item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # 40 progression missiles out of 250
+            item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3, 5))  # 6 progression + 10 useful supers out of 30
+        elif self.options.combat_logic_difficulty == CombatLogicDifficulty.option_minimal:
+            item_pool.extend(self.create_tanks("Missile Tank", 50, 3))  # 15 progression missiles out of 250
+            item_pool.extend(self.create_tanks("Super Missile Tank", 15, 1, 3))  # 1 progression + 6 useful supers out of 30
 
         while len(item_pool) < item_pool_size:
             item_pool.append(self.create_filler())
@@ -153,8 +163,9 @@ class MZMWorld(World):
             "layout_patches": self.options.layout_patches.value,
             "selected_layout_patches": self.enabled_layout_patches,
             "logic_difficulty": self.options.logic_difficulty.value,
+            "combat_logic_difficulty": self.options.combat_logic_difficulty,
             "ibj_logic": self.options.ibj_in_logic.value,
-            "heatruns": self.options.heatruns_lavadives.value,
+            "hazard_runs": self.options.hazard_runs.value,
             "walljump_logic": self.options.walljumps_in_logic.value,
             "tricky_shinesparks": self.options.tricky_shinesparks.value,
             "death_link": self.options.death_link.value,
