@@ -163,7 +163,7 @@ class MZMWorld(World):
             "layout_patches": self.options.layout_patches.value,
             "selected_layout_patches": self.enabled_layout_patches,
             "logic_difficulty": self.options.logic_difficulty.value,
-            "combat_logic_difficulty": self.options.combat_logic_difficulty,
+            "combat_logic_difficulty": self.options.combat_logic_difficulty.value,
             "ibj_logic": self.options.ibj_in_logic.value,
             "hazard_runs": self.options.hazard_runs.value,
             "walljump_logic": self.options.walljumps_in_logic.value,
