@@ -108,14 +108,28 @@ Missiles = any(
 )
 MissileCount = lambda n: Requirement(
     lambda world, state:
-        5 * state.count("Missile Tank", world.player) + 2 * state.count("Super Missile Tank", world.player) >= n if NormalMode
-        else 2 * state.count("Missile Tank", world.player) + 1 * state.count("Super Missile Tank", world.player) >= n
+        5 * state.count("Missile Tank", world.player) +
+        2 * state.count("Super Missile Tank", world.player) >= n if world.options.game_difficulty == 1
+        else 2 * state.count("Missile Tank", world.player) + state.count("Super Missile Tank", world.player) >= n
 )
 SuperMissiles = SuperMissileTanks(1)
-SuperMissileCount = lambda n: SuperMissileTanks(n // 2) if NormalMode else SuperMissileTanks(n)  # TODO: check Hard
+SuperMissileCount = lambda n: Requirement(
+    lambda world, state:
+        2 * state.count("Super Missile Tank", world.player) >= n if world.options.game_difficulty == 1
+        else state.count("Super Missile Tank", world.player) >= n
+)
 PowerBombs = PowerBombTanks(1)
-PowerBombCount = lambda n: PowerBombTanks(n // 2) if NormalMode else PowerBombTanks(n)  # TODO: check Hard
-Energy = lambda n: EnergyTanks(n // 100) if NormalMode else EnergyTanks((n // 50) - 1)
+PowerBombCount = lambda n: Requirement(
+    lambda world, state:
+        2 * state.count("Power Bomb Tank", world.player) >= n if world.options.game_difficulty == 1
+        else state.count("Power Bomb Tank", world.player) >= n
+)
+Energy = lambda n: Requirement(
+    lambda world, state:
+        100 * state.count("Energy Tank", world.player) + 99 >= n if world.options.game_difficulty == 1
+        else 50 * state.count("Energy Tank", world.player) + 99 >= n
+)
+
 
 # Various morph/bomb rules
 CanRegularBomb = all(
