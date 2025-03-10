@@ -117,13 +117,24 @@ brinstar_top = {
             any(
                 CanHorizontalIBJ,
                 PowerGrip,
-                all(
-                    HiJump,
-                    any(
+                any(
+                    all(
+                        GravitySuit,
+                        CanVerticalWall
+                    ),
+                    all(
+                        any(
+                            Hellrun(199),
+                            VariaSuit
+                        ),
+                        HiJump,
                         CanWallJump,
-                        GravitySuit
-                    )
-                )
+                        any(
+                            SpaceJump,
+                            AdvancedLogic
+                        )
+                    ),
+                ),
             ),
             any(
                 Bomb,
@@ -156,7 +167,7 @@ brinstar_top = {
             any(
                 VariaSuit,
                 GravitySuit,
-                Hellrun(1),
+                Hellrun(199),
             )
         ),
         "Brinstar Upper Pillar": None
@@ -232,12 +243,14 @@ kraid_left_shaft = {
             ),
             all(
                 NormalLogic,
+                Missiles,
                 Ziplines,
                 SpeedBooster,
                 HiJump
             ),
             all(
                 AdvancedLogic,
+                Missiles,
                 PowerGrip,  # Quick jumps and gripping the crumble blocks prevents them from reforming
                 any(
                     HiJump,
@@ -260,7 +273,6 @@ kraid_left_shaft = {
                     Bomb
                 )
             ),
-            Missiles  # required for escape - covers both cases of only hijump or only grip
         )
     }
 
@@ -353,7 +365,7 @@ norfair_upper_right = {
         ),
         "Norfair Heated Room Above Ice Beam": any(
             VariaSuit,
-            Hellrun(1)
+            Hellrun(199)
         )
     }
 
@@ -379,10 +391,10 @@ norfair_under_brinstar_elevator = {
             SuperMissiles,
             any(  # TODO: Redo this hellrun; Hard mode has extra considerations
                 VariaSuit,
-                Hellrun(4),
+                Hellrun(499),
                 all(
                     SpeedBooster,
-                    Hellrun(1)
+                    Hellrun(199)
                 )
             )
         ),
@@ -413,9 +425,9 @@ lower_norfair = {
                 GravitySuit,
                 all(
                     VariaSuit,
-                    Hellrun(5)
+                    Hellrun(599)
                 ),
-                Hellrun(9)
+                Hellrun(999)
             ),
             any(
                 CanBombTunnelBlock,
@@ -438,7 +450,7 @@ lower_norfair = {
             CanVerticalWall,
             any(
                 VariaSuit,
-                Hellrun(2)
+                Hellrun(299)
             ),
             any(
                 CanIBJ,
@@ -454,7 +466,7 @@ lower_norfair = {
             CanVerticalWall,
             any(
                 VariaSuit,
-                Hellrun(2)
+                Hellrun(299)
             )
         ),
     }
@@ -944,13 +956,13 @@ chozodia_ruins_test = {
             any(
                 GravitySuit,
                 all(
-                    Hellrun(4),
+                    Hellrun(499),
                     VariaSuit,
                     CanHiGrip
                 ),
                 all(
                     AdvancedLogic,
-                    Hellrun(6),
+                    Hellrun(699),
                     CanHiGrip
                 )
             ),
@@ -1450,7 +1462,7 @@ def norfair_lower_right_shaft_to_lower_norfair():
         ),
         any(
             VariaSuit,
-            Hellrun(6)
+            Hellrun(699)
         ),
         any(
             SpaceJump,
@@ -1550,7 +1562,7 @@ def lower_norfair_to_bottom_norfair():
         SpeedBooster,
         any(
             VariaSuit,
-            Hellrun(1)
+            Hellrun(199)
         ),
         any(
             WaveBeam,
@@ -1589,7 +1601,7 @@ def lower_norfair_to_lower_right_shaft():
         CanBombTunnelBlock,
         any(
             VariaSuit,
-            Hellrun(2)  # TODO: may be possible with even just 1
+            Hellrun(299)  # TODO: may be possible with even just 1
         )
     )
 
@@ -1669,7 +1681,7 @@ def ridley_main_to_left_shaft():
         ),
         any(
             VariaSuit,
-            Hellrun(1),
+            Hellrun(199),
             all(
                 CanFly,
                 CanBombTunnelBlock

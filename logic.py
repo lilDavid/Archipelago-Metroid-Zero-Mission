@@ -114,7 +114,8 @@ MissileCount = lambda n: Requirement(
 SuperMissiles = SuperMissileTanks(1)
 SuperMissileCount = lambda n: SuperMissileTanks(n // 2) if NormalMode else SuperMissileTanks(n)  # TODO: check Hard
 PowerBombs = PowerBombTanks(1)
-PowerBombCount = lambda n: PowerBombTanks(n // 2) if not NormalMode else PowerBombTanks(n)  # TODO: check Hard
+PowerBombCount = lambda n: PowerBombTanks(n // 2) if NormalMode else PowerBombTanks(n)  # TODO: check Hard
+Energy = lambda n: EnergyTanks(n // 100) if NormalMode else EnergyTanks((n // 50) - 1)
 
 # Various morph/bomb rules
 CanRegularBomb = all(
@@ -172,7 +173,7 @@ CanTrickySparks = all(
 )
 Hellrun = lambda n: all(
     Requirement.setting_enabled("hazard_runs"),
-    EnergyTanks(n),
+    Energy(n),
 )
 
 # Miscellaneous rules
@@ -197,7 +198,7 @@ CanHiGrip = all(
     HiJump,
     PowerGrip
 )
-CanEnterHighMorphTunnel = any(  #
+CanEnterHighMorphTunnel = any(
     CanIBJ,
     all(
         MorphBall,
