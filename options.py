@@ -269,13 +269,10 @@ class RemoteItems(DefaultOnToggle):
 mzm_option_groups = [
     OptionGroup("World", [
         ChozodiaAccess,
-        SkipChozodiaStealth,
         UnknownItemsAlwaysUsable,
         LayoutPatches,
         SelectedPatches,
         MorphBallPlacement,  # TODO: Shuffle settings group?
-        StartWithMaps,
-        BuffPowerBombDrops,
     ]),
     OptionGroup("Logic", [
         LogicDifficulty,
@@ -285,9 +282,14 @@ mzm_option_groups = [
         WalljumpsInLogic,
         TrickyShinesparks
     ]),
-    OptionGroup("Cosmetic", [
+    OptionGroup("Quality of Life", [
+        SkipChozodiaStealth,
+        BuffPowerBombDrops,
         ElevatorSpeed,
         FastItemBanners,
+        StartWithMaps,
+    ]),
+    OptionGroup("Cosmetic", [
         DisplayNonLocalItems,
     ]),
     OptionGroup("Item & Location Options", [
@@ -303,21 +305,21 @@ class MZMOptions(PerGameCommonOptions):
     remote_items: RemoteItems
     death_link: DeathLink
     chozodia_access: ChozodiaAccess
-    skip_chozodia_stealth: SkipChozodiaStealth
     unknown_items_always_usable: UnknownItemsAlwaysUsable
     layout_patches: LayoutPatches
     selected_patches: SelectedPatches
     morph_ball: MorphBallPlacement
-    start_with_maps: StartWithMaps
-    buff_pb_drops: BuffPowerBombDrops
     logic_difficulty: LogicDifficulty
     combat_logic_difficulty: CombatLogicDifficulty
     ibj_in_logic: IBJInLogic
     hazard_runs: HazardRuns
     walljumps_in_logic: WalljumpsInLogic
     tricky_shinesparks: TrickyShinesparks
+    skip_chozodia_stealth: SkipChozodiaStealth
+    buff_pb_drops: BuffPowerBombDrops
     elevator_speed: ElevatorSpeed
     fast_item_banners: FastItemBanners
+    start_with_maps: StartWithMaps
     display_nonlocal_items: DisplayNonLocalItems
     start_inventory_from_pool: StartInventoryPool
     junk_fill_weights: JunkFillWeights
