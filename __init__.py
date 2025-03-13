@@ -1,3 +1,4 @@
+import itertools
 import typing
 from pathlib import Path
 from collections import Counter
@@ -75,11 +76,14 @@ class MZMWorld(World):
     pre_fill_items: list[MZMItem]
 
     enabled_layout_patches: list[str]
-    junk_fill: list[str]
+
+    junk_fill_items: list[str]
+    junk_fill_cdf: list[int]
 
     def generate_early(self):
         self.pre_fill_items = []
-        self.junk_fill = list(Counter(self.options.junk_fill_weights).elements())
+        self.junk_fill_items = list(self.options.junk_fill_weights.value.keys())
+        self.junk_fill_cdf = list(itertools.accumulate(self.options.junk_fill_weights.value.values()))
 
         if self.options.layout_patches.value == LayoutPatches.option_true:
             self.enabled_layout_patches = rom_data.layout_patches
@@ -203,7 +207,7 @@ class MZMWorld(World):
         }
 
     def get_filler_item_name(self) -> str:
-        return self.multiworld.random.choice(self.junk_fill)
+        return self.multiworld.random.choices(self.junk_fill_items, cum_weights=self.junk_fill_cdf)[0]
 
     def create_item(self, name: str, force_classification: Optional[ItemClassification] = None):
         return MZMItem(name,
