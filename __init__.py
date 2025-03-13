@@ -2,9 +2,10 @@ import typing
 from pathlib import Path
 from collections import Counter
 from typing import Any, ClassVar, Dict, List, Optional
-
-from BaseClasses import Item, ItemClassification, Tutorial
 import settings
+
+from BaseClasses import CollectionState, Item, ItemClassification, MultiWorld, Tutorial
+from Fill import fill_restrictive
 from worlds.AutoWorld import WebWorld, World
 
 from . import rom_data
@@ -71,10 +72,13 @@ class MZMWorld(World):
     item_name_groups = mzm_item_name_groups
     location_name_groups = mzm_location_name_groups
 
-    junk_fill: List[str]
-    enabled_layout_patches: List[str]
+    pre_fill_items: list[MZMItem]
+
+    enabled_layout_patches: list[str]
+    junk_fill: list[str]
 
     def generate_early(self):
+        self.pre_fill_items = []
         self.junk_fill = list(Counter(self.options.junk_fill_weights).elements())
 
         if self.options.layout_patches.value == LayoutPatches.option_true:
@@ -83,6 +87,12 @@ class MZMWorld(World):
             self.enabled_layout_patches = list(self.options.selected_patches.value)
         else:
             self.enabled_layout_patches = []
+
+        if "Morph Ball" in self.options.start_inventory_from_pool:
+            self.options.morph_ball = MorphBallPlacement(MorphBallPlacement.option_normal)
+
+        if self.options.morph_ball == MorphBallPlacement.option_early:
+            self.pre_fill_items.append(self.create_item("Morph Ball"))
 
         # Only this player should have effectively empty locations if they so choose.
         self.options.local_items.value.add("Nothing")
@@ -98,24 +108,16 @@ class MZMWorld(World):
         self.place_event("Mecha Ridley Defeated", "Mecha Ridley")
         self.place_event("Mission Accomplished!", "Chozodia Space Pirate's Ship")
 
-        if self.options.morph_ball == MorphBallPlacement.option_early:
-            if "Morph Ball" in self.options.start_inventory_from_pool:
-                self.options.morph_ball = MorphBallPlacement(MorphBallPlacement.option_normal)
-            else:
-                self.get_location("Brinstar Morph Ball").place_locked_item(self.create_item("Morph Ball"))
-
 
     def create_items(self) -> None:
         item_pool: List[MZMItem] = []
 
-        item_pool_size = 100
-        if self.options.morph_ball == MorphBallPlacement.option_early:
-            item_pool_size -= 1
+        item_pool_size = 100 - len(self.pre_fill_items)
 
+        pre_fill_majors = set(item.name for item in self.pre_fill_items if item.name in major_item_data_table)
         for name in major_item_data_table:
-            if self.options.morph_ball == MorphBallPlacement.option_early and name == "Morph Ball":
-                continue
-            item_pool.append(self.create_item(name))
+            if name not in pre_fill_majors:
+                item_pool.append(self.create_item(name))
 
         # TODO: factor in hazard runs when determining etank progression count
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks progression
@@ -140,6 +142,33 @@ class MZMWorld(World):
         set_rules(self, full_location_table)
         self.multiworld.completion_condition[self.player] = lambda state: (
             state.has("Mission Accomplished!", self.player))
+
+    def get_pre_fill_items(self):
+        return list(self.pre_fill_items)
+
+    @classmethod
+    def stage_pre_fill(cls, multiworld: MultiWorld):
+        # Early-fill morph in prefill so more locations can be considered 'early' in regular fill
+        all_state = CollectionState(multiworld)
+        morph_balls: list[Item] = []
+        for world in multiworld.get_game_worlds(cls.game):
+            for item in world.get_pre_fill_items():
+                if item.name == "Morph Ball":
+                    morph_balls.append(item)
+                else:
+                    world.collect(all_state, item)
+        all_state.sweep_for_advancements()
+        players = {item.player for item in morph_balls}
+        for player in players:
+            if all_state.has("Mission Accomplished!", player):
+                all_state.remove(multiworld.worlds[player].create_item("Mission Accomplished!"))
+        for player in players:
+            items = [item for item in morph_balls if item.player == player]
+            locations = [loc for loc in multiworld.get_locations(player) if loc.can_reach(all_state) and not loc.item]
+            multiworld.random.shuffle(locations)
+            fill_restrictive(multiworld, all_state, locations, items,
+                             single_player_placement=True, lock=True, allow_partial=False, allow_excluded=True,
+                             name='Metroid Zero Mission Early Morph Balls')
 
     def generate_output(self, output_directory: str):
         output_path = Path(output_directory)
