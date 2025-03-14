@@ -43,6 +43,10 @@ class Requirement(NamedTuple):
     def setting_atleast(cls, setting: str, value: int):
         return cls(lambda world, _: getattr(world.options, setting) >= value)
 
+    @classmethod
+    def setting_contains(cls, setting: str, value: Any):
+        return cls(lambda world, _: value in getattr(world.options, setting))
+
 
 def all(*args: Requirement):
     return Requirement(lambda world, state: builtins.all(req.rule(world, state) for req in args))
@@ -69,7 +73,14 @@ CanUseUnknownItems = any(
     Requirement.setting_enabled("unknown_items_always_usable"),
     ChozoGhostBoss,
 )
-LayoutPatches = Requirement.setting_enabled("layout_patches")
+LayoutPatches = lambda n: any(
+    Requirement.setting_is("layout_patches", 1),
+    all(
+        Requirement.setting_is("layout_patches", 2),
+        Requirement.setting_contains("selected_patches", n)
+    )
+)
+
 NormalMode = Requirement.setting_is("game_difficulty", 1)
 HardMode = Requirement.setting_is("game_difficulty", 2)
 

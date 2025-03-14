@@ -38,7 +38,7 @@ brinstar_main = {
             MorphBall,
             any(
                 CanLongBeam(2),
-                LayoutPatches,
+                LayoutPatches("brinstar_long_beam_hall"),
             )
         ),
         "Brinstar Main Shaft Left Alcove": all(
@@ -62,6 +62,11 @@ brinstar_main = {
                         NormalMode
                     ),
                     CanFlyWall
+                ),
+                any(
+                    CanBallJump,
+                    CanSingleBombBlock,
+                    LayoutPatches("brinstar_top")
                 )
             ),
             CanIBJ,
@@ -117,23 +122,21 @@ brinstar_top = {
             any(
                 CanHorizontalIBJ,
                 PowerGrip,
-                any(
-                    all(
-                        GravitySuit,
-                        CanVerticalWall
+                all(
+                    GravitySuit,
+                    CanVerticalWall
+                ),
+                all(
+                    any(
+                        Hellrun(199),
+                        VariaSuit
                     ),
-                    all(
-                        any(
-                            Hellrun(199),
-                            VariaSuit
-                        ),
-                        HiJump,
-                        CanWallJump,
-                        any(
-                            SpaceJump,
-                            AdvancedLogic
-                        )
-                    ),
+                    HiJump,
+                    CanWallJump,
+                    any(
+                        SpaceJump,
+                        AdvancedLogic
+                    )
                 ),
             ),
             any(
@@ -299,6 +302,24 @@ kraid_bottom = {
                 SpeedBooster,
                 CanHiGrip,
                 CanFlyWall
+            ),
+            any(  # to escape via the bottom right shaft
+                LayoutPatches("kraid_right_shaft"),
+                SpeedBooster,
+                CanFly,
+                all(
+                    NormalLogic,
+                    IceBeam,
+                    any(
+                        CanWallJump,
+                        PowerGrip
+                    )
+                ),
+                all(
+                    AdvancedLogic,
+                    HiJump,
+                    CanWallJump
+                )
             )
         )
     }
@@ -510,6 +531,7 @@ norfair_behind_superdoor = {
                 )
             ),
             any(  # To get out
+                LayoutPatches("norfair_behind_superdoor"),
                 SpeedBooster,
                 CanBallJump
             )
@@ -557,7 +579,10 @@ norfair_bottom = {
                     CanFlyWall,
                     IceBeam
                 ),
-                PowerGrip
+                any(
+                    CanEnterMediumMorphTunnel,
+                    Bomb
+                )
             )
         )
     }
@@ -709,7 +734,7 @@ ridley_central = {
             ),
             any(
                 CanBallCannon,
-                LayoutPatches
+                LayoutPatches("ridley_ballcannon")
             )
         ),
         "Ridley Lower Ball Cannon Puzzle": all(
@@ -727,7 +752,7 @@ ridley_central = {
             any(
                 CanBallCannon,
                 all(
-                    LayoutPatches,
+                    LayoutPatches("ridley_ballcannon"),
                     any(
                         HiJump,
                         SpaceJump,
@@ -855,7 +880,7 @@ crateria_upper = {
             any(
                 all(
                     CanVertical,
-                    LayoutPatches
+                    LayoutPatches("crateria_left_of_grip")
                 ),
                 CanEnterHighMorphTunnel
             )
@@ -1042,8 +1067,8 @@ chozodia_upper_mothership = {
                     CanFlyWall
                 ),
                 all(
-                    AdvancedLogic,  # doable without falling down using screw, but can get softlocked without infinite vertical
-                    ScrewAttack
+                    NormalLogic,  # doable without falling down using screw or by leaving the room then returning
+                    CanSingleBombBlock
                 )
             )
         ),
@@ -1292,7 +1317,7 @@ def norfair_main_to_crateria():
             CanBallspark
         ),
         any(
-            LayoutPatches,
+            LayoutPatches("crateria_water_speedway"),
             CanEnterMediumMorphTunnel
         )
     )
@@ -1567,24 +1592,41 @@ def lower_norfair_to_bottom_norfair():
         any(
             WaveBeam,
             all(
-                NormalMode,
-                CanTrickySparks
+                CanTrickySparks,
+                any(
+                    NormalMode,
+                    ScrewAttack  # Hard mode adds extra enemies to the hardest room for this spark
+                )
             ),
-            all(
-                ScrewAttack,  # Hard mode adds extra enemies to the hardest room for this spark
-                CanTrickySparks
-            )
         ),
         CanEnterMediumMorphTunnel,
         any(  # defeating the larvae
             PowerBombCount(2),
             all(
+                PowerBombs,
+                any(
+                    PlasmaBeam,
+                    Bomb
+                )
+            ),
+            all(
                 WaveBeam,
-                CanBombTunnelBlock
+                any(
+                    CanBallJump,
+                    LayoutPatches("norfair_larvae_room")
+                ),
+                any(
+                    PlasmaBeam,
+                    CanBombTunnelBlock
+                )
             ),
             all(
                 AdvancedLogic,
-                Missiles,  # you can defeat the first larva by jumping and shooting missiles up into the ceiling
+                Missiles,  # you can defeat the first larva by jumping and shooting 2 missiles up against the ceiling
+                any(
+                    CanBallJump,
+                    LayoutPatches("norfair_larvae_room")
+                ),
                 any(
                     PlasmaBeam,
                     CanBombTunnelBlock
@@ -1781,14 +1823,46 @@ def tourian_to_chozodia():
     )
 
 
-# Getting to Unknown 1 and everything above
+# Getting above the Unknown Item block
 def crateria_main_to_crateria_upper():
     return any(
         CanBallJump,
         all(
-            NormalLogic,
-            LayoutPatches,
-            CanFly
+            CanFly,
+            any(
+                all(
+                    PowerBombs,
+                    SpeedBooster,
+                    GravitySuit
+                ),
+                all(
+                    NormalLogic,  # not in Simple level logic because this requires meta knowledge of the rando
+                    LayoutPatches("crateria_water_speedway")
+                )
+            ),
+            any(
+                LayoutPatches("crateria_left_of_grip"),
+                CanEnterHighMorphTunnel
+            )
+        ),
+        all(  # Shinespark up landing site
+            any(
+                PowerBombs,
+                LayoutPatches("crateria_water_speedway")
+            ),
+            SpeedBooster,
+            GravitySuit,
+            any(
+                LayoutPatches("crateria_left_of_grip"),
+                CanEnterHighMorphTunnel
+            ),
+            any(  # Getting across the Power Grip climb; going down softlocks because of room state nonsense
+                CanFly,
+                all(
+                    NormalLogic,  # Tight jump
+                    CanHiGrip
+                )
+            )
         ),
         all(
             NormalLogic,
