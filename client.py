@@ -75,14 +75,10 @@ def batched(iterable, n):
         yield batch
 
 
-# Potential future use to properly identify Deorem kill
-DEOREM_FLAGS = {
-        "EVENT_DEOREM_ENCOUNTERED_AT_FIRST_LOCATION_OR_KILLED": 0x19,
-        "EVENT_DEOREM_ENCOUNTERED_AT_SECOND_LOCATION_OR_KILLED": 0x1A,
-        "EVENT_DEOREM_KILLED_AT_SECOND_LOCATION": 0x1B,
-}
-
+# DEOREM_KILLED and RUINS_TEST_PASSED are out of order to maintain tracker compatibility. DEOREM_KILLED was before any
+# of the vanilla events, and RUINS_TEST_PASSED replaces the vanilla FULLY_POWERED_SUIT_OBTAINED.
 EVENT_FLAGS = {
+    "EVENT_DEOREM_KILLED": 0x4F,
     "EVENT_ACID_WORM_KILLED": 0x1C,
     "EVENT_KRAID_KILLED": 0x1E,
     "EVENT_IMAGO_COCOON_KILLED": 0x22,
@@ -90,16 +86,13 @@ EVENT_FLAGS = {
     "EVENT_RIDLEY_KILLED": 0x25,
     "EVENT_MOTHER_BRAIN_KILLED": 0x27,
     "EVENT_ESCAPED_ZEBES": 0x41,
-    "EVENT_FULLY_POWERED_SUIT_OBTAINED": 0x43,
+    "EVENT_RUINS_TEST_PASSED": 0x50,
     "EVENT_MECHA_RIDLEY_KILLED": 0x4A,
     "EVENT_ESCAPED_CHOZODIA": 0x4B,
 }
 
 
-TRACKER_EVENT_FLAGS = [
-    "EVENT_DEOREM_KILLED",
-    *EVENT_FLAGS.keys(),
-]
+TRACKER_EVENT_FLAGS = list(EVENT_FLAGS.keys())
 
 
 def cmd_deathlink(self):
@@ -317,10 +310,6 @@ class MZMClient(BizHawkClient):
                     if location_flags & 1:
                         checked_locations.add(location.code)
                     location_flags >>= 1
-
-        # Deorem flags are in a weird arrangement, but he also drops Charge Beam so whatever just look for that check
-        if not self.local_set_events["EVENT_DEOREM_KILLED"] and brinstar_location_table["Brinstar Worm Drop"] in checked_locations:
-            set_events["EVENT_DEOREM_KILLED"] = True
 
         for name, number in EVENT_FLAGS.items():
             block = gEventsTriggered[number // 32]
