@@ -427,10 +427,15 @@ norfair_lowerrightshaft = {
             CanIBJ,
             CanHiGrip,
             all(
+                SpaceJump,
+                PowerGrip
+            ),
+            all(
                 PowerGrip,
                 CanWallJump,
                 NormalLogic
-            )
+            ),
+            CanReachEntrance("Norfair Bottom -> Norfair Lower Right Shaft")
         )
     }
 
