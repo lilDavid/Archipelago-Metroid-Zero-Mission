@@ -159,12 +159,13 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         world.options.skip_chozodia_stealth.value,
         world.options.start_with_maps.value,
         world.options.fast_item_banners.value,
+        world.options.skip_tourian_opening_cutscenes.value,
         world.options.elevator_speed.value,
     )
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2x10B", *seed_info)
+        struct.pack("<H64s64s2x11B", *seed_info)
     )
 
     # Set goal

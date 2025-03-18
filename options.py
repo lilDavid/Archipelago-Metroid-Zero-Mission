@@ -208,6 +208,14 @@ class FastItemBanners(DefaultOnToggle):
     display_name = "Fast Item Banners"
 
 
+class SkipTourianOpeningCutscenes(DefaultOnToggle):
+    """
+    Skip the cutscenes that show the Tourian statue's eyes lighting up when you defeat Ridley and Kraid, as well as the
+    animation of the statue's mouths opening.
+    """
+    display_name = "Skip Tourian Opening Sequence"
+
+
 class DisplayNonLocalItems(Choice):
     """
     How to display items that will be sent to other players.
@@ -286,8 +294,9 @@ mzm_option_groups = [
         SkipChozodiaStealth,
         BuffPowerBombDrops,
         ElevatorSpeed,
-        FastItemBanners,
         StartWithMaps,
+        FastItemBanners,
+        SkipTourianOpeningCutscenes,
     ]),
     OptionGroup("Cosmetic", [
         DisplayNonLocalItems,
@@ -318,8 +327,9 @@ class MZMOptions(PerGameCommonOptions):
     skip_chozodia_stealth: SkipChozodiaStealth
     buff_pb_drops: BuffPowerBombDrops
     elevator_speed: ElevatorSpeed
-    fast_item_banners: FastItemBanners
     start_with_maps: StartWithMaps
+    fast_item_banners: FastItemBanners
+    skip_tourian_opening_cutscenes: SkipTourianOpeningCutscenes
     display_nonlocal_items: DisplayNonLocalItems
     start_inventory_from_pool: StartInventoryPool
     junk_fill_weights: JunkFillWeights
