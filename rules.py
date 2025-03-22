@@ -866,13 +866,13 @@ tourian = {
 
 crateria_main = {
         "Crateria Landing Site Ballspark": all(
-            ChozoGhostBoss,
-            MotherBrainBoss,
             CanBallspark,
-            CanBallJump,
             PowerBombs,
             any(
-                GravitySuit,
+                all(
+                    GravitySuit,
+                    ChozoGhostBoss
+                ),
                 CanReachEntrance("Brinstar -> Crateria Ballcannon")
             )
         ),
@@ -933,7 +933,6 @@ chozodia_ruins_crateria_entrance = {
 
 chozodia_ruins_test = {
         "Chozodia Chozo Ghost Area Morph Tunnel Above Water": all(
-            ChozoGhostBoss,  # The room leading to this item is inaccessible until the Chozo Ghost is defeated
             any(
                 CanWallJump,
                 all(
@@ -949,13 +948,11 @@ chozodia_ruins_test = {
             CanBallJump
         ),
         "Chozodia Chozo Ghost Area Underwater": all(
-            ChozoGhostBoss,  # This item is fake until the Chozo Ghost is defeated
             Missiles,
             SpeedBooster,
             GravitySuit
         ),
         "Chozodia Chozo Ghost Area Long Shinespark": all(
-            ChozoGhostBoss,  # The room leading to this item is inaccessible until the Chozo Ghost is defeated
             Missiles,
             SpeedBooster,
             GravitySuit,
@@ -972,7 +969,6 @@ chozodia_ruins_test = {
             )
         ),
         "Chozodia Lava Dive": all(  # TODO redo this whole lava dive
-            ChozoGhostBoss,
             any(
                 ScrewAttack,
                 all(
@@ -1006,9 +1002,9 @@ chozodia_ruins_test = {
                 )
             )
         ),
-        "Chozo Ghost": any(
+        "Chozo Ghost": all(
             MotherBrainBoss,
-            AdvancedLogic  # TODO change when basepatch changes Chozodia
+            RuinsTestEscape
         )
     }
 
@@ -1095,12 +1091,9 @@ chozodia_lower_mothership = {
         "Chozodia Southeast Corner in Hull": all(
             any(
                 SuperMissiles,
-                all(
-                    ChozoGhostBoss,
-                    any(
-                        Bomb,
-                        PowerBombCount(2)
-                    )
+                any(
+                    Bomb,
+                    PowerBombCount(2)
                 ),
             ),
             CanVerticalWall,
@@ -1821,6 +1814,7 @@ def ridley_central_to_ridley_room():
     )
 
 
+# TODO: What to do about this only being one-time? It may matter in very rare cases
 def tourian_to_chozodia():
     return all(
         MotherBrainBoss,
@@ -1902,31 +1896,103 @@ def crateria_upper_to_chozo_ruins():
 
 
 # Ruins to Chozo Ghost, the three items in that general area, and the lava dive item
-def chozo_ruins_to_ruins_test():  # TODO: Hard mode + Chozodia forced post-charlie will need this to change
+def chozo_ruins_to_ruins_test():
     return all(
         MorphBall,
-        PowerBombs,
+        PowerBombCount(2),  # 2 PBs ALWAYS required at minimum, but you may need many more
         any(
-            Bomb,
-            PowerBombCount(4),
             all(
-                PowerBombCount(3),
+                Bomb,
                 any(
-                    CanFlyWall,
-                    ScrewAttack
+                    NormalMode,
+                    PowerBombCount(4)  # on Hard a save room is disabled, so you cannot refill PBs, requiring more
+                )
+            ),
+            PowerBombCount(8),
+            all(
+                NormalMode,
+                PowerBombCount(5),
+            ),
+            all(  # Skips one PB on the slow-crumble morph tunnel
+                any(
+                    PowerBombCount(7),
+                    all(
+                        NormalMode,
+                        PowerBombCount(4)
+                    )
                 ),
+                ScrewAttack,
                 NormalLogic
             ),
-            all(
-                PowerBombCount(2),
+            all(  # Skips the Triple Crawling Pirates room and a bomb chain but doesn't skip the crumble tunnel
+                any(
+                    PowerBombCount(5),  # Saves 2 on Hard
+                    all(
+                        NormalMode,
+                        PowerBombCount(4),  # Only saves 1 on Normal because you can refill
+                    )
+                ),
+                CanFlyWall,
+                MissileCount(3),
+                Missiles,
+                NormalLogic
+            ),
+            all(  # Skips everything possible so only 2 PBs needed
                 CanFlyWall,
                 ScrewAttack,
+                Missiles,
                 NormalLogic
             )
         ),
         CanVerticalWall,
         ChozodiaCombat,
-        RuinsTestEscape
+    )
+
+
+#  Potentially useful for closed Chozodia in cases where post-MB you still can't access parts of Chozodia from Crateria
+def ruins_test_to_ruins():
+    return all(
+        ChozoGhostBoss,
+        RuinsTestEscape,
+        any(
+            CanWallJump,
+            all(
+                GravitySuit,
+                CanFly
+            )
+        ),
+        any(
+            all(  # Through the lava
+                any(
+                    ScrewAttack,
+                    all(
+                        NormalLogic,
+                        Missiles,
+                        any(
+                            Bomb,
+                            PowerBombCount(2)
+                        )
+                    )
+                ),
+                GravitySuit,
+                all(
+                    Hellrun(249),
+                    VariaSuit
+                ),
+                Hellrun(399),
+            ),
+            all(  # Or going all the way back through the ruins
+                NormalLogic,
+                any(
+                    PowerBombCount(4),
+                    all(
+                        Bomb,
+                        PowerBombCount(2)
+                    )
+                ),
+                ScrewAttack
+            )
+        )
     )
 
 
@@ -1955,7 +2021,7 @@ def crateria_to_under_tube():
     return all(
         PowerBombs,
         MorphBall,
-        any(  # To get to the save station and warp out
+        any(
             SpeedBooster,
             CanFlyWall,
             CanHiGrip
@@ -1972,8 +2038,7 @@ def under_tube_to_tube():
         SpeedBooster,
         all(
             CanFly,
-            PowerBombs,
-            ChozoGhostBoss  # Change if basepatch makes the tube breakable before MB/Charlie
+            PowerBombs
         )
     )
 
@@ -1993,10 +2058,7 @@ def under_tube_to_crateria():
 
 
 def tube_to_under_tube():
-    return all(
-        ChozoGhostBoss,
-        PowerBombs
-    )
+    return PowerBombs
 
 
 def chozodia_tube_to_mothership_central():
@@ -2063,7 +2125,7 @@ def mothership_central_to_upper():
             # the low% way
             all(
                 any(
-                    MissileCount(2),
+                    MissileCount(3),
                     ScrewAttack
                 ),
                 any(
@@ -2110,8 +2172,17 @@ def mothership_upper_to_lower():
             CanFlyWall,
             CanHiGrip
         ),
-        MissileCount(4),
-        CanBombTunnelBlock
+        any(
+            all(
+                NormalMode,
+                MissileCount(2),
+                CanBombTunnelBlock
+            ),
+            all(
+                MissileCount(4),
+                Bomb  # On Hard, you'd need 2 PBs to go this way, so the more direct central -> lower route is better
+            )
+        )
     )
 
 

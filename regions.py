@@ -120,7 +120,7 @@ def create_regions_and_connections(world: MZMWorld):
     connect(multiworld, player, "Crateria -> Chozodia Lower Door", "Crateria", "Chozodia Under Tube", crateria_to_under_tube().create_rule(world))
     connect(multiworld, player, "Crateria -> Chozodia Upper Door", "Upper Crateria", "Chozodia Ruins", crateria_upper_to_chozo_ruins().create_rule(world))
     connect(multiworld, player, "Chozo Ruins -> Chozo Ruins Test", "Chozodia Ruins", "Chozodia Ruins Test Area", chozo_ruins_to_ruins_test().create_rule(world))
-    connect(multiworld, player, "Chozo Ruins Test -> Chozo Ruins", "Chozodia Ruins Test Area", "Chozodia Ruins", ChozoGhostBoss.create_rule(world))
+    connect(multiworld, player, "Chozo Ruins Test -> Chozo Ruins", "Chozodia Ruins Test Area", "Chozodia Ruins", ruins_test_to_ruins().create_rule(world))
     connect(multiworld, player, "Chozo Ruins -> Glass Tube", "Chozodia Ruins", "Chozodia Glass Tube", chozo_ruins_to_chozodia_tube().create_rule(world))
     connect(multiworld, player, "Chozodia Under Tube -> Crateria", "Chozodia Under Tube", "Crateria", under_tube_to_crateria().create_rule(world))
     connect(multiworld, player, "Chozodia Under Tube -> Glass Tube", "Chozodia Under Tube", "Chozodia Glass Tube", under_tube_to_tube().create_rule(world))
