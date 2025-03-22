@@ -933,19 +933,27 @@ chozodia_ruins_crateria_entrance = {
 
 chozodia_ruins_test = {
         "Chozodia Chozo Ghost Area Morph Tunnel Above Water": all(
+            MissileCount(2),
+            CanBallJump,
             any(
-                CanWallJump,
-                all(
-                    GravitySuit,
-                    CanFly
+                all(  # Going up through the water
+                    any(
+                        CanWallJump,
+                        all(
+                            GravitySuit,
+                            CanFly
+                        ),
+                    ),
+                    any(
+                        ScrewAttack,
+                        NormalLogic  # Skipping the screw attack wall with the missile tunnel
+                    )
                 ),
                 all(  # Going up from the Triple Crawling Pirates room
                     NormalLogic,
                     CanFlyWall
                 )
-            ),
-            MissileCount(3),
-            CanBallJump
+            )
         ),
         "Chozodia Chozo Ghost Area Underwater": all(
             Missiles,
@@ -963,7 +971,7 @@ chozodia_ruins_test = {
             any(
                 ScrewAttack,
                 all(
-                    NormalLogic,
+                    AdvancedLogic,  # You need to be very fast to keep the charge going this way
                     MissileCount(3)
                 )
             )
