@@ -190,9 +190,16 @@ brinstar_pasthives = {
 
 kraid_main = {
         "Kraid Save Room Tunnel": CanBombTunnelBlock,
-        "Kraid Zipline Morph Jump": all(
-            Ziplines,
-            CanBallJump
+        "Kraid Zipline Morph Jump": any(
+            all(
+                Ziplines,
+                CanBallJump
+            ),
+            all(  # Frame-perfect crumble shenanigans
+                AdvancedLogic,
+                PowerGrip,
+                HiJump
+            )
         ),
         "Kraid Acid Ballspark": all(
             any(
@@ -265,9 +272,33 @@ kraid_left_shaft = {
             any(
                 Bomb,
                 PowerBombCount(4),  # nowhere good to refill PBs between elevator shaft and here
-                ScrewAttack
+                ScrewAttack,
+                all(   # space boosting to break one of the bomb blocks in the floor
+                    AdvancedLogic,
+                    SpeedBooster,
+                    SpaceJump,
+                    PowerBombCount(3)
+                ),
+                all(  # going past, through the "T room" with the short zipline to refill your 2 PBs, then come back
+                    AdvancedLogic,
+                    Missiles,
+                    any(
+                        all(
+                            Ziplines,
+                            CanBallJump
+                        ),
+                        all(  # crumble shenanigans
+                            PowerGrip,
+                            any(
+                                HiJump,
+                                SpaceJump,
+                                CanWallJump
+                            )
+                        )
+                    )
+                )
             ),
-            any(
+            any(  # To enter the morph tunnel to leave after getting the item on the statue
                 PowerGrip,
                 HiJump,
                 CanIBJ,
@@ -1270,6 +1301,10 @@ def kraid_left_shaft_access():
         any(
             CanHorizontalIBJ,
             PowerGrip,
+            all(
+                GravitySuit,
+                CanIBJ
+            ),
             all(
                 NormalLogic,
                 HiJump
