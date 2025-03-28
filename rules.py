@@ -767,7 +767,11 @@ ridley_central = {
                     PowerGrip,
                     any(
                         CanWallJump,
-                        SpaceJump
+                        SpaceJump,
+                        all(  # A well-placed bomb and well-timed unmorph will grab the ledge
+                            NormalLogic,
+                            Bomb
+                        )
                     )
                 )
             ),
