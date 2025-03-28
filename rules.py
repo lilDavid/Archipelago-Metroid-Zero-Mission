@@ -198,7 +198,10 @@ kraid_main = {
             all(  # Frame-perfect crumble shenanigans
                 AdvancedLogic,
                 PowerGrip,
-                HiJump
+                any(
+                    HiJump,
+                    SpaceJump
+                )
             )
         ),
         "Kraid Acid Ballspark": all(
