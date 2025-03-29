@@ -459,7 +459,7 @@ class MZMClient(BizHawkClient):
                         await write_amounts(size, new_capacity, max(new_capacity - consumed, 0), current)
                 except bizhawk.RequestFailedError:
                     return
-            unknown_items = client_ctx.slot_data["unknown_items_always_usable"] or self.local_set_events["EVENT_FULLY_POWERED_SUIT_OBTAINED"]
+            unknown_items = client_ctx.slot_data["unknown_items_always_usable"] or self.local_set_events["EVENT_RUINS_TEST_PASSED"]
             if item.type == ItemType.beam:
                 beams |= item.bits
                 if item.id != ItemID.PlasmaBeam or unknown_items:
