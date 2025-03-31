@@ -953,9 +953,50 @@ chozodia_ruins_crateria_entrance = {
         "Chozodia Ruins East of Upper Crateria Door": Missiles,
         "Chozodia Triple Crawling Pirates": all(
             Missiles,
+            PowerBombCount(2),  # 2 PBs ALWAYS required at minimum, but you may need many more
             any(
-                Bomb,
-                PowerBombCount(3)
+                all(
+                    Bomb,
+                    any(
+                        NormalMode,
+                        PowerBombCount(3)  # on Hard a save room is disabled, so you cannot refill PBs, requiring more
+                    )
+                ),
+                PowerBombCount(7),  # Hard, no refills, only PBs, no ability to skip any bomb chains
+                all(
+                    NormalMode,
+                    PowerBombCount(5),  # no skipping bomb reqs, but with refills
+                ),
+                all(  # Skips one PB on either the slow-crumble morph tunnel or the bomb chain after
+                    any(
+                        PowerBombCount(6),
+                        all(
+                            NormalMode,
+                            PowerBombCount(4)
+                        )
+                    ),
+                    any(
+                        ScrewAttack,
+                        WaveBeam,
+                        CanFlyWall
+                    ),
+                    NormalLogic
+                ),
+                all(  # Skips both but still only PBs
+                    any(
+                        ScrewAttack,
+                        WaveBeam
+                    ),
+                    CanFlyWall,
+                    NormalLogic,
+                    any(
+                        PowerBombCount(5),
+                        all(
+                            NormalMode,
+                            PowerBombCount(3)
+                        )
+                    )
+                ),
             ),
             any(
                 CanHiGrip,
@@ -966,7 +1007,7 @@ chozodia_ruins_crateria_entrance = {
                 )
             ),
             ChozodiaCombat
-        ),
+        )
     }
 
 chozodia_ruins_test = {
@@ -1094,7 +1135,14 @@ chozodia_under_tube = {
         ),
         "Chozodia Right of Glass Tube": all(
             PowerBombs,
-            CanFly
+            any(
+                CanFly,
+                all(
+                    NormalLogic,
+                    SpeedBooster,
+                    CanVerticalWall
+                )
+            )
         )
     }
 
@@ -1936,6 +1984,12 @@ def crateria_upper_to_chozo_ruins():
         Missiles,
         any(
             CanFly,
+            all(
+                AdvancedLogic,
+                CanWallJump,
+                HiJump,
+                PowerGrip
+            ),
             CanReachLocation("Crateria Northeast Corner")
         ),
         any(
@@ -1971,7 +2025,10 @@ def chozo_ruins_to_ruins_test():
                         PowerBombCount(4)
                     )
                 ),
-                ScrewAttack,
+                any(
+                    ScrewAttack,
+                    WaveBeam
+                ),
                 NormalLogic
             ),
             all(  # Skips the Triple Crawling Pirates room and a bomb chain but doesn't skip the crumble tunnel
@@ -1987,10 +2044,14 @@ def chozo_ruins_to_ruins_test():
                 Missiles,
                 NormalLogic
             ),
-            all(  # Skips everything possible so only 2 PBs needed
+            all(  # Skips everything possible, but still only PBs
                 CanFlyWall,
-                ScrewAttack,
+                any(
+                    ScrewAttack,
+                    WaveBeam
+                ),
                 Missiles,
+                PowerBombCount(4),  # technically should be 3 on Normal, but Normal can't have 3 max without having 4
                 NormalLogic
             )
         ),
@@ -2108,7 +2169,13 @@ def under_tube_to_crateria():
 
 
 def tube_to_under_tube():
-    return PowerBombs
+    return any(
+        PowerBombCount(3),  # most paths here require breaking a bomb chain on the way here and back
+        all(
+            Bomb,
+            PowerBombs
+        )
+    )
 
 
 def chozodia_tube_to_mothership_central():
