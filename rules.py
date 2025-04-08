@@ -53,13 +53,13 @@ brinstar_main = {
             CanBallspark,
             CanBombTunnelBlock
         ),
-        "Brinstar Ripper Climb": any(  # TODO hard mode changes
+        "Brinstar Ripper Climb": any(
             all(
                 PowerGrip,
                 any(
                     all(
                         IceBeam,
-                        NormalMode
+                        NormalMode  # On Hard, one Ripper is missing
                     ),
                     CanFlyWall
                 ),
@@ -70,6 +70,21 @@ brinstar_main = {
                 )
             ),
             CanIBJ,
+            all(  # Dislodging a zoomer and then freezing it along the wall to grip, springball, or bomb jump up
+                AdvancedLogic,
+                IceBeam,
+                SuperMissiles,
+                any(
+                    PowerGrip,
+                    all(
+                        CanBallJump,
+                        any(
+                            NormalMode,
+                            CanVerticalWall  # On Hard, one ripper is missing, so need vertical
+                        )
+                    )
+                )
+            ),
             all(
                 CanBallspark,
                 CanTrickySparks,
@@ -1337,14 +1352,41 @@ def kraid_upper_right():
     return all(
         Missiles,
         CanBallCannon,
-        any(
+        any(  # Getting to the top of the right shaft
+            CanFlyWall,
+            PowerGrip,
+            all(
+                AdvancedLogic,
+                HiJump  # Balljumps can get you up there using the crevices, but it's pretty tight
+            )
+        ),
+        any(  # Getting up to the top door of the right shaft
+            CanVertical,
+            all(  # Freezing a zeela to get just enough height to WJ up. You might have to wait a while for it though
+                NormalLogic,
+                IceBeam,
+                CanWallJump
+            )
+        ),
+        any(  # Getting through the hole in the next room
             CanHorizontalIBJ,
             PowerGrip,
             all(
-                NormalLogic,
                 IceBeam,
-                CanBallJump,
-                CanVerticalWall
+                CanBallJump
+            ),
+            all(
+                GravitySuit,
+                CanIBJ
+            ),
+            all(
+                AdvancedLogic,
+                any(
+                    Hellrun(99),
+                    VariaSuit
+                ),
+                HiJump,
+                CanIBJ
             )
         )
     )
