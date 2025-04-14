@@ -1825,11 +1825,19 @@ def bottom_norfair_to_ridley():
     return any(
         all(
             any(
-                MissileTanks(1),
-                SuperMissileCount(6),
+                MissileCount(20),
+                SuperMissileCount(8),
+                all(
+                    NormalCombat,
+                    any(
+                        MissileTanks(1),
+                        SuperMissileCount(6),
+                    )
+                )
             ),
             any(
                 IceBeam,
+                SpaceJump,
                 NormalLogic
             )
         ),
@@ -2239,11 +2247,35 @@ def chozodia_tube_to_mothership_central():
 
 # access to the map station
 def mothership_central_to_lower():
-    return any(
-        PowerBombCount(2),
-        all(
-            Bomb,
-            PowerBombs
+    return all(
+        any(
+            PowerBombCount(2),
+            all(
+                Bomb,
+                PowerBombs
+            )
+        ),
+        any(  # Getting to the save room
+            Missiles,
+            all(
+                any(
+                    HiJump,
+                    all(
+                        NormalLogic,
+                        IceBeam
+                    )
+                ),
+                any(
+                    PowerGrip,
+                    CanWallJump
+                )
+            ),
+            all(
+                NormalLogic,
+                HiJump,
+                IceBeam
+            ),
+            CanFly
         )
     )
 
@@ -2251,6 +2283,7 @@ def mothership_central_to_lower():
 # accessing the missile door just under the Behind Workbot item
 def mothership_central_to_upper():
     return all(
+        Missiles,
         any(
             Bomb,
             PowerBombCount(2)
@@ -2278,6 +2311,15 @@ def mothership_central_to_upper():
                     all(
                         HiJump,
                         CanWallJump
+                    ),
+                    all(
+                        NormalLogic,
+                        IceBeam,
+                        any(
+                            HiJump,
+                            CanWallJump,
+                            PowerGrip
+                        )
                     )
                 )
             ),
