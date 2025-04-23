@@ -1027,7 +1027,7 @@ chozodia_ruins_crateria_entrance = {
 
 chozodia_ruins_test = {
         "Chozodia Chozo Ghost Area Morph Tunnel Above Water": all(
-            MissileCount(2),
+            MissileCount(3),
             CanBallJump,
             any(
                 all(  # Going up through the water
