@@ -14,7 +14,8 @@ from .client import MZMClient
 from .data import data_path
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, mzm_location_name_groups
-from .options import LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty
+from .options import LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty, \
+    GameDifficulty
 from .regions import create_regions_and_connections
 from .rom import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_tokens
 from .rules import set_rules
@@ -125,8 +126,13 @@ class MZMWorld(World):
 
         # TODO: factor in hazard runs when determining etank progression count
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks progression
+
         # Set only the minimum required ammo to satisfy combat/traversal logic as Progression
-        item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 2, 3))  # 4 progression + 6 useful power bombs out of 18
+        if self.options.game_difficulty == GameDifficulty.option_normal:
+            item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 2, 3))  # 4 progression + 6 useful power bombs out of 18
+        else:  # For Hard mode
+            item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 4, 5))  # 4 progression + 5 useful power bombs out of 9
+
         if self.options.combat_logic_difficulty == CombatLogicDifficulty.option_relaxed:
             item_pool.extend(self.create_tanks("Missile Tank", 50, 10))  # 50 progression missiles out of 250
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 4, 5))  # 8 progression + 10 useful supers out of 30
