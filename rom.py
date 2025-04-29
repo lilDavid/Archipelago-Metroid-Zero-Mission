@@ -18,7 +18,7 @@ from .data import APWORLD_VERSION, get_rom_address, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemType, item_data_table
 from .item_sprites import Sprite, get_zero_mission_sprite, unknown_item_alt_sprites
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
-from .text import NEWLINE, TERMINATOR_CHAR, Message
+from .text import NEWLINE, TERMINATOR_CHAR, Message, make_item_message
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -190,16 +190,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         sent_to = "" if item.player == player else f"Sent to {player_name}"
 
         message_address = next_message_address | 0x8000000
-        name = Message(item.name).trim_to_max_width().insert(0, 0x8105)
-        pad = ((224 - name.display_width()) // 2) & 0xFF
-        name.insert(0, 0x8000 | pad)
-        name.append(NEWLINE)
-        sent = Message(sent_to).trim_to_max_width()
-        pad = ((224 - sent.display_width()) // 2) & 0xFF
-        sent.insert(0, 0x8000 | pad)
-        sent.append(TERMINATOR_CHAR)
-        message = name + sent
-        message_bytes = message.to_bytes()
+        message_bytes = make_item_message(item.name, sent_to).to_bytes()
         patch.write_token(
             APTokenTypes.WRITE,
             next_message_address,
@@ -212,8 +203,8 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
             APTokenTypes.WRITE,
             get_rom_address("sPlacedItems", 16 * location_id),
             struct.pack(
-                "<BxHIIHBB",
-                item_data.type, item_data.bits,
+                "<BBHIIHBB",
+                item_data.type, False, item_data.bits,
                 sprite_address,
                 message_address, 0x3A, item_data.acquisition, item.player == player
             ),

@@ -1,10 +1,10 @@
 """
 Classes and functions related to AP items for Metroid: Zero Mission
 """
-import typing
-from enum import IntEnum, IntFlag, StrEnum
+
+from enum import IntEnum, IntFlag
 from BaseClasses import Item, ItemClassification
-from typing import Dict
+from typing import Dict, NamedTuple
 
 from .item_sprites import Sprite
 
@@ -73,21 +73,16 @@ class MZMItem(Item):
     game: str = "Metroid Zero Mission"
 
 
-class ItemData:
-    code: int
+class ItemData(NamedTuple):
     progression: ItemClassification
     type: ItemType  # used for determining the memory address to write bits to as each go somewhere different
     bits: int
     sprite: int
     acquisition: int
 
-    def __init__(self, progression: ItemClassification, type: ItemType, bits: int, sprite: int, acquisition: int):
-        self.code = AP_MZM_ID_BASE + (type << 8 | bits)
-        self.progression = progression
-        self.type = type
-        self.bits = bits
-        self.sprite = sprite
-        self.acquisition = acquisition
+    @property
+    def code(self):
+        return AP_MZM_ID_BASE + (self.type << 8 | self.bits)
 
 
 tank_data_table = {
