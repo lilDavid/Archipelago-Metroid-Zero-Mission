@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import IntEnum
 from io import StringIO
 import itertools
 from typing import Iterable, List, SupportsIndex, Union, overload
@@ -110,6 +111,7 @@ _get_charmap()
 
 LINE_WIDTH = 224
 
+NEWLINE = 0xFE00
 TERMINATOR_CHAR = 0xFF00
 
 
@@ -167,6 +169,8 @@ class Message:
         return sum(get_width_of_encoded_character(c) for c in self)
 
     def trim_to_max_width(self, max_width: int = LINE_WIDTH):
+        if len(self.buffer) == 0:
+            return self
         total_width = 0
         buffer: List[int] = []
         for char in self:
@@ -184,7 +188,7 @@ class Message:
         return bytes(itertools.chain.from_iterable(c.to_bytes(2, "little") for c in self))
 
     def __add__(self, other: Message):
-        return Message(self.buffer[:-1] + other.buffer[:-1])
+        return Message(self.buffer + other.buffer)
 
     def __iadd__(self, other: Message):
         self.buffer += other.buffer

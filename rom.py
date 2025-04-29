@@ -7,18 +7,18 @@ import hashlib
 import logging
 from pathlib import Path
 import struct
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Sequence, cast
 
-from BaseClasses import ItemClassification, Location
+from BaseClasses import Location
 import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
 
 from . import rom_data
 from .data import APWORLD_VERSION, get_rom_address, symbols_hash
-from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
-from .nonnative_items import get_zero_mission_sprite
+from .items import AP_MZM_ID_BASE, ItemType, item_data_table
+from .item_sprites import Sprite, get_zero_mission_sprite, unknown_item_alt_sprites
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
-from .text import TERMINATOR_CHAR, Message
+from .text import NEWLINE, TERMINATOR_CHAR, Message
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -55,10 +55,6 @@ class MZMPatchExtensions(APPatchExtension):
         return rom_data.add_item_sprites(rom)
 
     @staticmethod
-    def add_unknown_item_graphics(caller: APProcedurePatch, rom: bytes) -> bytes:
-        return rom_data.use_unknown_item_sprites(rom)
-
-    @staticmethod
     def apply_background_patches(caller: APProcedurePatch, rom: bytes) -> bytes:
         return rom_data.apply_always_background_patches(rom)
 
@@ -89,9 +85,6 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
         with open(get_base_rom_path(), "rb") as stream:
             return stream.read()
 
-    def add_vanilla_unknown_item_sprites(self):
-        self.procedure.append(("add_unknown_item_graphics", []))
-
     def add_layout_patches(self, selected_patches: Sequence[str]):
         self.procedure.append(("apply_layout_patches", [selected_patches]))
 
@@ -114,30 +107,30 @@ goal_texts = {
 }
 
 
-def get_item_sprite_and_name(location: Location, world: MZMWorld):
+def get_item_sprite(location: Location, world: MZMWorld):
     player = world.player
     nonlocal_item_handling = world.options.display_nonlocal_items
     item = location.item
 
     if location.native_item and (nonlocal_item_handling != DisplayNonLocalItems.option_none or item.player == player):
-        sprite = item.code - AP_MZM_ID_BASE
-        return sprite, None
+        sprite = item_data_table[item.name].sprite
+        if (item.name in unknown_item_alt_sprites and
+            not cast("MZMWorld", world.multiworld.worlds[item.player]).options.unknown_items_always_usable):
+            sprite = unknown_item_alt_sprites[item.name]
+        return sprite
 
     if nonlocal_item_handling == DisplayNonLocalItems.option_match_series:
         sprite = get_zero_mission_sprite(item)
         if sprite is not None:
-            return sprite, None
+            return sprite
 
     if item.advancement or item.trap:
-        sprite = ItemID.APItemProgression
+        sprite = Sprite.APLogoProgression
     elif item.useful:
-        sprite = ItemID.APItemUseful
+        sprite = Sprite.APLogoUseful
     else:
-        sprite = ItemID.APItemFiller
-    name = Message(item.name).trim_to_max_width().insert(0, 0x8105)
-    pad = ((224 - name.display_width()) // 2) & 0xFF
-    name.insert(0, 0x8000 | pad)
-    return sprite, name
+        sprite = Sprite.APLogo
+    return sprite
 
 
 def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
@@ -158,14 +151,13 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         world.options.buff_pb_drops.value,
         world.options.skip_chozodia_stealth.value,
         world.options.start_with_maps.value,
-        world.options.fast_item_banners.value,
         world.options.skip_tourian_opening_cutscenes.value,
         world.options.elevator_speed.value,
     )
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2x11B", *seed_info)
+        struct.pack("<H64s64s2x10B", *seed_info)
     )
 
     # Set goal
@@ -182,37 +174,49 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         )
 
     # Place items
-    next_name_address = get_rom_address("sRandoItemAndPlayerNames")
-    names = {None: 0}
+    next_message_address = get_rom_address("sRandoExtraData")
     for location in multiworld.get_locations(player):
         item = location.item
         if item.code is None or location.address is None:
             continue
 
-        item_id, item_name = get_item_sprite_and_name(location, world)
         if item.player == player:
-            player_name = None
+            item_data = item_data_table[item.name]
         else:
-            player_name = Message(multiworld.player_name[item.player])
+            item_data = item_data_table["Nothing"]
 
-        for name in (player_name, item_name):
-            if name not in names:
-                names[name] = next_name_address | 0x8000000
-                name.append(TERMINATOR_CHAR)
-                name_bytes = name.to_bytes()
-                patch.write_token(
-                    APTokenTypes.WRITE,
-                    next_name_address,
-                    name_bytes
-                )
-                next_name_address += len(name_bytes)
+        sprite_address = get_item_sprite(location, world)
+        player_name = multiworld.worlds[player].player_name
+        sent_to = "" if item.player == player else f"Sent to {player_name}"
 
-        location_id = location.address - AP_MZM_ID_BASE
-        placement = names[player_name], names[item_name], item_id
+        message_address = next_message_address | 0x8000000
+        name = Message(item.name).trim_to_max_width().insert(0, 0x8105)
+        pad = ((224 - name.display_width()) // 2) & 0xFF
+        name.insert(0, 0x8000 | pad)
+        name.append(NEWLINE)
+        sent = Message(sent_to).trim_to_max_width()
+        pad = ((224 - sent.display_width()) // 2) & 0xFF
+        sent.insert(0, 0x8000 | pad)
+        sent.append(TERMINATOR_CHAR)
+        message = name + sent
+        message_bytes = message.to_bytes()
         patch.write_token(
             APTokenTypes.WRITE,
-            get_rom_address("sPlacedItems", 12 * location_id),
-            struct.pack("<IIB", *placement),
+            next_message_address,
+            message_bytes
+        )
+        next_message_address += len(message_bytes)
+
+        location_id = location.address - AP_MZM_ID_BASE
+        patch.write_token(
+            APTokenTypes.WRITE,
+            get_rom_address("sPlacedItems", 16 * location_id),
+            struct.pack(
+                "<BxHIIHBB",
+                item_data.type, item_data.bits,
+                sprite_address,
+                message_address, 0x3A, item_data.acquisition, item.player == player
+            ),
         )
 
     # Create starting inventory
@@ -220,15 +224,12 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
     beams = misc = 0
     for item in multiworld.precollected_items[player]:
         data = item_data_table[item.name]
-        if data.type == ItemType.beam:
+        if data.type == ItemType.BEAM:
             beams |= data.bits
-        if data.type == ItemType.major:
+        elif data.type == ItemType.MAJOR:
             misc |= data.bits
-        if data.type == ItemType.tank and (
-            data.id == 1 and pickups[1] < 999
-            or pickups[data.id] < 99
-        ):
-            pickups[data.id] += 1
+        elif (data.type == ItemType.MISSILE_TANK and pickups[1] < 999 or pickups[data.type - 1] < 99):
+            pickups[data.type - 1] += 1
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoStartingInventory"),

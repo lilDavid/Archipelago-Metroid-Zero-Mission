@@ -14,7 +14,7 @@ import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
 
 from .data import get_symbol
-from .items import ItemID, ItemType, item_data_table
+from .items import ItemType, item_data_table
 from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table)
@@ -169,10 +169,10 @@ class ZMConstants:
     gEventsTriggered = get_symbol("gEventsTriggered")
     gCurrentArea = get_symbol("gCurrentArea")
     gRandoLocationBitfields = get_symbol("gRandoLocationBitfields")
-    gIncomingItemId = get_symbol("gIncomingItemId")
-    gIncomingItemCount = get_symbol("gIncomingItemCount")
-    gMultiworldItemCount = get_symbol("gMultiworldItemCount")
-    gMultiworldItemSenderName = get_symbol("gMultiworldItemSenderName")
+    # gIncomingItemId = get_symbol("gIncomingItemId")
+    # gIncomingItemCount = get_symbol("gIncomingItemCount")
+    # gMultiworldItemCount = get_symbol("gMultiworldItemCount")
+    # gMultiworldItemSenderName = get_symbol("gMultiworldItemSenderName")
 
 
 class QueuedItem(NamedTuple):

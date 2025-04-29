@@ -186,8 +186,6 @@ class MZMWorld(World):
         patch = MZMProcedurePatch()
         patch.write_file("basepatch.bsdiff", data_path("basepatch.bsdiff"))
         write_tokens(self, patch)
-        if not self.options.unknown_items_always_usable:
-            patch.add_vanilla_unknown_item_sprites()
         if self.options.layout_patches.value:
             patch.add_layout_patches(self.enabled_layout_patches)
 

@@ -5,7 +5,6 @@ from typing import Callable, Mapping, NamedTuple, Optional, Sequence, Set, Tuple
 
 from . import lz10, rle, iterators
 from .data import get_rom_address, get_symbol
-from .items import ItemID
 
 
 ByteString = Union[bytes, bytearray, memoryview]
@@ -57,11 +56,9 @@ def extract_unknown_chozo_statue_sprite(statue: bytes, y_offset: int):
     return 4 * shifted
 
 
-def write_palette_pointer(rombuffer: bytearray, palette_name: str, index: int):
-    palette = get_symbol(palette_name)
-    write_data(rombuffer,
-               palette.to_bytes(4, "little"),
-               get_symbol("sItemGfxPointers", 8 * index + 4))  # sItemGfxPointers[index].palette
+def write_palette_pointer(rombuffer: bytearray, source_palette: str, destination_sprite: str):
+    palette = get_symbol(source_palette)
+    write_data(rombuffer, palette.to_bytes(4, "little"), get_symbol(destination_sprite, 4))
 
 
 def add_item_sprites(rom: bytes) -> bytes:
@@ -93,6 +90,12 @@ def add_item_sprites(rom: bytes) -> bytes:
     wave = extract_chozo_statue_sprite(wave_statue)
     write_data(rombuffer, wave, "sRandoWaveBeamGfx")
 
+    # Plasma Beam
+    plasma_statue = decompress_data(rom, "sChozoStatuePlasmaBeamGfx")
+    plasma = extract_unknown_chozo_statue_sprite(plasma_statue, 4)
+    write_data(rombuffer, plasma, "sRandoUnknownPlasmaBeamGfx")
+    write_palette_pointer(rombuffer, "sChozoStatuePlasmaBeamPal", "sRandoUnknownPlasmaBeamSprite")
+
     # Bomb
     bomb_statue = decompress_data(rom, "sChozoStatueBombsGfx")
     bomb = extract_chozo_statue_sprite(bomb_statue)
@@ -102,6 +105,12 @@ def add_item_sprites(rom: bytes) -> bytes:
     varia_statue = decompress_data(rom, "sChozoStatueVariaGfx")
     varia = extract_chozo_statue_sprite(varia_statue)
     write_data(rombuffer, varia, "sRandoVariaSuitGfx")
+
+    # Gravity Suit
+    gravity_statue = decompress_data(rom, "sChozoStatueGravitySuitGfx")
+    gravity = extract_unknown_chozo_statue_sprite(gravity_statue, 2)
+    write_data(rombuffer, gravity, "sRandoUnknownGravitySuitGfx")
+    write_palette_pointer(rombuffer, "sChozoStatueGravitySuitPal", "sRandoUnknownGravitySuitSprite")
 
     # Morph Ball
     morph = decompress_data(rom, "sMorphBallGfx")
@@ -133,6 +142,12 @@ def add_item_sprites(rom: bytes) -> bytes:
     hijump = extract_chozo_statue_sprite(hijump_statue)
     write_data(rombuffer, hijump, "sRandoHiJumpGfx")
 
+    # Space Jump
+    space_statue = decompress_data(rom, "sChozoStatueSpaceJumpGfx")
+    spacejump = extract_unknown_chozo_statue_sprite(space_statue, 2)
+    write_data(rombuffer, spacejump, "sRandoUnknownSpaceJumpGfx")
+    write_palette_pointer(rombuffer, "sChozoStatueSpaceJumpPal", "sRandoUnknownSpaceJumpSprite")
+
     # Screw Attack
     screw_statue = decompress_data(rom, "sChozoStatueScrewAttackGfx")
     screw = extract_chozo_statue_sprite(screw_statue)
@@ -142,30 +157,6 @@ def add_item_sprites(rom: bytes) -> bytes:
     powergrip = decompress_data(rom, "sPowerGripGfx")
     powergrip = get_sprites(powergrip, 0, 0, 3)
     write_data(rombuffer, make_4_frame_animation(powergrip), "sRandoPowerGripGfx")
-
-    return bytes(rombuffer)
-
-
-def use_unknown_item_sprites(rom: bytes) -> bytes:
-    rombuffer = bytearray(rom)
-
-    # Plasma Beam
-    plasma_statue = decompress_data(rom, "sChozoStatuePlasmaBeamGfx")
-    plasma = extract_unknown_chozo_statue_sprite(plasma_statue, 4)
-    write_data(rombuffer, plasma, "sRandoPlasmaBeamGfx")
-    write_palette_pointer(rombuffer, "sChozoStatuePlasmaBeamPal", ItemID.PlasmaBeam)
-
-    # Gravity Suit
-    gravity_statue = decompress_data(rom, "sChozoStatueGravitySuitGfx")
-    gravity = extract_unknown_chozo_statue_sprite(gravity_statue, 2)
-    write_data(rombuffer, gravity, "sRandoGravitySuitGfx")
-    write_palette_pointer(rombuffer, "sChozoStatueGravitySuitPal", ItemID.GravitySuit)
-
-    # Space Jump
-    space_statue = decompress_data(rom, "sChozoStatueSpaceJumpGfx")
-    spacejump = extract_unknown_chozo_statue_sprite(space_statue, 2)
-    write_data(rombuffer, spacejump, "sRandoSpaceJumpGfx")
-    write_palette_pointer(rombuffer, "sChozoStatueSpaceJumpPal", ItemID.SpaceJump)
 
     return bytes(rombuffer)
 
