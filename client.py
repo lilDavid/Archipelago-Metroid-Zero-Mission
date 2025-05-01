@@ -364,18 +364,21 @@ class MZMClient(BizHawkClient):
         player_name = client_ctx.player_names[item.player]
         return make_item_message(item_name, f"received from {player_name}")
 
-    async def send_message_and_item(self, client_ctx: BizHawkClientContext, item: NetworkItem,
-                                item_data: ItemData, message: Message, single_line: bool):
+    async def send_message_and_item(self, client_ctx: BizHawkClientContext,
+                                item_data: ItemData, message: Message | None, single_line: bool):
         try:
-            result = await bizhawk.guarded_write(client_ctx.bizhawk_ctx, [
-                write(get_symbol("gIncomingItem"), struct.pack("<BBH", item_data.type, True, item_data.bits)),
-                write(get_symbol("gDynamicMessageBuffer"), message.to_bytes()),
-                write(
+            write_list = [write(
+                get_symbol("gIncomingItem"),
+                struct.pack("<BBH", item_data.type, message is not None, item_data.bits)
+            )]
+            if message is not None:
+                write_list.append(write(get_symbol("gDynamicMessageBuffer"), message.to_bytes()))
+                write_list.append(write(
                     get_symbol("gIncomingMessage"),
                     struct.pack("<IHBB", get_symbol("gDynamicMessageBuffer"), item_data.sound, item_data.acquisition,
-                                single_line and item.player == client_ctx.slot)
-                ),
-            ], [
+                                single_line)
+                ))
+            result = await bizhawk.guarded_write(client_ctx.bizhawk_ctx, write_list, [
                 guard16(ZMConstants.gMainGameMode, ZMConstants.GM_INGAME),
                 guard16(ZMConstants.gGameModeSub1, ZMConstants.SUB_GAME_MODE_PLAYING),
             ])
@@ -422,13 +425,16 @@ class MZMClient(BizHawkClient):
         to_receive = network_tanks - current_tanks
         if to_receive > 0:
             if to_receive == 1:
-                message = self.make_received_message(client_ctx, "Energy Tank", most_recent)
+                message = (self.make_received_message(client_ctx, "Energy Tank", most_recent)
+                           if most_recent.player != client_ctx.slot or most_recent.location <= 0
+                           else None)
             else:
                 message = make_item_message(
                     "Energy Tanks received.",
                     f"Energy capacity increased by {ZMConstants.sTankIncreaseAmount[gDifficulty].energy * to_receive}."
                 )
-            await self.send_message_and_item(client_ctx, item._replace(bits=to_receive), message, to_receive == 1)
+            await self.send_message_and_item(client_ctx, item._replace(bits=to_receive), message,
+                                             to_receive == 1 and most_recent.player == client_ctx.slot)
             return
 
         # Missiles
@@ -438,13 +444,16 @@ class MZMClient(BizHawkClient):
         to_receive = network_tanks - current_tanks
         if to_receive > 0:
             if to_receive == 1:
-                message = self.make_received_message(client_ctx, "Missile Tank", most_recent)
+                message = (self.make_received_message(client_ctx, "Missile Tank", most_recent)
+                           if most_recent.player != client_ctx.slot or most_recent.location <= 0
+                           else None)
             else:
                 message = make_item_message(
                     "Missile Tanks received.",
                     f"Missile capacity increased by {ZMConstants.sTankIncreaseAmount[gDifficulty].missile * to_receive}."
                 )
-            await self.send_message_and_item(client_ctx, item._replace(bits=to_receive), message, to_receive == 1)
+            await self.send_message_and_item(client_ctx, item._replace(bits=to_receive), message,
+                                             to_receive == 1 and most_recent.player == client_ctx.slot)
             return
 
         # Supers
@@ -454,13 +463,16 @@ class MZMClient(BizHawkClient):
         to_receive = network_tanks - current_tanks
         if to_receive > 0:
             if to_receive == 1:
-                message = self.make_received_message(client_ctx, "Super Missile Tank", most_recent)
+                message = (self.make_received_message(client_ctx, "Super Missile Tank", most_recent)
+                           if most_recent.player != client_ctx.slot or most_recent.location <= 0
+                           else None)
             else:
                 message = make_item_message(
                     "Super Missile Tanks received.",
                     f"Super Missile capacity increased by {ZMConstants.sTankIncreaseAmount[gDifficulty].super_missile * to_receive}."
                 )
-            await self.send_message_and_item(client_ctx, item._replace(bits=to_receive), message, to_receive == 1)
+            await self.send_message_and_item(client_ctx, item._replace(bits=to_receive), message,
+                                             to_receive == 1 and most_recent.player == client_ctx.slot)
             return
 
         # PBs
@@ -470,13 +482,16 @@ class MZMClient(BizHawkClient):
         to_receive = network_tanks - current_tanks
         if to_receive > 0:
             if to_receive == 1:
-                message = self.make_received_message(client_ctx, "Power Bomb Tank", most_recent)
+                message = (self.make_received_message(client_ctx, "Power Bomb Tank", most_recent)
+                           if most_recent.player != client_ctx.slot or most_recent.location <= 0
+                           else None)
             else:
                 message = make_item_message(
                     "Power Bomb Tanks received.",
                     f"Power Bomb capacity increased by {ZMConstants.sTankIncreaseAmount[gDifficulty].power_bomb * to_receive}."
                 )
-            await self.send_message_and_item(client_ctx, item._replace(bits=to_receive), message, to_receive == 1)
+            await self.send_message_and_item(client_ctx, item._replace(bits=to_receive), message,
+                                             to_receive == 1 and most_recent.player == client_ctx.slot)
             return
 
         # Majors
@@ -492,8 +507,10 @@ class MZMClient(BizHawkClient):
             received, first, _ = self.get_received_items(client_ctx, item)
             if not received:
                 continue
-            message = self.make_received_message(client_ctx, name, first)
-            await self.send_message_and_item(client_ctx, first, item, message, True)
+            message = (self.make_received_message(client_ctx, name, first)
+                       if first.player != client_ctx.slot or first.location <= 0
+                       else None)
+            await self.send_message_and_item(client_ctx, item, message, first.player == client_ctx.slot)
 
     async def game_watcher(self, client_ctx: BizHawkClientContext) -> None:
         if self.dc_pending:
