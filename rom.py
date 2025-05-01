@@ -296,7 +296,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
             zss_text += "\n"
         zss_text += "\n".join(lines)
     else:
-        zss_text += "Could I survive long enough to escape?"
+        zss_text += "\nCould I survive long enough to escape?"
     encoded_zss_text = Message(zss_text).append(TERMINATOR_CHAR)
     assert len(encoded_zss_text) < 339
     patch.write_token(
