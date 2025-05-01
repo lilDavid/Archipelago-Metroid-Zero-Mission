@@ -191,6 +191,7 @@ class MZMClient(BizHawkClient):
     local_area: int
 
     multiworld_item_count: int | None
+    ignore_locals_written: bool
 
     rom_slot_name: Optional[str]
 
@@ -204,6 +205,7 @@ class MZMClient(BizHawkClient):
         self.local_set_events = {flag: False for flag in TRACKER_EVENT_FLAGS}
         self.local_area = 0
         self.multiworld_item_count = None
+        self.ignore_locals_written = False
         self.rom_slot_name = None
 
     async def validate_rom(self, client_ctx: BizHawkClientContext) -> bool:
@@ -248,7 +250,6 @@ class MZMClient(BizHawkClient):
         self.death_link = DeathLinkCtx()
 
         self.dc_pending = False
-        self.multiworld_item_count = None
         return True
 
     async def set_auth(self, client_ctx: BizHawkClientContext) -> None:
@@ -346,12 +347,13 @@ class MZMClient(BizHawkClient):
                 "operations": [{"operation": "replace", "value": gCurrentArea}]
             }])
 
-    @staticmethod
-    def get_received_items(client_ctx: BizHawkClientContext, item_data: ItemData) -> tuple[int, NetworkItem | None, NetworkItem | None]:
+    def get_received_items(self, client_ctx: BizHawkClientContext, item_data: ItemData) -> tuple[int, NetworkItem | None, NetworkItem | None]:
         count: int = 0
         first: NetworkItem | None = None
         last: NetworkItem | None = None
         for item in client_ctx.items_received:
+            if item.location not in self.local_checked_locations and not client_ctx.slot_data.get("remote_items"):
+                continue
             if item.item == item_data.code:
                 count += 1
                 if first is None:
@@ -395,7 +397,7 @@ class MZMClient(BizHawkClient):
 
         try:
             read_result = iter(await bizhawk.read(bizhawk_ctx, [
-                read8(ZMConstants.gMultiworldItemCount),
+                read16(ZMConstants.gMultiworldItemCount),
                 read32(ZMConstants.gIncomingMessage),
                 read8(ZMConstants.gDifficulty),
                 read(ZMConstants.gEquipment, struct.calcsize("<HHBB6xBxB"))
@@ -415,8 +417,6 @@ class MZMClient(BizHawkClient):
         gDifficulty = next_int(read_result)
         inventory = next(read_result)
         energy, missiles, supers, powerbombs, beams, majors = struct.unpack("<HHBB6xBxB", inventory)
-
-        # FIXME: Resetting and recollecting a location duplicates minor items
 
         # Energy tanks
         item = item_data_table["Energy Tank"]
@@ -525,6 +525,10 @@ class MZMClient(BizHawkClient):
             self.death_link.update_pending = False
 
         bizhawk_ctx = client_ctx.bizhawk_ctx
+
+        if not self.ignore_locals_written and client_ctx.slot_data.get("remote_items"):
+            await bizhawk.write(bizhawk_ctx, [write8(get_symbol("gIgnoreLocalItems"), True)])
+            self.ignore_locals_written = True
 
         try:
             read_result = iter(await bizhawk.read(bizhawk_ctx, [
