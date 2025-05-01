@@ -306,8 +306,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
     )
     patch.write_token(
         APTokenTypes.WRITE,
-        get_rom_address("sEnglishTextPointers_Story", 4 * 0),
-        # get_rom_address("sEnglishTextPointers_Story", 4 * 2),  # Could I survive...?
+        get_rom_address("sEnglishTextPointers_Story", 4 * 2),  # Could I survive...?
         get_symbol("sEnglishText_Story_TheTiming").to_bytes(4, "little")
     )
 
