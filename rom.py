@@ -14,7 +14,7 @@ import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
 
 from . import rom_data
-from .data import APWORLD_VERSION, get_rom_address, symbols_hash
+from .data import APWORLD_VERSION, get_rom_address, get_symbol, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemID, ItemType, item_data_table
 from .nonnative_items import get_zero_mission_sprite
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
@@ -140,6 +140,23 @@ def get_item_sprite_and_name(location: Location, world: MZMWorld):
     return sprite, name
 
 
+def split_text(text: str):
+    lines = [""]
+    i = 0
+    while i < len(text):
+        next_space = text.find(" ", i)
+        if next_space == -1:
+            next_space = len(text)
+        if len(lines[-1]) + next_space - i <= 40:
+            lines[-1] = f"{lines[-1]}{text[i:next_space]} "
+        else:
+            lines[-1] = lines[-1][:-1]
+            lines.append(text[i:next_space] + " ")
+        i = next_space + 1
+    lines[-1] = lines[-1][:-1]
+    return lines
+
+
 def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
     multiworld = world.multiworld
     player = world.player
@@ -255,6 +272,43 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         APTokenTypes.WRITE,
         get_rom_address("sEnglishText_Story_PlanetZebes"),
         encoded_intro.to_bytes()
+    )
+
+    # Write new ZSS text
+    zss_text = ("With Mother Brain taken down, I needed\n"
+                "to get my suit back in the ruins.\n")
+    plasma_beam = world.create_item("Plasma Beam")
+    if world.options.plasma_beam_hint.value and plasma_beam not in multiworld.precollected_items[player]:
+        location = multiworld.find_item(plasma_beam.name, player)
+        if location.native_item:
+            location_text = location.parent_region.hint_text
+        else:
+            location_text = f"at {location.name}"
+        if location.player != player:
+            player_text = f" in {multiworld.player_name[location.player]}'s world"
+        else:
+            player_text = ""
+        lines = split_text(f"Could I find the Plasma Beam {location_text}{player_text}?")
+        while len(lines) > 4:
+            location_text = location_text[:location_text.rfind(" ")]
+            lines = split_text(f"Could I find the Plasma Beam {location_text}{player_text}?")
+        if len(lines) < 4:
+            zss_text += "\n"
+        zss_text += "\n".join(lines)
+    else:
+        zss_text += "Could I survive long enough to escape?"
+    encoded_zss_text = Message(zss_text).append(TERMINATOR_CHAR)
+    assert len(encoded_zss_text) < 339
+    patch.write_token(
+        APTokenTypes.WRITE,
+        get_rom_address("sEnglishText_Story_TheTiming"),
+        encoded_zss_text.to_bytes()
+    )
+    patch.write_token(
+        APTokenTypes.WRITE,
+        get_rom_address("sEnglishTextPointers_Story", 4 * 0),
+        # get_rom_address("sEnglishTextPointers_Story", 4 * 2),  # Could I survive...?
+        get_symbol("sEnglishText_Story_TheTiming").to_bytes(4, "little")
     )
 
     patch.write_file("token_data.bin", patch.get_token_binary())

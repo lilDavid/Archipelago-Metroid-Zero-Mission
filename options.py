@@ -84,6 +84,11 @@ class BuffPowerBombDrops(Toggle):
     display_name = "Buff Power Bomb Drops"
 
 
+class PlasmaBeamHint(DefaultOnToggle):
+    """Display a hint for the location of the Plasma Beam when you defeat Mother Brain."""
+    display_name = "Plasma Beam Hint"
+
+
 class LogicDifficulty(Choice):
     """
     Determines the difficulty of room traversal and game knowledge required by the game's logic.
@@ -297,6 +302,7 @@ mzm_option_groups = [
     OptionGroup("Quality of Life", [
         SkipChozodiaStealth,
         BuffPowerBombDrops,
+        PlasmaBeamHint,
         ElevatorSpeed,
         StartWithMaps,
         FastItemBanners,
@@ -330,6 +336,7 @@ class MZMOptions(PerGameCommonOptions):
     tricky_shinesparks: TrickyShinesparks
     skip_chozodia_stealth: SkipChozodiaStealth
     buff_pb_drops: BuffPowerBombDrops
+    plasma_beam_hint: PlasmaBeamHint
     elevator_speed: ElevatorSpeed
     start_with_maps: StartWithMaps
     fast_item_banners: FastItemBanners
