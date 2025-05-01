@@ -6,6 +6,8 @@ from enum import IntEnum, IntFlag
 from BaseClasses import Item, ItemClassification
 from typing import Dict, NamedTuple
 
+from .data import get_symbol
+
 from .item_sprites import Sprite
 
 AP_MZM_ID_BASE = 261300
@@ -47,28 +49,6 @@ class MajorFlags(IntFlag):
     POWER_GRIP = 1 << 7
 
 
-class ItemAcquisition(IntEnum):
-    DUMMY = 0
-    ENERGY_TANK = 1
-    MISSILES = 3
-    SUPER_MISSILES = 5
-    POWER_BOMBS = 7
-    LONG_BEAM = 8
-    CHARGE_BEAM = 9
-    ICE_BEAM = 10
-    WAVE_BEAM = 11
-    PLASMA_BEAM = 12
-    BOMBS = 13
-    VARIA = 14
-    GRAVITY = 15
-    MORPH_BALL = 16
-    SPEEDBOOSTER = 17
-    HIGH_JUMP = 18
-    SCREW_ATTACK = 19
-    SPACE_JUMP = 20
-    POWER_GRIP = 21
-
-
 class MZMItem(Item):
     game: str = "Metroid Zero Mission"
 
@@ -77,40 +57,62 @@ class ItemData(NamedTuple):
     progression: ItemClassification
     type: ItemType  # used for determining the memory address to write bits to as each go somewhere different
     bits: int
-    sprite: int
-    acquisition: int
+    appearance_data: tuple[int, int, int | str, int]  # Sprite data address, acquisition number, message, sound number
 
     @property
     def code(self):
         return AP_MZM_ID_BASE + (self.type << 8 | self.bits)
 
+    @property
+    def sprite(self):
+        return self.appearance_data[0]
+
+    @property
+    def acquisition(self):
+        return self.appearance_data[1]
+
+    @property
+    def message(self):
+        """
+        - int: Address of message data
+        - str: Message to be injected into ROM
+        """
+        return self.appearance_data[2]
+
+    @property
+    def sound(self):
+        return self.appearance_data[3]
+
+
+SOUND_ARMING_WEAPON = 0x84
+
 
 tank_data_table = {
-    "Energy Tank": ItemData(progression, ItemType.ENERGY_TANK, 1, Sprite.EnergyTank, ItemAcquisition.ENERGY_TANK),
-    "Missile Tank": ItemData(progression, ItemType.MISSILE_TANK, 1, Sprite.MissileTank, ItemAcquisition.MISSILES),
-    "Super Missile Tank": ItemData(progression, ItemType.SUPER_MISSILE_TANK, 1, Sprite.SuperMissileTank, ItemAcquisition.SUPER_MISSILES),
-    "Power Bomb Tank": ItemData(progression, ItemType.POWER_BOMB_TANK, 1, Sprite.PowerBombTank, ItemAcquisition.POWER_BOMBS),
+    "Energy Tank":        ItemData(progression, ItemType.ENERGY_TANK,        1, (Sprite.EnergyTank,       1, get_symbol("sEnglishText_Message_EnergyTankAcquired"),                      0x87)),
+    "Missile Tank":       ItemData(progression, ItemType.MISSILE_TANK,       1, (Sprite.MissileTank,      3, get_symbol("sEnglishText_Message_MissileTankAcquired"),      SOUND_ARMING_WEAPON)),
+    "Super Missile Tank": ItemData(progression, ItemType.SUPER_MISSILE_TANK, 1, (Sprite.SuperMissileTank, 5, get_symbol("sEnglishText_Message_SuperMissileTankAcquired"), SOUND_ARMING_WEAPON)),
+    "Power Bomb Tank":    ItemData(progression, ItemType.POWER_BOMB_TANK,    1, (Sprite.PowerBombTank,    7, "Power Bomb Tank acquired.",                                 SOUND_ARMING_WEAPON)),  # PBs don't say "acquired" in vanilla for some reason
 }
 
 major_item_data_table = {
-    "Long Beam": ItemData(progression, ItemType.BEAM, BeamFlags.LONG_BEAM, Sprite.LongBeam, ItemAcquisition.LONG_BEAM),
-    "Charge Beam": ItemData(progression, ItemType.BEAM, BeamFlags.CHARGE_BEAM, Sprite.ChargeBeam, ItemAcquisition.CHARGE_BEAM),
-    "Ice Beam": ItemData(progression, ItemType.BEAM, BeamFlags.ICE_BEAM, Sprite.IceBeam, ItemAcquisition.ICE_BEAM),
-    "Wave Beam": ItemData(progression, ItemType.BEAM, BeamFlags.WAVE_BEAM, Sprite.WaveBeam, ItemAcquisition.WAVE_BEAM),
-    "Plasma Beam": ItemData(progression, ItemType.BEAM, BeamFlags.PLASMA_BEAM, Sprite.PlasmaBeam, ItemAcquisition.PLASMA_BEAM),
-    "Bomb": ItemData(progression, ItemType.BEAM, BeamFlags.BOMB, Sprite.Bomb, ItemAcquisition.BOMBS),
-    "Varia Suit": ItemData(progression, ItemType.MAJOR, MajorFlags.VARIA_SUIT, Sprite.VariaSuit, ItemAcquisition.VARIA),
-    "Gravity Suit": ItemData(progression, ItemType.MAJOR, MajorFlags.GRAVITY_SUIT, Sprite.GravitySuit, ItemAcquisition.GRAVITY),
-    "Morph Ball": ItemData(progression, ItemType.MAJOR, MajorFlags.MORPH_BALL, Sprite.MorphBall, ItemAcquisition.MORPH_BALL),
-    "Speed Booster": ItemData(progression, ItemType.MAJOR, MajorFlags.SPEED_BOOSTER, Sprite.SpeedBooster, ItemAcquisition.SPEEDBOOSTER),
-    "Hi-Jump": ItemData(progression, ItemType.MAJOR, MajorFlags.HI_JUMP, Sprite.HiJump, ItemAcquisition.HIGH_JUMP),
-    "Screw Attack": ItemData(progression, ItemType.MAJOR, MajorFlags.SCREW_ATTACK, Sprite.ScrewAttack, ItemAcquisition.SCREW_ATTACK),
-    "Space Jump": ItemData(progression, ItemType.MAJOR, MajorFlags.SPACE_JUMP, Sprite.SpaceJump, ItemAcquisition.SPACE_JUMP),
-    "Power Grip": ItemData(progression, ItemType.MAJOR, MajorFlags.POWER_GRIP, Sprite.PowerGrip, ItemAcquisition.POWER_GRIP),
+    "Long Beam":     ItemData(progression, ItemType.BEAM,  1 << 0, (Sprite.LongBeam,      8, get_symbol("sEnglishText_Message_LongBeam"),     0xC9)),
+    "Charge Beam":   ItemData(progression, ItemType.BEAM,  1 << 4, (Sprite.ChargeBeam,    9, get_symbol("sEnglishText_Message_ChargeBeam"),   0xF0)),
+    "Ice Beam":      ItemData(progression, ItemType.BEAM,  1 << 1, (Sprite.IceBeam,      10, get_symbol("sEnglishText_Message_IceBeam"),      0xCA)),
+    "Wave Beam":     ItemData(progression, ItemType.BEAM,  1 << 2, (Sprite.WaveBeam,     11, get_symbol("sEnglishText_Message_WaveBeam"),     0xCC)),
+    "Plasma Beam":   ItemData(progression, ItemType.BEAM,  1 << 3, (Sprite.PlasmaBeam,   12, "Plasma Beam",                                   0xD0)),
+    "Bomb":          ItemData(progression, ItemType.BEAM,  1 << 7, (Sprite.Bomb,         13, get_symbol("sEnglishText_Message_Bomb"),         0xFF)),
+    "Varia Suit":    ItemData(progression, ItemType.MAJOR, 1 << 4, (Sprite.VariaSuit,    14, get_symbol("sEnglishText_Message_VariaSuit"),    0x7D)),
+    "Gravity Suit":  ItemData(progression, ItemType.MAJOR, 1 << 5, (Sprite.GravitySuit,  15, "Gravity Suit",                                  0x75)),
+    "Morph Ball":    ItemData(progression, ItemType.MAJOR, 1 << 6, (Sprite.MorphBall,    16, get_symbol("sEnglishText_Message_MorphBall"),    0x77)),
+    "Speed Booster": ItemData(progression, ItemType.MAJOR, 1 << 1, (Sprite.SpeedBooster, 17, get_symbol("sEnglishText_Message_SpeedBooster"), 0x8D)),
+    "Hi-Jump":       ItemData(progression, ItemType.MAJOR, 1 << 0, (Sprite.HiJump,       18, get_symbol("sEnglishText_Message_HighJump"),     0x6A)),
+    "Screw Attack":  ItemData(progression, ItemType.MAJOR, 1 << 3, (Sprite.ScrewAttack,  19, get_symbol("sEnglishText_Message_ScrewAttack"),  0x6C)),
+    "Space Jump":    ItemData(progression, ItemType.MAJOR, 1 << 2, (Sprite.SpaceJump,    20, "Space Jump",                                    0x6B)),
+    "Power Grip":    ItemData(progression, ItemType.MAJOR, 1 << 7, (Sprite.PowerGrip,    21, get_symbol("sEnglishText_Message_PowerGrip"),    0x7B)),
 }
 
 extra_item_data_table = {
-    "Nothing": ItemData(filler, ItemType.CUSTOM, 0, Sprite.Nothing, ItemAcquisition.DUMMY),
+    "Nothing": ItemData(filler, ItemType.CUSTOM, 0, (Sprite.Nothing, 0, "Nothing acquired.", SOUND_ARMING_WEAPON)),
 }
 
 item_data_table: Dict[str, ItemData] = {

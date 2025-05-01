@@ -210,6 +210,7 @@ class FastItemBanners(DefaultOnToggle):
     related to the item when it appears.
     """
     display_name = "Fast Item Banners"
+    visibility = Visibility.none  # This option has no effect, but may be restored in the future
 
 
 class SkipTourianOpeningCutscenes(DefaultOnToggle):

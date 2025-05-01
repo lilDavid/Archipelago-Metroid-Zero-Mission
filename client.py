@@ -372,7 +372,7 @@ class MZMClient(BizHawkClient):
                 write(get_symbol("gDynamicMessageBuffer"), message.to_bytes()),
                 write(
                     get_symbol("gIncomingMessage"),
-                    struct.pack("<IHBB", get_symbol("gDynamicMessageBuffer"), 0x3A, item_data.acquisition,
+                    struct.pack("<IHBB", get_symbol("gDynamicMessageBuffer"), item_data.sound, item_data.acquisition,
                                 single_line and item.player == client_ctx.slot)
                 ),
             ], [

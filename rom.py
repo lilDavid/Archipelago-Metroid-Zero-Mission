@@ -107,7 +107,7 @@ goal_texts = {
 }
 
 
-def get_item_sprite(location: Location, world: MZMWorld):
+def get_item_sprite(location: Location, world: MZMWorld) -> int:
     player = world.player
     nonlocal_item_handling = world.options.display_nonlocal_items
     item = location.item
@@ -189,14 +189,17 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         player_name = multiworld.worlds[player].player_name
         sent_to = "" if item.player == player else f"Sent to {player_name}"
 
-        message_address = next_message_address | 0x8000000
-        message_bytes = make_item_message(item.name, sent_to).to_bytes()
-        patch.write_token(
-            APTokenTypes.WRITE,
-            next_message_address,
-            message_bytes
-        )
-        next_message_address += len(message_bytes)
+        if type(item_data.message) is int:
+            message_address = item_data.message
+        else:
+            message_address = next_message_address | 0x8000000
+            message_bytes = make_item_message(item.name, sent_to).to_bytes()
+            patch.write_token(
+                APTokenTypes.WRITE,
+                next_message_address,
+                message_bytes
+            )
+            next_message_address += len(message_bytes)
 
         location_id = location.address - AP_MZM_ID_BASE
         patch.write_token(
@@ -206,7 +209,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
                 "<BBHIIHBB",
                 item_data.type, False, item_data.bits,
                 sprite_address,
-                message_address, 0x3A, item_data.acquisition, item.player == player
+                message_address, item_data.sound, item_data.acquisition, item.player == player
             ),
         )
 
