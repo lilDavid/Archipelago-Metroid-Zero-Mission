@@ -29,26 +29,6 @@ class ItemType(IntEnum):
     CUSTOM = 7
 
 
-class BeamFlags(IntFlag):
-    LONG_BEAM = 1 << 0
-    ICE_BEAM = 1 << 1
-    WAVE_BEAM = 1 << 2
-    PLASMA_BEAM = 1 << 3
-    CHARGE_BEAM = 1 << 4
-    BOMB = 1 << 7
-
-
-class MajorFlags(IntFlag):
-    HI_JUMP = 1 << 0
-    SPEED_BOOSTER = 1 << 1
-    SPACE_JUMP = 1 << 2
-    SCREW_ATTACK = 1 << 3
-    VARIA_SUIT = 1 << 4
-    GRAVITY_SUIT = 1 << 5
-    MORPH_BALL = 1 << 6
-    POWER_GRIP = 1 << 7
-
-
 class MZMItem(Item):
     game: str = "Metroid Zero Mission"
 
@@ -122,7 +102,7 @@ item_data_table: Dict[str, ItemData] = {
 }
 
 mzm_item_name_groups = {
-    "Beams": {name for name, data in major_item_data_table.items() if data.type == ItemType.BEAM and data.bits != BeamFlags.BOMB},
+    "Beams": {name for name in major_item_data_table.items() if name != "Bomb"},
     "Upgrades": {
         "Bomb",
         *(name for name, data in major_item_data_table.items() if data.type == ItemType.MAJOR)
