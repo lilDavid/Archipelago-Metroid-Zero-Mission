@@ -15,10 +15,11 @@ from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTok
 
 from . import rom_data
 from .data import APWORLD_VERSION, data_path, get_rom_address, symbols_hash
-from .items import AP_MZM_ID_BASE, ItemType, item_data_table
+from .items import ItemType, item_data_table
 from .item_sprites import Sprite, get_zero_mission_sprite, builtin_sprite_pointers, sprite_imports, unknown_item_alt_sprites
+from .locations import full_location_table as location_table
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
-from .text import NEWLINE, TERMINATOR_CHAR, Message, make_item_message
+from .text import TERMINATOR_CHAR, Message, make_item_message
 
 if TYPE_CHECKING:
     from . import MZMWorld
@@ -239,10 +240,10 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
             item_data = item_data_table["Nothing"]
             message_ptr = get_message(item.name, f"Sent to {multiworld.player_name[item.player]}")
 
-        location_id = location.address - AP_MZM_ID_BASE
+        location_data = location_table[location.name]
         patch.write_token(
             APTokenTypes.WRITE,
-            get_rom_address("sPlacedItems", 16 * location_id),
+            get_rom_address("sPlacedItems", 16 * location_data.id),
             struct.pack(
                 "<BBHIIHBB",
                 item_data.type, False, item_data.bits,
