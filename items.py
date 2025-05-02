@@ -75,20 +75,23 @@ tank_data_table = {
 }
 
 major_item_data_table = {
-    "Long Beam":     ItemData(progression, ItemType.BEAM,  1 << 0, (Sprite.LongBeam,      8, get_symbol("sEnglishText_Message_LongBeam"),     0xC9)),
-    "Charge Beam":   ItemData(progression, ItemType.BEAM,  1 << 4, (Sprite.ChargeBeam,    9, get_symbol("sEnglishText_Message_ChargeBeam"),   0xF0)),
-    "Ice Beam":      ItemData(progression, ItemType.BEAM,  1 << 1, (Sprite.IceBeam,      10, get_symbol("sEnglishText_Message_IceBeam"),      0xCA)),
-    "Wave Beam":     ItemData(progression, ItemType.BEAM,  1 << 2, (Sprite.WaveBeam,     11, get_symbol("sEnglishText_Message_WaveBeam"),     0xCC)),
-    "Plasma Beam":   ItemData(progression, ItemType.BEAM,  1 << 3, (Sprite.PlasmaBeam,   12, "Plasma Beam",                                   0xD0)),
-    "Bomb":          ItemData(progression, ItemType.BEAM,  1 << 7, (Sprite.Bomb,         13, get_symbol("sEnglishText_Message_Bomb"),         0xFF)),
-    "Varia Suit":    ItemData(progression, ItemType.MAJOR, 1 << 4, (Sprite.VariaSuit,    14, get_symbol("sEnglishText_Message_VariaSuit"),    0x7D)),
-    "Gravity Suit":  ItemData(progression, ItemType.MAJOR, 1 << 5, (Sprite.GravitySuit,  15, "Gravity Suit",                                  0x75)),
-    "Morph Ball":    ItemData(progression, ItemType.MAJOR, 1 << 6, (Sprite.MorphBall,    16, get_symbol("sEnglishText_Message_MorphBall"),    0x77)),
-    "Speed Booster": ItemData(progression, ItemType.MAJOR, 1 << 1, (Sprite.SpeedBooster, 17, get_symbol("sEnglishText_Message_SpeedBooster"), 0x8D)),
-    "Hi-Jump":       ItemData(progression, ItemType.MAJOR, 1 << 0, (Sprite.HiJump,       18, get_symbol("sEnglishText_Message_HighJump"),     0x6A)),
-    "Screw Attack":  ItemData(progression, ItemType.MAJOR, 1 << 3, (Sprite.ScrewAttack,  19, get_symbol("sEnglishText_Message_ScrewAttack"),  0x6C)),
-    "Space Jump":    ItemData(progression, ItemType.MAJOR, 1 << 2, (Sprite.SpaceJump,    20, "Space Jump",                                    0x6B)),
-    "Power Grip":    ItemData(progression, ItemType.MAJOR, 1 << 7, (Sprite.PowerGrip,    21, get_symbol("sEnglishText_Message_PowerGrip"),    0x7B)),
+    "Long Beam":          ItemData(progression, ItemType.BEAM,   1 << 0, (Sprite.LongBeam,      8, get_symbol("sEnglishText_Message_LongBeam"),         0xC9)),
+    "Charge Beam":        ItemData(progression, ItemType.BEAM,   1 << 4, (Sprite.ChargeBeam,    9, get_symbol("sEnglishText_Message_ChargeBeam"),       0xF0)),
+    "Ice Beam":           ItemData(progression, ItemType.BEAM,   1 << 1, (Sprite.IceBeam,      10, get_symbol("sEnglishText_Message_IceBeam"),          0xCA)),
+    "Wave Beam":          ItemData(progression, ItemType.BEAM,   1 << 2, (Sprite.WaveBeam,     11, get_symbol("sEnglishText_Message_WaveBeam"),         0xCC)),
+    "Plasma Beam":        ItemData(progression, ItemType.BEAM,   1 << 3, (Sprite.PlasmaBeam,   12, "Plasma Beam",                                       0xD0)),
+    "Bomb":               ItemData(progression, ItemType.BEAM,   1 << 7, (Sprite.Bomb,         13, get_symbol("sEnglishText_Message_Bomb"),             0xFF)),
+
+    "Varia Suit":         ItemData(progression, ItemType.MAJOR,  1 << 4, (Sprite.VariaSuit,    14, get_symbol("sEnglishText_Message_VariaSuit"),        0x7D)),
+    "Gravity Suit":       ItemData(progression, ItemType.MAJOR,  1 << 5, (Sprite.GravitySuit,  15, "Gravity Suit",                                      0x75)),
+    "Morph Ball":         ItemData(progression, ItemType.MAJOR,  1 << 6, (Sprite.MorphBall,    16, get_symbol("sEnglishText_Message_MorphBall"),        0x77)),
+    "Speed Booster":      ItemData(progression, ItemType.MAJOR,  1 << 1, (Sprite.SpeedBooster, 17, get_symbol("sEnglishText_Message_SpeedBooster"),     0x8D)),
+    "Hi-Jump":            ItemData(progression, ItemType.MAJOR,  1 << 0, (Sprite.HiJump,       18, get_symbol("sEnglishText_Message_HighJump"),         0x6A)),
+    "Screw Attack":       ItemData(progression, ItemType.MAJOR,  1 << 3, (Sprite.ScrewAttack,  19, get_symbol("sEnglishText_Message_ScrewAttack"),      0x6C)),
+    "Space Jump":         ItemData(progression, ItemType.MAJOR,  1 << 2, (Sprite.SpaceJump,    20, "Space Jump",                                        0x6B)),
+    "Power Grip":         ItemData(progression, ItemType.MAJOR,  1 << 7, (Sprite.PowerGrip,    21, get_symbol("sEnglishText_Message_PowerGrip"),        0x7B)),
+
+    "Fully Powered Suit": ItemData(progression, ItemType.CUSTOM, 1 << 7, (Sprite.GravitySuit,   0, get_symbol("sEnglishText_Message_FullyPoweredSuit"), 0x1D3)),  # TODO: Custom sprite
 }
 
 extra_item_data_table = {

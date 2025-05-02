@@ -123,9 +123,9 @@ def get_item_sprite(location: Location, world: MZMWorld) -> str:
     item = location.item
 
     if location.native_item and (nonlocal_item_handling != DisplayNonLocalItems.option_none or item.player == player):
+        other_world = cast("MZMWorld", world.multiworld.worlds[item.player])
         sprite = item_data_table[item.name].sprite
-        if (item.name in unknown_item_alt_sprites and
-            not cast("MZMWorld", world.multiworld.worlds[item.player]).options.unknown_items_always_usable):
+        if (item.name in unknown_item_alt_sprites and other_world.options.fully_powered_suit.use_alt_unknown_sprites()):
             sprite = unknown_item_alt_sprites[item.name]
         return sprite
 
@@ -155,7 +155,6 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
 
         world.options.goal.value,
         world.options.game_difficulty.value,
-        world.options.unknown_items_always_usable.value,
         True,  # Remove Gravity Suit heat resistance
         True,  # Make Power Bombs usable without Bomb
         world.options.buff_pb_drops.value,
@@ -167,7 +166,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2x10B", *seed_info)
+        struct.pack("<H64s64s2x9B", *seed_info)
     )
 
     # Set goal
@@ -225,7 +224,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
 
     for location in multiworld.get_locations(player):
         item = location.item
-        if item.code is None or location.address is None:
+        if item.code is None:
             continue
 
         sprite_name = get_item_sprite(location, world)
@@ -241,6 +240,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
             message_ptr = get_message(item.name, f"Sent to {multiworld.player_name[item.player]}")
 
         location_data = location_table[location.name]
+        sound = location_data.force_sound if location_data.force_sound is not None else item_data.sound
         patch.write_token(
             APTokenTypes.WRITE,
             get_rom_address("sPlacedItems", 16 * location_data.id),
@@ -248,25 +248,27 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
                 "<BBHIIHBB",
                 item_data.type, False, item_data.bits,
                 sprite_address,
-                message_ptr, item_data.sound, item_data.acquisition, item.player == player
+                message_ptr, sound, item_data.acquisition, item.player == player
             ),
         )
 
     # Create starting inventory
     pickups = [0, 0, 0, 0]
-    beams = misc = 0
+    beams = misc = custom = 0
     for item in multiworld.precollected_items[player]:
         data = item_data_table[item.name]
         if data.type == ItemType.BEAM:
             beams |= data.bits
         elif data.type == ItemType.MAJOR:
             misc |= data.bits
+        elif data.type == ItemType.CUSTOM:
+            custom |= data.bits
         elif (data.type == ItemType.MISSILE_TANK and pickups[1] < 999 or pickups[data.type - 1] < 99):
             pickups[data.type - 1] += 1
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoStartingInventory"),
-        struct.pack("<BxHBBBB", *pickups, beams, misc)
+        struct.pack("<BxHBBBBB", *pickups, beams, misc, custom)
     )
 
     if world.options.chozodia_access == ChozodiaAccess.option_closed:

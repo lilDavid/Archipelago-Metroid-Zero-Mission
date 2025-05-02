@@ -1104,10 +1104,11 @@ chozodia_ruins_test = {
                 )
             )
         ),
+        "Chozodia Ruins Test Reward": CanReachLocation("Chozo Ghost"),
         "Chozo Ghost": all(
             MotherBrainBoss,
             RuinsTestEscape
-        )
+        ),
     }
 
 chozodia_under_tube = {

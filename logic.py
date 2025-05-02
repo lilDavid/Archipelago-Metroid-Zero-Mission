@@ -69,10 +69,7 @@ UnknownItem1 = Requirement.location("Crateria Unknown Item Statue")
 UnknownItem2 = Requirement.location("Kraid Unknown Item Statue")
 UnknownItem3 = Requirement.location("Ridley Unknown Item Statue")
 
-CanUseUnknownItems = any(
-    Requirement.setting_enabled("unknown_items_always_usable"),
-    ChozoGhostBoss,
-)
+CanUseUnknownItems = Requirement.item("Fully Powered Suit")
 LayoutPatches = lambda n: any(
     Requirement.setting_is("layout_patches", 1),
     all(

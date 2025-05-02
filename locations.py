@@ -2,16 +2,14 @@
 Classes and functions related to AP locations for Metroid: Zero Mission
 """
 
+from typing import NamedTuple
 from .items import AP_MZM_ID_BASE
 
 
-class LocationData:
+class LocationData(NamedTuple):
     region: str
     id: int | None
-
-    def __init__(self, reg, id):
-        self.region = reg
-        self.id = id
+    force_sound: int | None = None
 
     @property
     def code(self):
@@ -146,6 +144,7 @@ chozodia_location_table = {
     "Chozodia Ceiling Near Map Station": LocationData("Chozodia Mothership Lower", 97),
     "Chozodia Under Mecha Ridley Hallway": LocationData("Chozodia Mecha Ridley Hallway", 98),
     "Chozodia Southeast Corner in Hull": LocationData("Chozodia Mothership Lower", 99),
+    "Chozodia Ruins Test Reward": LocationData("Chozodia Ruins Test Area", 100, force_sound=0x4A),
     "Chozo Ghost": LocationData("Chozodia Ruins Test Area", None),
     "Mecha Ridley": LocationData("Chozodia Mecha Ridley Hallway", None),
     "Chozodia Space Pirate's Ship": LocationData("Chozodia Mecha Ridley Hallway", None)
@@ -160,6 +159,8 @@ full_location_table = {
     **crateria_location_table,
     **chozodia_location_table
 }
+
+location_count = sum(loc.id is not None for loc in full_location_table.values())
 
 mzm_location_name_groups = {
     "Brinstar": {name for name, loc in brinstar_location_table.items() if loc.id is not None},

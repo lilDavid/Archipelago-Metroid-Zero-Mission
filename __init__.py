@@ -13,8 +13,8 @@ from . import rom_data
 from .client import MZMClient
 from .data import data_path
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
-from .locations import full_location_table, mzm_location_name_groups
-from .options import LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty, \
+from .locations import full_location_table, location_count, mzm_location_name_groups
+from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty, \
     GameDifficulty
 from .regions import create_regions_and_connections
 from .rom import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_tokens
@@ -74,6 +74,8 @@ class MZMWorld(World):
     item_name_groups = mzm_item_name_groups
     location_name_groups = mzm_location_name_groups
 
+    starting_items: list[MZMItem]
+    locked_items: list[MZMItem]
     pre_fill_items: list[MZMItem]
 
     enabled_layout_patches: list[str]
@@ -82,6 +84,8 @@ class MZMWorld(World):
     junk_fill_cdf: list[int]
 
     def generate_early(self):
+        self.starting_items = []
+        self.locked_items = []
         self.pre_fill_items = []
         self.junk_fill_items = list(self.options.junk_fill_weights.value.keys())
         self.junk_fill_cdf = list(itertools.accumulate(self.options.junk_fill_weights.value.values()))
@@ -95,12 +99,19 @@ class MZMWorld(World):
 
         if "Morph Ball" in self.options.start_inventory_from_pool:
             self.options.morph_ball = MorphBallPlacement(MorphBallPlacement.option_normal)
-
         if self.options.morph_ball == MorphBallPlacement.option_early:
             self.pre_fill_items.append(self.create_item("Morph Ball"))
 
-        # Only this player should have effectively empty locations if they so choose.
-        self.options.local_items.value.add("Nothing")
+        if self.options.fully_powered_suit == FullyPoweredSuit.option_ruins_test:
+            self.locked_items.append(self.create_item("Fully Powered Suit"))
+        elif self.options.fully_powered_suit == FullyPoweredSuit.option_start_with:
+            self.starting_items.append(self.create_item("Fully Powered Suit"))
+        elif self.options.fully_powered_suit == FullyPoweredSuit.option_legacy_always_usable:
+            self.starting_items.append(self.create_item("Fully Powered Suit"))
+            self.locked_items.append(self.create_item("Nothing"))
+
+        for item in self.starting_items:
+            self.push_precollected(item)
 
     def create_regions(self) -> None:
         create_regions_and_connections(self)
@@ -113,13 +124,20 @@ class MZMWorld(World):
         self.place_event("Mecha Ridley Defeated", "Mecha Ridley")
         self.place_event("Mission Accomplished!", "Chozodia Space Pirate's Ship")
 
+        ruins_test_reward = self.get_location("Chozodia Ruins Test Reward")
+        if self.options.fully_powered_suit == FullyPoweredSuit.option_ruins_test:
+            ruins_test_reward.address = None
+            ruins_test_reward.place_locked_item(self.create_item("Fully Powered Suit"))
+        elif self.options.fully_powered_suit == FullyPoweredSuit.option_legacy_always_usable:
+            ruins_test_reward.address = None
+            ruins_test_reward.place_locked_item(self.create_item("Nothing"))
 
     def create_items(self) -> None:
         item_pool: List[MZMItem] = []
 
-        item_pool_size = 100 - len(self.pre_fill_items)
+        item_pool_size = location_count - len(self.locked_items) - len(self.pre_fill_items)
 
-        pre_fill_majors = set(item.name for item in self.pre_fill_items if item.name in major_item_data_table)
+        pre_fill_majors = set(item.name for item in self.starting_items + self.locked_items + self.pre_fill_items)
         for name in major_item_data_table:
             if name not in pre_fill_majors:
                 item_pool.append(self.create_item(name))
@@ -196,7 +214,7 @@ class MZMWorld(World):
         return {
             "goal": self.options.goal.value,
             "game_difficulty": self.options.game_difficulty.value,
-            "unknown_items_always_usable": self.options.unknown_items_always_usable.value,
+            "unknown_items_usable": self.options.fully_powered_suit.to_slot_data(),
             "layout_patches": self.options.layout_patches.value,
             "selected_patches": self.enabled_layout_patches,
             "logic_difficulty": self.options.logic_difficulty.value,

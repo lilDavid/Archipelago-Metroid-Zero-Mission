@@ -163,6 +163,7 @@ class ZMConstants:
     gDifficulty = get_symbol("gDifficulty")
     gSamusData = get_symbol("gSamusData")
     gEquipment = get_symbol("gEquipment")
+    gRandoEquipment = get_symbol("gRandoEquipment")
     gEventsTriggered = get_symbol("gEventsTriggered")
     gCurrentArea = get_symbol("gCurrentArea")
     gRandoLocationBitfields = get_symbol("gRandoLocationBitfields")
@@ -392,6 +393,8 @@ class MZMClient(BizHawkClient):
     async def handle_received_items(self, client_ctx: BizHawkClientContext, gameplay_state: Tuple[int, int]):
         bizhawk_ctx = client_ctx.bizhawk_ctx
 
+        if gameplay_state[0] != ZMConstants.GM_INGAME:
+            self.multiworld_item_count = None
         if gameplay_state != (ZMConstants.GM_INGAME, ZMConstants.SUB_GAME_MODE_PLAYING):
             return
 
@@ -400,7 +403,8 @@ class MZMClient(BizHawkClient):
                 read16(ZMConstants.gMultiworldItemCount),
                 read32(ZMConstants.gIncomingMessage),
                 read8(ZMConstants.gDifficulty),
-                read(ZMConstants.gEquipment, struct.calcsize("<HHBB6xBxB"))
+                read(ZMConstants.gEquipment, struct.calcsize("<HHBB6xBxB")),
+                read(ZMConstants.gRandoEquipment, struct.calcsize("<B")),
             ]))
         except bizhawk.RequestFailedError:
             return
@@ -415,8 +419,8 @@ class MZMClient(BizHawkClient):
             return
 
         gDifficulty = next_int(read_result)
-        inventory = next(read_result)
-        energy, missiles, supers, powerbombs, beams, majors = struct.unpack("<HHBB6xBxB", inventory)
+        energy, missiles, supers, powerbombs, beams, majors = struct.unpack("<HHBB6xBxB", next(read_result))
+        customs = struct.unpack("<B", next(read_result))
 
         # Energy tanks
         item = item_data_table["Energy Tank"]
@@ -500,6 +504,8 @@ class MZMClient(BizHawkClient):
                 has_item = beams & item.bits
             elif item.type == ItemType.MAJOR:
                 has_item = majors & item.bits
+            elif item.type == ItemType.CUSTOM:
+                has_item = customs & item.bits
             else:
                 continue
             if has_item:

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from Options import (
     Choice, DeathLink, DefaultOnToggle, OptionDict, OptionGroup, OptionSet, StartInventoryPool, Toggle,
-    PerGameCommonOptions, Visibility
+    PerGameCommonOptions, Removed, Visibility
 )
 
 from . import rom_data
@@ -57,16 +57,34 @@ class ChozodiaAccess(Choice):
     default = option_open
 
 
-class UnknownItemsAlwaysUsable(DefaultOnToggle):
+class UnknownItemsAlwaysUsable(Removed):
     """
-    Unknown Items (Plasma Beam, Space Jump, and Gravity Suit) are activated and usable as soon as
-    they are received.
-
-    When this option is disabled, the player will need to defeat the Chozo Ghost in Chozodia as ZSS in order
-    to unlock Samus' fully-powered suit, after which they may then use the Plasma Beam, Space Jump,
-    and Gravity Suit, as in the unmodified game.
+    This option has been replaced with Fully Powered Suit.
     """
     display_name = "Unknown Items Always Usable"
+
+
+class FullyPoweredSuit(Choice):
+    """
+    How to handle the activation of the unknown items (Plasma Beam, Space Jump, and Gravity Suit).
+
+    Ruins Test: Defeat the Chozo Ruins Test in Chozodia as ZSS to gain the Fully Powered Suit and activate the unknown items, as in the unmodified game
+    Shuffled: The Fully Powered Suit is shuffled into the item pool, and the Ruins Test awards a random item
+    Start With: Unknown items are activated and usable as soon as they are received, and the Ruins Test awards a random item
+    Legacy Always Usable: Unknown items are activated and usable as soon as they are received, and the Ruins Test doesn't have a reward
+    """
+    display_name = "Fully Powered Suit"
+    option_ruins_test = 0
+    option_shuffled = 1
+    option_start_with = 2
+    option_legacy_always_usable = 3
+    default = option_start_with
+
+    def use_alt_unknown_sprites(self):
+        return self.value <= self.option_shuffled
+
+    def to_slot_data(self):
+        return self.option_start_with if self.value == self.option_legacy_always_usable else self.value
 
 
 class SkipChozodiaStealth(DefaultOnToggle):
@@ -285,7 +303,11 @@ mzm_option_groups = [
         UnknownItemsAlwaysUsable,
         LayoutPatches,
         SelectedPatches,
-        MorphBallPlacement,  # TODO: Shuffle settings group?
+    ]),
+    OptionGroup("Item Pool", [
+        MorphBallPlacement,
+        FullyPoweredSuit,
+        JunkFillWeights,
     ]),
     OptionGroup("Logic", [
         LogicDifficulty,
@@ -306,9 +328,6 @@ mzm_option_groups = [
     OptionGroup("Cosmetic", [
         DisplayNonLocalItems,
     ]),
-    OptionGroup("Item & Location Options", [
-        JunkFillWeights,
-    ]),
 ]
 
 
@@ -323,6 +342,8 @@ class MZMOptions(PerGameCommonOptions):
     layout_patches: LayoutPatches
     selected_patches: SelectedPatches
     morph_ball: MorphBallPlacement
+    fully_powered_suit: FullyPoweredSuit
+    junk_fill_weights: JunkFillWeights
     logic_difficulty: LogicDifficulty
     combat_logic_difficulty: CombatLogicDifficulty
     ibj_in_logic: IBJInLogic
@@ -337,4 +358,3 @@ class MZMOptions(PerGameCommonOptions):
     skip_tourian_opening_cutscenes: SkipTourianOpeningCutscenes
     display_nonlocal_items: DisplayNonLocalItems
     start_inventory_from_pool: StartInventoryPool
-    junk_fill_weights: JunkFillWeights
