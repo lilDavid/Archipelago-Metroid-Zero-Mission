@@ -69,6 +69,8 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     patch_file_ending = ".apmzm"
     result_file_ending = ".gba"
 
+    extra_data_address: int
+
     def __init__(self, *args, **kwargs):
         super(MZMProcedurePatch, self).__init__(*args, **kwargs)
         self.procedure = [
@@ -79,6 +81,7 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
             ("add_decompressed_graphics", []),
             ("apply_background_patches", []),
         ]
+        self.extra_data_address = get_rom_address("sRandoExtraData")
 
     @classmethod
     def get_source_data(cls) -> bytes:
@@ -87,6 +90,12 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
 
     def add_layout_patches(self, selected_patches: Sequence[str]):
         self.procedure.append(("apply_layout_patches", [selected_patches]))
+
+    def allocate(self, size: int) -> int:
+        assert size >= 0
+        address = self.extra_data_address
+        self.extra_data_address += size
+        return address
 
 
 def get_base_rom_path(file_name: str = "") -> Path:
@@ -174,32 +183,36 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         )
 
     # Place items
-    next_message_address = get_rom_address("sRandoExtraData")
+    message_pointers: dict[tuple[str, str] | None, int] = {None: 0}
+    def get_message(first_line: str, second_line: str) -> int:
+        if (first_line, second_line) in message_pointers:
+            return message_pointers[(first_line, second_line)]
+        message_bytes = make_item_message(first_line, second_line).to_bytes()
+        message_address = patch.allocate(len(message_bytes))
+        patch.write_token(
+            APTokenTypes.WRITE,
+            message_address,
+            message_bytes
+        )
+        message_address |= 0x8000000
+        message_pointers[(first_line, second_line)] = message_address
+        return message_address
+
     for location in multiworld.get_locations(player):
         item = location.item
         if item.code is None or location.address is None:
             continue
 
+        sprite_address = get_item_sprite(location, world)
         if item.player == player:
             item_data = item_data_table[item.name]
+            if type(item_data.message) is int:
+                message_ptr = item_data.message
+            else:
+                message_ptr = get_message(item_data.message, "")
         else:
             item_data = item_data_table["Nothing"]
-
-        sprite_address = get_item_sprite(location, world)
-        player_name = multiworld.worlds[player].player_name
-        sent_to = "" if item.player == player else f"Sent to {player_name}"
-
-        if type(item_data.message) is int:
-            message_address = item_data.message
-        else:
-            message_address = next_message_address | 0x8000000
-            message_bytes = make_item_message(item.name, sent_to).to_bytes()
-            patch.write_token(
-                APTokenTypes.WRITE,
-                next_message_address,
-                message_bytes
-            )
-            next_message_address += len(message_bytes)
+            message_ptr = get_message(item.name, f"Sent to {multiworld.player_name[item.player]}")
 
         location_id = location.address - AP_MZM_ID_BASE
         patch.write_token(
@@ -209,7 +222,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
                 "<BBHIIHBB",
                 item_data.type, False, item_data.bits,
                 sprite_address,
-                message_address, item_data.sound, item_data.acquisition, item.player == player
+                message_ptr, item_data.sound, item_data.acquisition, item.player == player
             ),
         )
 
