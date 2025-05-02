@@ -57,7 +57,7 @@ class ItemData(NamedTuple):
     progression: ItemClassification
     type: ItemType  # used for determining the memory address to write bits to as each go somewhere different
     bits: int
-    appearance_data: tuple[int, int, int | str, int]  # Sprite data address, acquisition number, message, sound number
+    appearance_data: tuple[str, int, int | str, int]  # Sprite name, acquisition number, message, sound number
 
     @property
     def code(self):

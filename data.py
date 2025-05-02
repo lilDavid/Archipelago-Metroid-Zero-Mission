@@ -6,7 +6,9 @@ import pkgutil
 
 
 def data_path(file_name: str):
-    return pkgutil.get_data(__name__, f"data/{file_name}")
+    data_bytes = pkgutil.get_data(__name__, f"data/{file_name}")
+    assert data_bytes
+    return data_bytes
 
 
 symbols_hash = None

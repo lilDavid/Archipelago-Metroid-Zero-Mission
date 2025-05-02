@@ -14,9 +14,9 @@ import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
 
 from . import rom_data
-from .data import APWORLD_VERSION, get_rom_address, symbols_hash
+from .data import APWORLD_VERSION, data_path, get_rom_address, symbols_hash
 from .items import AP_MZM_ID_BASE, ItemType, item_data_table
-from .item_sprites import Sprite, get_zero_mission_sprite, unknown_item_alt_sprites
+from .item_sprites import Sprite, get_zero_mission_sprite, builtin_sprite_pointers, sprite_imports, unknown_item_alt_sprites
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
 from .text import NEWLINE, TERMINATOR_CHAR, Message, make_item_message
 
@@ -116,7 +116,7 @@ goal_texts = {
 }
 
 
-def get_item_sprite(location: Location, world: MZMWorld) -> int:
+def get_item_sprite(location: Location, world: MZMWorld) -> str:
     player = world.player
     nonlocal_item_handling = world.options.display_nonlocal_items
     item = location.item
@@ -183,27 +183,52 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         )
 
     # Place items
-    message_pointers: dict[tuple[str, str] | None, int] = {None: 0}
+    def write_to_arena(data: bytes) -> int:
+        address = patch.allocate(len(data))
+        patch.write_token(
+            APTokenTypes.WRITE,
+            address,
+            data
+        )
+        return address | 0x8000000
+
+    message_pointers: dict[tuple[str, str], int] = {}
     def get_message(first_line: str, second_line: str) -> int:
         if (first_line, second_line) in message_pointers:
             return message_pointers[(first_line, second_line)]
         message_bytes = make_item_message(first_line, second_line).to_bytes()
-        message_address = patch.allocate(len(message_bytes))
-        patch.write_token(
-            APTokenTypes.WRITE,
-            message_address,
-            message_bytes
-        )
-        message_address |= 0x8000000
-        message_pointers[(first_line, second_line)] = message_address
-        return message_address
+        message_ptr = write_to_arena(message_bytes)
+        message_pointers[(first_line, second_line)] = message_ptr
+        return message_ptr
+
+    file_pointers: dict[str, int] = {}
+    def get_file(name: str) -> int:
+        if name in file_pointers:
+            return file_pointers[name]
+        file_bytes = data_path(f"item_sprites/{name}")
+        file_ptr = write_to_arena(file_bytes)
+        file_pointers[name] = file_ptr
+        return file_ptr
+
+    sprite_pointers: dict[str, int] = {**builtin_sprite_pointers}
+    def get_sprite(name: str) -> int:
+        if name in sprite_pointers:
+            return sprite_pointers[name]
+        gfx, pal = sprite_imports[name]
+        gfx_pointer = gfx if type(gfx) is int else get_file(gfx)
+        pal_pointer = pal if type(pal) is int else get_file(pal)
+        sprite = struct.pack("<II", gfx_pointer, pal_pointer)
+        sprite_ptr = write_to_arena(sprite)
+        sprite_pointers[name] = sprite_ptr
+        return sprite_ptr
 
     for location in multiworld.get_locations(player):
         item = location.item
         if item.code is None or location.address is None:
             continue
 
-        sprite_address = get_item_sprite(location, world)
+        sprite_name = get_item_sprite(location, world)
+        sprite_address = get_sprite(sprite_name)
         if item.player == player:
             item_data = item_data_table[item.name]
             if type(item_data.message) is int:

@@ -28,4 +28,4 @@ cp -r $FILES "$WORLD_DIR"
 echo "APWORLD_VERSION = '$WORLD_VERSION'" >> "$WORLD_DIR/data.py"
 
 cd build
-zip -r "$APWORLD_NAME.apworld" "$APWORLD_NAME"
+zip -r "$APWORLD_NAME.apworld" "$APWORLD_NAME" -x "$APWORLD_NAME/data/item_sprites/*.png"

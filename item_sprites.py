@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import StrEnum
 from typing import Mapping
 
 from BaseClasses import Item
@@ -6,50 +6,93 @@ from BaseClasses import Item
 from .data import get_symbol
 
 
-class Sprite(IntEnum):
-    EnergyTank = get_symbol("sRandoEnergyTankSprite")
-    MissileTank = get_symbol("sRandoMissileTankSprite")
-    SuperMissileTank = get_symbol("sRandoSuperMissileTankSprite")
-    PowerBombTank = get_symbol("sRandoPowerBombTankSprite")
-    LongBeam = get_symbol("sRandoLongBeamSprite")
-    ChargeBeam = get_symbol("sRandoChargeBeamSprite")
-    IceBeam = get_symbol("sRandoIceBeamSprite")
-    WaveBeam = get_symbol("sRandoWaveBeamSprite")
-    UnknownPlasmaBeam = get_symbol("sRandoUnknownPlasmaBeamSprite")
-    PlasmaBeam = get_symbol("sRandoPlasmaBeamSprite")
-    Bomb = get_symbol("sRandoBombSprite")
-    VariaSuit = get_symbol("sRandoVariaSuitSprite")
-    UnknownGravitySuit = get_symbol("sRandoUnknownGravitySuitSprite")
-    GravitySuit = get_symbol("sRandoGravitySuitSprite")
-    MorphBall = get_symbol("sRandoMorphBallSprite")
-    SpeedBooster = get_symbol("sRandoSpeedBoosterSprite")
-    HiJump = get_symbol("sRandoHiJumpSprite")
-    ScrewAttack = get_symbol("sRandoScrewAttackSprite")
-    UnknownSpaceJump = get_symbol("sRandoUnknownSpaceJumpSprite")
-    SpaceJump = get_symbol("sRandoSpaceJumpSprite")
-    PowerGrip = get_symbol("sRandoPowerGripSprite")
-    Nothing = get_symbol("sRandoNothingSprite")
-    APLogo = get_symbol("sRandoAPLogoSprite")
-    APLogoProgression = get_symbol("sRandoAPLogoProgressionSprite")
-    APLogoUseful = get_symbol("sRandoAPLogoUsefulSprite")
-    SpazerBeam = get_symbol("sRandoSpazerBeamSprite")
-    GrappleBeam = get_symbol("sRandoGrappleBeamSprite")
-    SpringBall = get_symbol("sRandoSpringBallSprite")
-    XRayScope = get_symbol("sRandoXRayScopeSprite")
-    ReserveTank = get_symbol("sRandoReserveTankSprite")
-    WallJump = get_symbol("sRandoWallJumpSprite")
-    PowerBeam = get_symbol("sRandoPowerBeamSprite")
-    SpiderBall = get_symbol("sRandoSpiderBallSprite")
+class Sprite(StrEnum):
+    EnergyTank = "Energy Tank"
+    MissileTank = "Missile Tank"
+    SuperMissileTank = "Super Missile Tank"
+    PowerBombTank = "Power Bomb Tank"
+    LongBeam = "Long Beam"
+    ChargeBeam = "Charge Beam"
+    IceBeam = "Ice Beam"
+    WaveBeam = "Wave Beam"
+    UnknownPlasmaBeam = "Unknown Plasma Beam"
+    PlasmaBeam = "Plasma Beam"
+    Bomb = "Bomb"
+    VariaSuit = "Varia Suit"
+    UnknownGravitySuit = "Unknown Gravity Suit"
+    GravitySuit = "Gravity Suit"
+    MorphBall = "Morph Ball"
+    SpeedBooster = "Speed Booster"
+    HiJump = "Hi-Jump"
+    ScrewAttack = "Screw Attack"
+    UnknownSpaceJump = "Unknown Space Jump"
+    SpaceJump = "Space Jump"
+    PowerGrip = "Power Grip"
+    Nothing = "Nothing"
+    APLogo = "AP Logo"
+    APLogoProgression = "AP Progression"
+    APLogoUseful = "AP Useful"
+    SpazerBeam = "Spazer Beam"
+    GrappleBeam = "Grapple Beam"
+    SpringBall = "Spring Ball"
+    XRayScope = "X-Ray Scope"
+    ReserveTank = "Reserve Tank"
+    WallJump = "Wall Jump"
+    PowerBeam = "Power Beam"
+    SpiderBall = "Spider Ball"
 
 
-unknown_item_alt_sprites: Mapping[str, int] = {
+builtin_sprite_pointers: Mapping[Sprite, int] = {
+    Sprite.EnergyTank: get_symbol("sRandoEnergyTankSprite"),
+    Sprite.MissileTank: get_symbol("sRandoMissileTankSprite"),
+    Sprite.SuperMissileTank: get_symbol("sRandoSuperMissileTankSprite"),
+    Sprite.PowerBombTank: get_symbol("sRandoPowerBombTankSprite"),
+    Sprite.LongBeam: get_symbol("sRandoLongBeamSprite"),
+    Sprite.ChargeBeam: get_symbol("sRandoChargeBeamSprite"),
+    Sprite.IceBeam: get_symbol("sRandoIceBeamSprite"),
+    Sprite.WaveBeam: get_symbol("sRandoWaveBeamSprite"),
+    Sprite.UnknownPlasmaBeam: get_symbol("sRandoUnknownPlasmaBeamSprite"),
+    Sprite.PlasmaBeam: get_symbol("sRandoPlasmaBeamSprite"),
+    Sprite.Bomb: get_symbol("sRandoBombSprite"),
+    Sprite.VariaSuit: get_symbol("sRandoVariaSuitSprite"),
+    Sprite.UnknownGravitySuit: get_symbol("sRandoUnknownGravitySuitSprite"),
+    Sprite.GravitySuit: get_symbol("sRandoGravitySuitSprite"),
+    Sprite.MorphBall: get_symbol("sRandoMorphBallSprite"),
+    Sprite.SpeedBooster: get_symbol("sRandoSpeedBoosterSprite"),
+    Sprite.HiJump: get_symbol("sRandoHiJumpSprite"),
+    Sprite.ScrewAttack: get_symbol("sRandoScrewAttackSprite"),
+    Sprite.UnknownSpaceJump: get_symbol("sRandoUnknownSpaceJumpSprite"),
+    Sprite.SpaceJump: get_symbol("sRandoSpaceJumpSprite"),
+    Sprite.PowerGrip: get_symbol("sRandoPowerGripSprite"),
+    Sprite.Nothing: get_symbol("sRandoNothingSprite"),
+}
+
+
+# TODO: Edited vanilla sprites could/should be diffed, segmented, or something
+# Plasma Beam also
+sprite_imports: Mapping[Sprite, tuple[str | int, str | int]] = {
+    Sprite.APLogo: ("ap_logo.gfx", "ap_logo.pal"),
+    Sprite.APLogoProgression: ("ap_logo_progression.gfx", "ap_logo.pal"),
+    Sprite.APLogoUseful: ("ap_logo_useful.gfx", "ap_logo.pal"),
+    Sprite.SpazerBeam: ("spazer_beam.gfx", "spazer_beam.pal"),
+    Sprite.GrappleBeam: ("grapple_beam.gfx", "grapple_beam.pal"),
+    Sprite.SpringBall: ("spring_ball.gfx", "spring_ball.pal"),
+    Sprite.XRayScope: ("xray_scope.gfx", "xray_scope.pal"),
+    Sprite.ReserveTank: ("reserve_tank.gfx", get_symbol("sCommonTilesPal")),
+    Sprite.WallJump: (get_symbol("sRandoHiJumpGfx"), "wall_jump.pal"),  # Will be moved back into patch when added as full item
+    Sprite.PowerBeam: ("power_beam.gfx", "power_beam.pal"),
+    Sprite.SpiderBall: ("spider_ball.gfx", "spider_ball.pal"),
+}
+
+
+unknown_item_alt_sprites: Mapping[str, str] = {
     "Plasma Beam": Sprite.UnknownPlasmaBeam,
     "Space Jump": Sprite.UnknownSpaceJump,
     "Gravity Suit": Sprite.UnknownGravitySuit,
 }
 
 
-compatible_games: Mapping[str, Mapping[str, int]] = {
+compatible_games: Mapping[str, Mapping[str, str]] = {
     "Super Metroid": {
         "Energy Tank": Sprite.EnergyTank,
         "Missile": Sprite.MissileTank,
@@ -171,7 +214,7 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
 }
 
 
-def get_zero_mission_sprite(item: Item) -> int | None:
+def get_zero_mission_sprite(item: Item) -> str | None:
     if item.game not in compatible_games:
         return None
 
