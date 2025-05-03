@@ -9,6 +9,10 @@ FILES="
     data
     *.py
 "
+EXCLUDE="
+    data/item_sprites/*.png
+    data/item_sprites/README.md
+"
 if [ $# -ge 1 ]; then
     WORLD_VERSION="$1"
 else
@@ -27,5 +31,7 @@ cp -r $FILES "$WORLD_DIR"
 
 echo "APWORLD_VERSION = '$WORLD_VERSION'" >> "$WORLD_DIR/data.py"
 
-cd build
-zip -r "$APWORLD_NAME.apworld" "$APWORLD_NAME" -x "$APWORLD_NAME/data/item_sprites/*.png"
+cd "$WORLD_DIR"
+rm -rf $EXCLUDE
+cd ..
+zip -r "$APWORLD_NAME.apworld" "$APWORLD_NAME"

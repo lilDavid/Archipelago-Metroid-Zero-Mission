@@ -44,17 +44,13 @@ def batches(iterable, n):
 
 
 def convert_file(in_file: Path) -> tuple[bytes, bytes]:
-    # TODO: Support manual palettes
-    source_image = Image.open(in_file).convert('P', palette=Image.Palette.ADAPTIVE)
-    if len(source_image.palette.colors) > 16:
-        raise ValueError(f"Image has {len(source_image.palette.colors)} colors")
-    for color, i in source_image.palette.colors.items():
-        if color[3] == 0:
-            palette_map = list(range(16))
-            palette_map[0] = i
-            palette_map[i] = 0
-            break
-    source_image = source_image.remap_palette(palette_map)
+    source_image = Image.open(in_file)
+
+    if source_image.palette is None:
+        raise ValueError(f"Image is not in indexed color format")
+    max_color = max(source_image.palette.colors.values())
+    if max_color >= 16:
+        raise ValueError(f"Image has {max_color + 1} colors")
 
     width, height = map(pixels_to_tiles, source_image.size)
     pixels = []
@@ -76,13 +72,17 @@ def convert_file(in_file: Path) -> tuple[bytes, bytes]:
 def main():
     graphics_dir = Path(__file__).parents[1] / "data/item_sprites"
     for file in graphics_dir.glob("*.png"):
-        gfx, pal = convert_file(file)
-        with open(file.with_suffix(".gfx"), "wb") as stream:
-            stream.write(gfx)
-        with open(file.with_suffix(".pal"), "wb") as stream:
-            stream.write(pal)
+        try:
+            gfx, pal = convert_file(file)
+            with open(file.with_suffix(".gfx"), "wb") as stream:
+                stream.write(gfx)
+            with open(file.with_suffix(".pal"), "wb") as stream:
+                stream.write(pal)
+        except Exception as e:
+            print(f"Could not convert {file}: {e}")
 
-    # TODO: Handle AP logo better than this
+    # TODO: Handle AP logo and unneeded palettes better than this
+
     with open(graphics_dir / "ap_logo.gfx", "rb") as stream:
         ap_logo_gfx = stream.read()
     with open(graphics_dir / "ap_logo.gfx", "wb") as stream:
@@ -91,6 +91,8 @@ def main():
         stream.write(ap_logo_gfx[512:1024])
     with open(graphics_dir / "ap_logo_useful.gfx", "wb") as stream:
         stream.write(ap_logo_gfx[1024:])
+
+    (graphics_dir / "reserve_tank.gfx").unlink()
 
 
 if __name__ == "__main__":
