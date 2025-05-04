@@ -146,8 +146,7 @@ brinstar_top = {
                         Hellrun(199),
                         VariaSuit
                     ),
-                    HiJump,
-                    CanWallJump,
+                    CanHiWallJump,
                     any(
                         SpaceJump,
                         AdvancedLogic
@@ -305,14 +304,7 @@ kraid_left_shaft = {
                             Ziplines,
                             CanBallJump
                         ),
-                        all(  # crumble shenanigans
-                            PowerGrip,
-                            any(
-                                HiJump,
-                                SpaceJump,
-                                CanWallJump
-                            )
-                        )
+                        PowerGrip,  # crumble shenanigans
                     )
                 )
             ),
@@ -366,8 +358,7 @@ kraid_bottom = {
                 ),
                 all(
                     AdvancedLogic,
-                    HiJump,
-                    CanWallJump
+                    CanHiWallJump
                 )
             )
         )
@@ -412,8 +403,8 @@ norfair_right_shaft = {
                 IceBeam,
                 CanVerticalWall
             ),
-            all(  # this method requires some jump extends
-                AdvancedLogic,
+            all(
+                NormalLogic,
                 CanHiGrip,
                 CanWallJump
             )
@@ -514,10 +505,7 @@ lower_norfair = {
                     CanVerticalWall
                 ),
                 PowerGrip,
-                all(
-                    HiJump,
-                    CanWallJump
-                )
+                CanHiWallJump
             )
         ),
         "Norfair Wave Beam": MissileCount(4),
@@ -629,13 +617,10 @@ norfair_bottom = {
             all(
                 NormalLogic,
                 Missiles,
+                PowerGrip,
                 any(
                     CanFlyWall,
                     IceBeam
-                ),
-                any(
-                    CanEnterMediumMorphTunnel,
-                    Bomb
                 )
             )
         )
@@ -732,8 +717,7 @@ ridley_right_shaft = {
             CanFly,
             all(
                 AdvancedLogic,
-                CanWallJump,
-                HiJump  # disable hi-jump mid walljump to get this, might be possible without
+                CanHiWallJump  # disable hi-jump mid walljump to get this, might be possible without
             ),
             all(
                 IceBeam,
@@ -910,8 +894,7 @@ tourian = {
                 CanFly,
                 all(
                     NormalLogic,
-                    HiJump,
-                    CanWallJump
+                    CanHiWallJump
                 )
             )
         )
@@ -1187,10 +1170,7 @@ chozodia_upper_mothership = {
             any(
                 CanFly,
                 CanHiGrip,
-                all(
-                    HiJump,
-                    CanWallJump
-                )
+                CanHiWallJump
             )
         )
     }
@@ -1326,9 +1306,8 @@ def brinstar_pasthives_to_brinstar_top():
         any(
             CanFly,
             all(
-                HiJump,
                 IceBeam,
-                CanWallJump
+                CanHiWallJump
             )
         ),
         CanBallJump
@@ -1380,7 +1359,7 @@ def kraid_upper_right():
                 CanIBJ
             ),
             all(
-                AdvancedLogic,
+                NormalLogic,
                 any(
                     Hellrun(99),
                     VariaSuit
@@ -1405,6 +1384,10 @@ def kraid_left_shaft_access():
             all(
                 NormalLogic,
                 HiJump
+            ),
+            all(  # weird, tight rising midair morph
+                SpaceJump,
+                AdvancedLogic
             )
         ),
         CanBallJump,
@@ -1774,7 +1757,7 @@ def lower_norfair_to_bottom_norfair():
     )
 
 
-# Needed for Kraid -> Norfair shortcut, so rules assume getting to Hi-Jump location from that entrance
+# Needed for Kraid -> Norfair shortcut, so this rule is for getting to Hi-Jump location from that entrance
 def lower_norfair_to_lower_right_shaft():
     return all(
         CanVerticalWall,
@@ -1791,27 +1774,15 @@ def bottom_norfair_to_lower_shaft():
     return any(
         all(
             Missiles,
-            any(
-                CanFlyWall,
-                all(
-                    BottomShaftLocationRule,
-                    any(
-                        HiJump,
-                        PowerGrip,
-                        all(
-                            NormalLogic,
-                            Bomb
-                        )
-                    )
-                )
-            ),
-            any(
-                PowerGrip,
-                CanIBJ
-            ),
+            BottomShaftLocationRule,
             any(
                 CanBombTunnelBlock,
                 WaveBeam
+            ),
+            CanFlyWall,
+            any(
+                PowerGrip,
+                CanIBJ
             )
         ),
         all(
@@ -1878,7 +1849,9 @@ def ridley_main_to_left_shaft():
         MorphBall,
         any(
             NormalCombat,
-            EnergyTanks(1)
+            EnergyTanks(2),
+            VariaSuit,
+            GravitySuit
         )
     )
 
@@ -1886,6 +1859,7 @@ def ridley_main_to_left_shaft():
 # shortcut to the right of elevator
 def ridley_main_to_right_shaft():
     return all(
+        NormalLogic,
         Missiles,
         any(
             CanIBJ,
@@ -1901,7 +1875,9 @@ def ridley_main_to_right_shaft():
         ),
         any(
             NormalCombat,
-            EnergyTanks(1)
+            EnergyTanks(2),
+            VariaSuit,
+            GravitySuit
         )
     )
 
@@ -1909,7 +1885,10 @@ def ridley_main_to_right_shaft():
 def ridley_left_shaft_to_sw_puzzle():
     return all(
         SpeedBooster,
-        CanVerticalWall
+        any(
+            CanVerticalWall,
+            IceBeam
+        )
     )
 
 
@@ -1917,10 +1896,7 @@ def ridley_left_shaft_to_sw_puzzle():
 def ridley_speed_puzzles_access():
     return all(
         SpeedBooster,
-        any(
-            CanVerticalWall,
-            IceBeam
-        )
+        CanVerticalWall
     )
 
 
@@ -2036,8 +2012,7 @@ def crateria_upper_to_chozo_ruins():
             CanFly,
             all(
                 AdvancedLogic,
-                CanWallJump,
-                HiJump,
+                CanHiWallJump,
                 PowerGrip
             ),
             CanReachLocation("Crateria Northeast Corner")
@@ -2116,14 +2091,14 @@ def ruins_test_to_ruins():
         ChozoGhostBoss,
         RuinsTestEscape,
         any(
-            CanWallJump,
-            all(
-                GravitySuit,
-                CanFly
-            )
-        ),
-        any(
             all(  # Through the lava
+                any(
+                    CanWallJump,
+                    all(
+                        GravitySuit,
+                        CanFly
+                    )
+                ),
                 any(
                     ScrewAttack,
                     all(
@@ -2135,12 +2110,14 @@ def ruins_test_to_ruins():
                         )
                     )
                 ),
-                GravitySuit,
-                all(
-                    Hellrun(249),
-                    VariaSuit
-                ),
-                Hellrun(399),
+                any(
+                    GravitySuit,
+                    all(
+                        Hellrun(249),
+                        VariaSuit
+                    ),
+                    Hellrun(399)
+                )
             ),
             all(  # Or going all the way back through the ruins
                 NormalLogic,
@@ -2151,6 +2128,7 @@ def ruins_test_to_ruins():
                         PowerBombCount(2)
                     )
                 ),
+                CanFlyWall,
                 ScrewAttack
             )
         )
@@ -2233,10 +2211,7 @@ def chozodia_tube_to_mothership_central():
         ChozodiaCombat,
         any(
             CanFly,
-            all(
-                CanWallJump,
-                HiJump
-            ),
+            CanHiWallJump,
             all(
                 NormalLogic,
                 IceBeam
@@ -2308,34 +2283,24 @@ def mothership_central_to_upper():
                 any(
                     CanFly,
                     CanHiGrip,
-                    all(
-                        HiJump,
-                        CanWallJump
-                    ),
+                    CanHiWallJump,
                     all(
                         NormalLogic,
                         IceBeam,
-                        any(
-                            HiJump,
-                            CanWallJump,
-                            PowerGrip
-                        )
+                        CanVerticalWall
                     )
                 )
             ),
             # the low% way
             all(
                 any(
-                    MissileCount(3),
+                    MissileCount(4),
                     ScrewAttack
                 ),
                 any(
                     CanFly,
                     CanHiGrip,
-                    all(
-                        HiJump,
-                        CanWallJump
-                    )
+                    CanHiWallJump
                 ),
                 any(
                     Bomb,
@@ -2343,7 +2308,7 @@ def mothership_central_to_upper():
                 ),
                 any(
                     ScrewAttack,
-                    MissileCount(4),
+                    MissileCount(5),
                     Bomb,
                     PowerBombCount(4)
                 )
@@ -2358,10 +2323,7 @@ def mothership_lower_to_upper():
         any(
             CanFly,
             CanHiGrip,
-            all(
-                HiJump,
-                CanWallJump
-            )
+            CanHiWallJump  # HJWJ required to get from the blue ship to the room under workbot; just WJ doesn't work
         )
     )
 
@@ -2396,8 +2358,7 @@ def mothership_upper_to_deep_mothership():
                 CanFly,
                 all(
                     AdvancedLogic,  # very tight midair morph
-                    HiJump,
-                    CanWallJump
+                    CanHiWallJump
                 )
             )
         ),
@@ -2405,7 +2366,10 @@ def mothership_upper_to_deep_mothership():
         all(
             SuperMissiles,
             PowerBombs,
-            CanFlyWall
+            any(
+                CanFlyWall,
+                NormalLogic  # Leave and return to the room after PBing, the bomb blocks never reform
+            )
         )
     )
 
@@ -2417,14 +2381,7 @@ def deep_mothership_to_cockpit():
             Bomb,
             PowerBombCount(4)
         ),
-        any(
-            MinimalCombat,
-            all(
-                NormalCombat,
-                EnergyTanks(3)
-            ),
-            EnergyTanks(6)
-        )
+        ChozodiaCombat
     )
 
 

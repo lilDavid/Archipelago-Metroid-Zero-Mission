@@ -223,6 +223,10 @@ CanHiGrip = all(
     HiJump,
     PowerGrip
 )
+CanHiWallJump = all(
+    HiJump,
+    CanWallJump
+)
 CanEnterHighMorphTunnel = any(
     CanIBJ,
     all(
