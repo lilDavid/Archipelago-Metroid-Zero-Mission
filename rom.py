@@ -32,11 +32,28 @@ class MZMPatchExtensions(APPatchExtension):
     game = "Metroid Zero Mission"
 
     @staticmethod
-    def check_symbol_hash(caller: APProcedurePatch, rom: bytes, hash: str):
-        if hash != symbols_hash:
-            raise InvalidDataError("Memory addresses don't match. This patch was generated with a "
-                                   "different version of the apworld.")
-        return rom
+    def check_symbol_hash(caller: APProcedurePatch, rom: bytes, hash: str, *args):
+        if hash == symbols_hash:
+            return rom
+        if len(args) == 0:
+            raise InvalidDataError("Memory addresses don't match. This patch was generated with an older version of "
+                                   "the apworld.")
+
+        expected_version = args[0]
+        if APWORLD_VERSION is None:
+            if expected_version is None:
+                error_msg = "This patch was generated with a different base patch."
+            else:
+                error_msg = (f"This patch was generated with version {expected_version}, "
+                             "which has a different base patch.")
+        else:
+            if expected_version is None:
+                error_msg = ("This patch was likely generated using the source code, "
+                             f"and you are using version {APWORLD_VERSION}.")
+            else:
+                error_msg = (f"This patch was generated with version {expected_version}, "
+                             f"and you are using version {APWORLD_VERSION}.")
+        raise InvalidDataError(f"Memory addresses don't match. {error_msg}")
 
     @staticmethod
     def support_vc(caller: APProcedurePatch, rom: bytes):
@@ -76,7 +93,7 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     def __init__(self, *args, **kwargs):
         super(MZMProcedurePatch, self).__init__(*args, **kwargs)
         self.procedure = [
-            ("check_symbol_hash", [symbols_hash]),
+            ("check_symbol_hash", [symbols_hash, APWORLD_VERSION]),
             ("support_vc", []),
             ("apply_bsdiff4", ["basepatch.bsdiff"]),
             ("apply_tokens", ["token_data.bin"]),
