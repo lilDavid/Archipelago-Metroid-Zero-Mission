@@ -201,7 +201,7 @@ class MZMWorld(World):
     def generate_output(self, output_directory: str):
         output_path = Path(output_directory)
 
-        patch = MZMProcedurePatch()
+        patch = MZMProcedurePatch(player=self.player, player_name=self.player_name)
         patch.write_file("basepatch.bsdiff", data_path("basepatch.bsdiff"))
         write_tokens(self, patch)
         if self.options.layout_patches.value:

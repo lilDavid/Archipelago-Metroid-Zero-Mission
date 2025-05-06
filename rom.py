@@ -14,7 +14,7 @@ import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
 
 from . import rom_data
-from .data import APWORLD_VERSION, data_path, get_rom_address, symbols_hash
+from .data import APWORLD_VERSION, data_path, get_rom_address, get_symbol, symbols_hash
 from .items import ItemType, item_data_table
 from .item_sprites import Sprite, get_zero_mission_sprite, builtin_sprite_pointers, sprite_imports, unknown_item_alt_sprites
 from .locations import full_location_table as location_table
@@ -33,11 +33,28 @@ class MZMPatchExtensions(APPatchExtension):
     game = "Metroid Zero Mission"
 
     @staticmethod
-    def check_symbol_hash(caller: APProcedurePatch, rom: bytes, hash: str):
-        if hash != symbols_hash:
-            raise InvalidDataError("Memory addresses don't match. This patch was generated with a "
-                                   "different version of the apworld.")
-        return rom
+    def check_symbol_hash(caller: APProcedurePatch, rom: bytes, hash: str, *args):
+        if hash == symbols_hash:
+            return rom
+        if len(args) == 0:
+            raise InvalidDataError("Memory addresses don't match. This patch was generated with an older version of "
+                                   "the apworld.")
+
+        expected_version = args[0]
+        if APWORLD_VERSION is None:
+            if expected_version is None:
+                error_msg = "This patch was generated with a different base patch."
+            else:
+                error_msg = (f"This patch was generated with version {expected_version}, "
+                             "which has a different base patch.")
+        else:
+            if expected_version is None:
+                error_msg = ("This patch was likely generated using the source code, "
+                             f"and you are using version {APWORLD_VERSION}.")
+            else:
+                error_msg = (f"This patch was generated with version {expected_version}, "
+                             f"and you are using version {APWORLD_VERSION}.")
+        raise InvalidDataError(f"Memory addresses don't match. {error_msg}")
 
     @staticmethod
     def support_vc(caller: APProcedurePatch, rom: bytes):
@@ -75,7 +92,7 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     def __init__(self, *args, **kwargs):
         super(MZMProcedurePatch, self).__init__(*args, **kwargs)
         self.procedure = [
-            ("check_symbol_hash", [symbols_hash]),
+            ("check_symbol_hash", [symbols_hash, APWORLD_VERSION]),
             ("support_vc", []),
             ("apply_bsdiff4", ["basepatch.bsdiff"]),
             ("apply_tokens", ["token_data.bin"]),
@@ -141,6 +158,23 @@ def get_item_sprite(location: Location, world: MZMWorld) -> str:
     else:
         sprite = Sprite.APLogo
     return sprite
+
+
+def split_text(text: str):
+    lines = [""]
+    i = 0
+    while i < len(text):
+        next_space = text.find(" ", i)
+        if next_space == -1:
+            next_space = len(text)
+        if len(lines[-1]) + next_space - i <= 40:
+            lines[-1] = f"{lines[-1]}{text[i:next_space]} "
+        else:
+            lines[-1] = lines[-1][:-1]
+            lines.append(text[i:next_space] + " ")
+        i = next_space + 1
+    lines[-1] = lines[-1][:-1]
+    return lines
 
 
 def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
@@ -291,6 +325,42 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         APTokenTypes.WRITE,
         get_rom_address("sEnglishText_Story_PlanetZebes"),
         encoded_intro.to_bytes()
+    )
+
+    # Write new ZSS text
+    zss_text = ("With Mother Brain taken down, I needed\n"
+                "to get my suit back in the ruins.\n")
+    plasma_beam = world.create_item("Plasma Beam")
+    if world.options.plasma_beam_hint.value and plasma_beam not in multiworld.precollected_items[player]:
+        location = multiworld.find_item(plasma_beam.name, player)
+        if location.native_item:
+            location_text = location.parent_region.hint_text
+        else:
+            location_text = f"at {location.name}"
+        if location.player != player:
+            player_text = f" in {multiworld.player_name[location.player]}'s world"
+        else:
+            player_text = ""
+        lines = split_text(f"Could I find the Plasma Beam {location_text}{player_text}?")
+        while len(lines) > 4:
+            location_text = location_text[:location_text.rfind(" ")]
+            lines = split_text(f"Could I find the Plasma Beam {location_text}{player_text}?")
+        if len(lines) < 4:
+            zss_text += "\n"
+        zss_text += "\n".join(lines)
+    else:
+        zss_text += "\nCould I survive long enough to escape?"
+    encoded_zss_text = Message(zss_text).append(TERMINATOR_CHAR)
+    assert len(encoded_zss_text) < 339
+    patch.write_token(
+        APTokenTypes.WRITE,
+        get_rom_address("sEnglishText_Story_TheTiming"),
+        encoded_zss_text.to_bytes()
+    )
+    patch.write_token(
+        APTokenTypes.WRITE,
+        get_rom_address("sEnglishTextPointers_Story", 4 * 2),  # Could I survive...?
+        get_symbol("sEnglishText_Story_TheTiming").to_bytes(4, "little")
     )
 
     patch.write_file("token_data.bin", patch.get_token_binary())
