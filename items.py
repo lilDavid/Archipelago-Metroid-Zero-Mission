@@ -105,7 +105,7 @@ item_data_table: Dict[str, ItemData] = {
 }
 
 mzm_item_name_groups = {
-    "Beams": {name for name in major_item_data_table.items() if name != "Bomb"},
+    "Beams": {name for name in major_item_data_table.keys() if name != "Bomb"},
     "Upgrades": {
         "Bomb",
         *(name for name, data in major_item_data_table.items() if data.type == ItemType.MAJOR)
