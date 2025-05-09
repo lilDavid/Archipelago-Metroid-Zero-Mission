@@ -420,7 +420,7 @@ class MZMClient(BizHawkClient):
 
         gDifficulty = next_int(read_result)
         energy, missiles, supers, powerbombs, beams, majors = struct.unpack("<HHBB6xBxB", next(read_result))
-        customs = struct.unpack("<B", next(read_result))
+        customs, = struct.unpack("<B", next(read_result))
 
         # Energy tanks
         item = item_data_table["Energy Tank"]
