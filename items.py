@@ -92,6 +92,7 @@ major_item_data_table = {
     "Power Grip":         ItemData(progression, ItemType.MAJOR,  1 << 7, (Sprite.PowerGrip,    21, get_symbol("sEnglishText_Message_PowerGrip"),        0x7B)),
 
     "Fully Powered Suit": ItemData(progression, ItemType.CUSTOM, 1 << 7, (Sprite.GravitySuit,   0, get_symbol("sEnglishText_Message_FullyPoweredSuit"), 0x1D3)),  # TODO: Custom sprite
+    "Wall Jump Boots":    ItemData(progression, ItemType.CUSTOM, 1 << 6, (Sprite.WallJump,      0, "Wall Jump Boots",                                   0x76)),
 }
 
 extra_item_data_table = {

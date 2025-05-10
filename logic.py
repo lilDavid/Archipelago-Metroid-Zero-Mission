@@ -188,7 +188,13 @@ CanHorizontalIBJ = all(
     CanIBJ,
     Requirement.setting_atleast("ibj_in_logic", 2)
 )
-CanWallJump = Requirement.setting_atleast("walljumps_in_logic", 1)
+CanWallJump = all(
+    Requirement.item("Wall Jump Boots"),
+    any(
+        Requirement.setting_is("walljumps", 1),  # Unlockable
+        Requirement.setting_is("walljumps", 3)   # Enabled
+    )
+)
 CanTrickySparks = all(
     Requirement.setting_enabled("tricky_shinesparks"),
     SpeedBooster,

@@ -168,14 +168,20 @@ class HazardRuns(Toggle):
     display_name = "Hazard Runs"
 
 
-class WalljumpsInLogic(DefaultOnToggle):
+class WallJumps(Choice):
     """
-    Allows for using walljumps in logic. You may be required to walljump instead of using items such as Hi-Jump or
-    Power Grip in order to logically progress, where possible.
-
-    Disabling this option will not remove the ability to walljump, but it will never be logically required.
+    Determines how wall jumping will be handled:
+    - Disabled: Wall jumping will not be possible. All locations can still be reached through other means.
+    - Unlockable: A Wall Jump Boots item will be placed into the item pool. Once found, you will be able to wall jump.
+    - Enabled, Not Logical: Wall jumping will always be possible, but it will never be required to access any locations.
+    - Enabled: Wall jumping will always be possible, and logic may expect using wall jumps to progress where applicable.
     """
-    display_name = "Wall Jumps In Logic"
+    display_name = "Wall Jumps"
+    option_disabled = 0
+    option_unlockable = 1
+    option_enabled_not_logical = 2
+    option_enabled = 3
+    default = option_enabled
 
 
 # TODO: turn into a general trick include/exclude option
@@ -312,6 +318,7 @@ mzm_option_groups = [
     OptionGroup("Item Pool", [
         MorphBallPlacement,
         FullyPoweredSuit,
+        WallJumps,
         JunkFillWeights,
     ]),
     OptionGroup("Logic", [
@@ -319,7 +326,6 @@ mzm_option_groups = [
         CombatLogicDifficulty,
         IBJInLogic,
         HazardRuns,
-        WalljumpsInLogic,
         TrickyShinesparks
     ]),
     OptionGroup("Quality of Life", [
@@ -354,7 +360,7 @@ class MZMOptions(PerGameCommonOptions):
     combat_logic_difficulty: CombatLogicDifficulty
     ibj_in_logic: IBJInLogic
     hazard_runs: HazardRuns
-    walljumps_in_logic: WalljumpsInLogic
+    walljumps: WallJumps
     tricky_shinesparks: TrickyShinesparks
     skip_chozodia_stealth: SkipChozodiaStealth
     buff_pb_drops: BuffPowerBombDrops

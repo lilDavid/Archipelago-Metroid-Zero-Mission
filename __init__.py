@@ -14,8 +14,8 @@ from .client import MZMClient
 from .data import data_path
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, location_count, mzm_location_name_groups
-from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty, \
-    GameDifficulty
+from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, \
+    CombatLogicDifficulty, GameDifficulty, WallJumps
 from .regions import create_regions_and_connections
 from .rom import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_tokens
 from .rules import set_rules
@@ -110,6 +110,10 @@ class MZMWorld(World):
             self.starting_items.append(self.create_item("Fully Powered Suit"))
             self.locked_items.append(self.create_item("Nothing"))
 
+        if self.options.walljumps == WallJumps.option_enabled or \
+                self.options.walljumps == WallJumps.option_enabled_not_logical:
+            self.starting_items.append(self.create_item("Wall Jump Boots"))
+
         for item in self.starting_items:
             self.push_precollected(item)
 
@@ -141,6 +145,9 @@ class MZMWorld(World):
         for name in major_item_data_table:
             if name not in pre_fill_majors:
                 item_pool.append(self.create_item(name))
+
+        if self.options.walljumps == WallJumps.option_disabled:
+            item_pool.remove(self.create_item("Wall Jump Boots"))
 
         # TODO: factor in hazard runs when determining etank progression count
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks progression
@@ -221,7 +228,7 @@ class MZMWorld(World):
             "combat_logic_difficulty": self.options.combat_logic_difficulty.value,
             "ibj_in_logic": self.options.ibj_in_logic.value,
             "hazard_runs": self.options.hazard_runs.value,
-            "walljumps_in_logic": self.options.walljumps_in_logic.value,
+            "walljumps": self.options.walljumps.value,
             "tricky_shinesparks": self.options.tricky_shinesparks.value,
             "death_link": self.options.death_link.value,
             "remote_items": self.options.remote_items.value,
