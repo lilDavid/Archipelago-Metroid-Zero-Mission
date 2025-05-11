@@ -11,6 +11,7 @@ from pathlib import Path
 import struct
 from typing import TYPE_CHECKING, Any, Sequence, cast
 
+import bsdiff4
 from BaseClasses import Item, Location
 import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
@@ -35,30 +36,6 @@ class MZMPatchExtensions(APPatchExtension):
     game = "Metroid Zero Mission"
 
     @staticmethod
-    def check_symbol_hash(caller: APProcedurePatch, rom: bytes, hash: str, *args):
-        if hash == symbols_hash:
-            return rom
-        if len(args) == 0:
-            raise InvalidDataError("Memory addresses don't match. This patch was generated with an older version of "
-                                   "the apworld.")
-
-        expected_version = args[0]
-        if APWORLD_VERSION is None:
-            if expected_version is None:
-                error_msg = "This patch was generated with a different base patch."
-            else:
-                error_msg = (f"This patch was generated with version {expected_version}, "
-                             "which has a different base patch.")
-        else:
-            if expected_version is None:
-                error_msg = ("This patch was likely generated using the source code, "
-                             f"and you are using version {APWORLD_VERSION}.")
-            else:
-                error_msg = (f"This patch was generated with version {expected_version}, "
-                             f"and you are using version {APWORLD_VERSION}.")
-        raise InvalidDataError(f"Memory addresses don't match. {error_msg}")
-
-    @staticmethod
     def support_vc(caller: APProcedurePatch, rom: bytes):
         hasher = hashlib.md5()
         hasher.update(rom)
@@ -71,11 +48,15 @@ class MZMPatchExtensions(APPatchExtension):
         return entry_point + rom[4:]
 
     @staticmethod
-    def apply_json(caller: APProcedurePatch, rom: bytes, file_name: str):
-        return apply_json_data(rom, json.loads(caller.get_file("patch.json").decode()))
+    def apply_basepatch(caller: APProcedurePatch, rom: bytes) -> bytes:
+        return bsdiff4.patch(rom, data_path("basepatch.bsdiff"))
 
     @staticmethod
-    def add_decompressed_graphics(caller: APProcedurePatch, rom: bytes):
+    def apply_json(caller: APProcedurePatch, rom: bytes, file_name: str) -> bytes:
+        return apply_json_data(rom, json.loads(caller.get_file(file_name).decode()))
+
+    @staticmethod
+    def add_decompressed_graphics(caller: APProcedurePatch, rom: bytes) -> bytes:
         return rom_data.add_item_sprites(rom)
 
     @staticmethod
@@ -98,10 +79,8 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
     def __init__(self, *args, **kwargs):
         super(MZMProcedurePatch, self).__init__(*args, **kwargs)
         self.procedure = [
-            ("check_symbol_hash", [symbols_hash, APWORLD_VERSION]),
             ("support_vc", []),
-            ("apply_bsdiff4", ["basepatch.bsdiff"]),
-            ("apply_tokens", ["token_data.bin"]),
+            ("apply_basepatch", []),
             ("apply_json", ["patch.json"]),
             ("add_decompressed_graphics", []),
             ("apply_background_patches", []),
@@ -177,59 +156,28 @@ def split_text(text: str):
     return lines
 
 
-def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
-    multiworld = world.multiworld
-    player = world.player
-
-    # Basic information about the seed
-    seed_info = (
-        player,
-        world.player_name.encode("utf-8")[:64],
-        multiworld.seed_name.encode("utf-8")[:64],
-
-        world.options.goal.value,
-        world.options.game_difficulty.value,
-        True,  # Remove Gravity Suit heat resistance
-        True,  # Make Power Bombs usable without Bomb
-        world.options.buff_pb_drops.value,
-        world.options.skip_chozodia_stealth.value,
-        world.options.start_with_maps.value,
-        world.options.skip_tourian_opening_cutscenes.value,
-        world.options.elevator_speed.value,
-    )
-    patch.write_token(
-        APTokenTypes.WRITE,
-        get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2x9B", *seed_info)
-    )
-
-    # Set goal
-    if world.options.goal.value != Goal.option_mecha_ridley:
-        patch.write_token(
-            APTokenTypes.WRITE,
-            get_rom_address("sHatchLockEventsChozodia", 8 * 15 + 1),  # sHatchLockEventsChozodia[15].event
-            (0x27).to_bytes(1, 'little'),  # EVENT_MOTHER_BRAIN_KILLED
-        )
-        patch.write_token(
-            APTokenTypes.WRITE,
-            get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * 6),  # sNumberOfHatchLockEventsPerArea[AREA_CHOZODIA]
-            (16).to_bytes(2, 'little')
-        )
-
-    if world.options.chozodia_access == ChozodiaAccess.option_closed:
-        patch.write_token(
-            APTokenTypes.WRITE,
-            get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * 5),
-            struct.pack("<H", 4)  # Acknowledge Mother Brain event locks
-        )
-
-    patch.write_file("token_data.bin", patch.get_token_binary())
-
-
 def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
     multiworld = world.multiworld
     player = world.player
-    data = {}
+    data = {
+        "player_number": player,
+        "player_name": world.player_name,
+        "seed_name": multiworld.seed_name,
+    }
+
+    config = {
+        "goal": world.options.goal.value,
+        "difficulty": world.options.game_difficulty.value,
+        "remove_gravity_heat_resistance": True,
+        "power_bombs_without_bomb": True,
+        "buff_power_bomb_drops": world.options.buff_pb_drops.value,
+        "skip_chozodia_stealth": world.options.skip_chozodia_stealth.value,
+        "start_with_maps": world.options.start_with_maps.value,
+        "skip_tourian_opening_cutscenes": world.options.skip_tourian_opening_cutscenes.value,
+        "elevator_speed": world.options.elevator_speed.value,
+        "chozodia_requires_mother_brain": world.options.chozodia_access.value == ChozodiaAccess.option_closed
+    }
+    data["config"] = config
 
     locations = []
     for location in multiworld.get_locations(player):
@@ -305,11 +253,27 @@ def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
 RUINS_TEST_LOCATION_ID = 100
 
 
+GOAL_MAPPING = {
+    "vanilla": 0,
+    "bosses": 1,
+}
+
+
+DIFFICULTY_MAPPING = {
+    "normal": 1,
+    "hard": 2,
+    "either": 3,
+}
+
+
 TEXT_INDICES = {
     ("Story", "Intro"): 0,
     ("Story", "Escape 1"): 1,
     ("Story", "Escape 2"): 2,
 }
+
+
+PIXEL_SIZE = 4
 
 
 def apply_json_data(rom: bytes, data: list | dict) -> bytes:
@@ -333,6 +297,45 @@ def apply_json_data(rom: bytes, data: list | dict) -> bytes:
         address = allocate(len(data))
         write(address, data)
         return address | 0x8000000
+
+    # Config
+    config = cast(dict[str, str | int | bool], data["config"])
+    goal = config.get("goal", "vanilla")
+    seed_info = (
+        int(data.get("player_number", 0)),
+        cast(str, data.get("player_name", "")).encode("utf-8")[:64],
+        cast(str, data.get("seed_name", "")).encode("utf-8")[:64],
+
+        GOAL_MAPPING[goal],
+        DIFFICULTY_MAPPING[config.get("difficulty", "either")],
+        bool(config.get("remove_gravity_heat_resistance", False)),
+        bool(config.get("power_bombs_without_bomb", False)),
+        bool(config.get("buff_power_bomb_drops", False)),
+        bool(config.get("skip_chozodia_stealth", False)),
+        bool(config.get("start_with_maps", False)),
+        bool(config.get("skip_tourian_opening_cutscenes", False)),
+        PIXEL_SIZE * int(config.get("elevator_speed", 1)),
+    )
+    write(
+        get_rom_address("sRandoSeed"),
+        struct.pack("<H64s64s2x9B", *seed_info)
+    )
+
+    if goal == "bosses":
+        write(
+            get_rom_address("sHatchLockEventsChozodia", 8 * 15 + 1),  # sHatchLockEventsChozodia[15].event
+            struct.pack("<B", 0x27)  # EVENT_MOTHER_BRAIN_KILLED
+        )
+        write(
+            get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * 6),  # sNumberOfHatchLockEventsPerArea[AREA_CHOZODIA]
+            struct.pack("<H", 16)
+        )
+
+    if config.get("chozodia_requires_mother_brain", False):
+        write(
+            get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * 5),
+            struct.pack("<H", 4)  # Mother Brain event locks
+        )
 
     # Place items
     message_pointers: dict[tuple[str, str], int] = {}

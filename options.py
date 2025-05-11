@@ -13,18 +13,15 @@ from Options import (
 from . import rom_data
 
 
-PIXEL_SIZE = 4
-
-
 class Goal(Choice):
     """
     What you will be required to do to beat the game.
     Mecha Ridley: Mecha Ridley is always open and can be reached as long as you have the right items.
     Bosses: The door to Mecha Ridley is locked until Kraid, Ridley, Mother Brain, and the Chozo Ghost are defeated.
     """
-    display_name = "Goal"
-    option_mecha_ridley = 0
-    option_bosses = 1
+    display_name = "goal"
+    option_mecha_ridley = "vanilla"
+    option_bosses = "bosses"
     default = option_bosses
 
 
@@ -40,9 +37,9 @@ class GameDifficulty(Choice):
     slightly influence item placements.
     """
     display_name = "Game Difficulty"
-    option_normal = 1
-    option_hard = 2
-    option_either = 3
+    option_normal = "normal"
+    option_hard = "hard"
+    option_either = "either"
     default = option_either
 
 
@@ -52,8 +49,8 @@ class ChozodiaAccess(Choice):
     Closed: You must defeat Mother Brain to access Chozodia.
     """
     display_name = "Chozodia Access"
-    option_open = 0
-    option_closed = 1
+    option_open = False
+    option_closed = True
     default = option_open
 
 
@@ -267,9 +264,9 @@ class ElevatorSpeed(Choice):
     Way Too Fast: Triple the vanilla speed
     """
     display_name = "Elevator Speed"
-    option_vanilla = PIXEL_SIZE * 2
-    option_fast = option_vanilla * 2
-    option_way_too_fast = option_vanilla * 3
+    option_vanilla = 1
+    option_fast = 2
+    option_way_too_fast = 3
     default = option_fast
 
 
