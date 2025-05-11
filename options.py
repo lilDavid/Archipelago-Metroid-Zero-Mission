@@ -184,6 +184,13 @@ class WallJumps(Choice):
     default = option_enabled
 
 
+class SpringBall(Toggle):
+    """
+    Remove Spring Ball functionality from Hi-Jump and shuffle it into the item pool as a separate item.
+    """
+    display_name = "Spring Ball"
+
+
 # TODO: turn into a general trick include/exclude option
 class TrickyShinesparks(Toggle):
     """
@@ -319,6 +326,7 @@ mzm_option_groups = [
         MorphBallPlacement,
         FullyPoweredSuit,
         WallJumps,
+        SpringBall,
         JunkFillWeights,
     ]),
     OptionGroup("Logic", [
@@ -355,6 +363,7 @@ class MZMOptions(PerGameCommonOptions):
     selected_patches: SelectedPatches
     morph_ball: MorphBallPlacement
     fully_powered_suit: FullyPoweredSuit
+    spring_ball: SpringBall
     junk_fill_weights: JunkFillWeights
     logic_difficulty: LogicDifficulty
     combat_logic_difficulty: CombatLogicDifficulty

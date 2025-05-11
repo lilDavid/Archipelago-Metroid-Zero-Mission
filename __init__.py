@@ -77,6 +77,7 @@ class MZMWorld(World):
     starting_items: list[MZMItem]
     locked_items: list[MZMItem]
     pre_fill_items: list[MZMItem]
+    removed_items: list[MZMItem]
 
     enabled_layout_patches: list[str]
 
@@ -87,6 +88,7 @@ class MZMWorld(World):
         self.starting_items = []
         self.locked_items = []
         self.pre_fill_items = []
+        self.removed_items = []
         self.junk_fill_items = list(self.options.junk_fill_weights.value.keys())
         self.junk_fill_cdf = list(itertools.accumulate(self.options.junk_fill_weights.value.values()))
 
@@ -113,6 +115,11 @@ class MZMWorld(World):
         if self.options.walljumps == WallJumps.option_enabled or \
                 self.options.walljumps == WallJumps.option_enabled_not_logical:
             self.starting_items.append(self.create_item("Wall Jump"))
+        if self.options.walljumps == WallJumps.option_disabled:
+            self.removed_items.append(self.create_item("Wall Jump"))
+
+        if not self.options.spring_ball.value:
+            self.removed_items.append(self.create_item("Spring Ball"))
 
         for item in self.starting_items:
             self.push_precollected(item)
@@ -141,13 +148,11 @@ class MZMWorld(World):
 
         item_pool_size = location_count - len(self.locked_items) - len(self.pre_fill_items)
 
-        pre_fill_majors = set(item.name for item in self.starting_items + self.locked_items + self.pre_fill_items)
+        removed_majors = set(item.name for item in
+                                self.starting_items + self.locked_items + self.pre_fill_items + self.removed_items)
         for name in major_item_data_table:
-            if name not in pre_fill_majors:
+            if name not in removed_majors:
                 item_pool.append(self.create_item(name))
-
-        if self.options.walljumps == WallJumps.option_disabled:
-            item_pool.remove(self.create_item("Wall Jump"))
 
         # TODO: factor in hazard runs when determining etank progression count
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks progression

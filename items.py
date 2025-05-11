@@ -93,6 +93,7 @@ major_item_data_table = {
 
     "Fully Powered Suit": ItemData(progression, ItemType.CUSTOM, 1 << 7, (Sprite.GravitySuit,   0, get_symbol("sEnglishText_Message_FullyPoweredSuit"), 0x1D3)),  # TODO: Custom sprite
     "Wall Jump":          ItemData(progression, ItemType.CUSTOM, 1 << 0, (Sprite.WallJump,      0, "Wall Jump",                                         0x76)),
+    "Spring Ball":        ItemData(progression, ItemType.CUSTOM, 1 << 1, (Sprite.SpringBall,    0, "Spring Ball",                                       0x70)),
 }
 
 extra_item_data_table = {

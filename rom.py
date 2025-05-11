@@ -192,6 +192,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
         True,  # Remove Gravity Suit heat resistance
         True,  # Make Power Bombs usable without Bomb
         world.options.buff_pb_drops.value,
+        world.options.spring_ball.value,
         world.options.skip_chozodia_stealth.value,
         world.options.start_with_maps.value,
         world.options.skip_tourian_opening_cutscenes.value,
@@ -200,7 +201,7 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
     patch.write_token(
         APTokenTypes.WRITE,
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2x9B", *seed_info)
+        struct.pack("<H64s64s2x10B", *seed_info)
     )
 
     # Set goal
