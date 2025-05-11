@@ -3,6 +3,7 @@ Classes and functions related to creating a ROM patch
 """
 from __future__ import annotations
 
+from collections import Counter
 import json
 import hashlib
 import logging
@@ -10,13 +11,13 @@ from pathlib import Path
 import struct
 from typing import TYPE_CHECKING, Any, Sequence, cast
 
-from BaseClasses import Location
+from BaseClasses import Item, Location
 import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
 
 from . import rom_data
 from .data import APWORLD_VERSION, data_path, get_rom_address, get_symbol, symbols_hash
-from .items import ItemType, item_data_table
+from .items import ItemType, item_data_table, tank_data_table, major_item_data_table
 from .item_sprites import Sprite, get_zero_mission_sprite, builtin_sprite_pointers, sprite_imports, unknown_item_alt_sprites
 from .locations import full_location_table as location_table
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
@@ -215,25 +216,6 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
             (16).to_bytes(2, 'little')
         )
 
-    # Create starting inventory
-    pickups = [0, 0, 0, 0]
-    beams = misc = custom = 0
-    for item in multiworld.precollected_items[player]:
-        data = item_data_table[item.name]
-        if data.type == ItemType.BEAM:
-            beams |= data.bits
-        elif data.type == ItemType.MAJOR:
-            misc |= data.bits
-        elif data.type == ItemType.CUSTOM:
-            custom |= data.bits
-        elif (data.type == ItemType.MISSILE_TANK and pickups[1] < 999 or pickups[data.type - 1] < 99):
-            pickups[data.type - 1] += 1
-    patch.write_token(
-        APTokenTypes.WRITE,
-        get_rom_address("sRandoStartingInventory"),
-        struct.pack("<BxHBBBBB", *pickups, beams, misc, custom)
-    )
-
     if world.options.chozodia_access == ChozodiaAccess.option_closed:
         patch.write_token(
             APTokenTypes.WRITE,
@@ -272,6 +254,17 @@ def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
             "message": message,
         })
     data["locations"] = locations
+
+    precollected_items = Counter(item.name for item in multiworld.precollected_items[player])
+    starting_inventory: dict[str, int | bool] = {}
+    for item, count in precollected_items.items():
+        if item == "Missile Tank":
+            starting_inventory[item] = min(count, 999)
+        elif item in tank_data_table:
+            starting_inventory[item] = min(count, 99)
+        elif item in major_item_data_table:
+            starting_inventory[item] = count > 0
+    data["start_inventory"] = starting_inventory
 
     text = {"Story": {}}
 
@@ -401,6 +394,27 @@ def apply_json_data(rom: bytes, data: list | dict) -> bytes:
                 message_pointer, sound, item_data.acquisition, one_line
             )
         )
+
+    # Starting inventory
+    pickups = [0, 0, 0, 0]
+    beams = misc = custom = 0
+    start_inventory = cast(dict[str, int | bool], data.get("start_inventory"))
+    for item_name, value in start_inventory.items():
+        item_data = item_data_table[item_name]
+        if value <= 0:
+            continue
+        if item_data.type == ItemType.BEAM:
+            beams |= item_data.bits
+        elif item_data.type == ItemType.MAJOR:
+            misc |= item_data.bits
+        elif item_data.type == ItemType.CUSTOM:
+            custom |= item_data.bits
+        elif item_data.type <= ItemType.POWER_BOMB_TANK:
+            pickups[item_data.type - 1] = value
+    write(
+        get_rom_address("sRandoStartingInventory"),
+        struct.pack("<BxHBBBBB", *pickups, beams, misc, custom)
+    )
 
     # Write text
     text = cast(dict[str, dict[str, str]], data.get("text", {}))
