@@ -164,15 +164,17 @@ class MZMWorld(World):
             item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 4, 5))  # 4 progression + 5 useful power bombs out of 9
 
         if self.options.combat_logic_difficulty == CombatLogicDifficulty.option_relaxed:
-            item_pool.extend(self.create_tanks("Missile Tank", 50, 10))  # 50 progression missiles out of 250
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 4, 5))  # 8 progression + 10 useful supers out of 30
+            item_pool.extend(self.create_tanks("Missile Tank", 50, 10))  # 50 progression missiles out of 250
         elif self.options.combat_logic_difficulty == CombatLogicDifficulty.option_normal:
-            item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # 40 progression missiles out of 250
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3, 5))  # 6 progression + 10 useful supers out of 30
+            item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # 40 progression missiles out of 250
         elif self.options.combat_logic_difficulty == CombatLogicDifficulty.option_minimal:
-            item_pool.extend(self.create_tanks("Missile Tank", 50, 3))  # 15 progression missiles out of 250
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 1, 3))  # 1 progression + 6 useful supers out of 30
+            item_pool.extend(self.create_tanks("Missile Tank", 50, 3))  # 15 progression missiles out of 250
 
+        if len(item_pool) > item_pool_size:
+            item_pool = item_pool[:item_pool_size]  # Last items should always be filler missiles
         while len(item_pool) < item_pool_size:
             item_pool.append(self.create_filler())
 
@@ -227,13 +229,14 @@ class MZMWorld(World):
             "goal": self.options.goal.value,
             "game_difficulty": self.options.game_difficulty.value,
             "unknown_items_usable": self.options.fully_powered_suit.to_slot_data(),
+            "walljumps": self.options.walljumps.value,
+            "spring_ball": self.options.spring_ball.value,
             "layout_patches": self.options.layout_patches.value,
             "selected_patches": self.enabled_layout_patches,
             "logic_difficulty": self.options.logic_difficulty.value,
             "combat_logic_difficulty": self.options.combat_logic_difficulty.value,
             "ibj_in_logic": self.options.ibj_in_logic.value,
             "hazard_runs": self.options.hazard_runs.value,
-            "walljumps": self.options.walljumps.value,
             "tricky_shinesparks": self.options.tricky_shinesparks.value,
             "death_link": self.options.death_link.value,
             "remote_items": self.options.remote_items.value,

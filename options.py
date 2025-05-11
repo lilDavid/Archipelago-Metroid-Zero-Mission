@@ -87,6 +87,29 @@ class FullyPoweredSuit(Choice):
         return self.option_start_with if self.value == self.option_legacy_always_usable else self.value
 
 
+class WallJumps(Choice):
+    """
+    Determines how wall jumping will be handled:
+    - Disabled: Wall jumping will not be possible. All locations can still be reached through other means.
+    - Unlockable: A Wall Jump item will be placed into the item pool. Once found, you will be able to wall jump.
+    - Enabled, Not Logical: Wall jumping will always be possible, but it will never be required to access any locations.
+    - Enabled: Wall jumping will always be possible, and logic may expect using wall jumps to progress where applicable.
+    """
+    display_name = "Wall Jumps"
+    option_disabled = 0
+    option_unlockable = 1
+    option_enabled_not_logical = 2
+    option_enabled = 3
+    default = option_enabled
+
+
+class SpringBall(Toggle):
+    """
+    Remove Spring Ball functionality from Hi-Jump and shuffle it into the item pool as a separate item.
+    """
+    display_name = "Spring Ball"
+
+
 class SkipChozodiaStealth(DefaultOnToggle):
     """After escaping Tourian, place Samus in the save room just outside of the Chozo Ghost's room in Chozodia."""
     display_name = "Skip Chozodia Stealth"
@@ -168,27 +191,11 @@ class HazardRuns(Toggle):
     display_name = "Hazard Runs"
 
 
-class WallJumps(Choice):
+class WalljumpsInLogic(Removed):
     """
-    Determines how wall jumping will be handled:
-    - Disabled: Wall jumping will not be possible. All locations can still be reached through other means.
-    - Unlockable: A Wall Jump item will be placed into the item pool. Once found, you will be able to wall jump.
-    - Enabled, Not Logical: Wall jumping will always be possible, but it will never be required to access any locations.
-    - Enabled: Wall jumping will always be possible, and logic may expect using wall jumps to progress where applicable.
+    This option has been replaced with Wall Jumps.
     """
-    display_name = "Wall Jumps"
-    option_disabled = 0
-    option_unlockable = 1
-    option_enabled_not_logical = 2
-    option_enabled = 3
-    default = option_enabled
-
-
-class SpringBall(Toggle):
-    """
-    Remove Spring Ball functionality from Hi-Jump and shuffle it into the item pool as a separate item.
-    """
-    display_name = "Spring Ball"
+    display_name = "Wall Jumps In Logic"
 
 
 # TODO: turn into a general trick include/exclude option
@@ -363,13 +370,14 @@ class MZMOptions(PerGameCommonOptions):
     selected_patches: SelectedPatches
     morph_ball: MorphBallPlacement
     fully_powered_suit: FullyPoweredSuit
+    walljumps: WallJumps
     spring_ball: SpringBall
     junk_fill_weights: JunkFillWeights
     logic_difficulty: LogicDifficulty
     combat_logic_difficulty: CombatLogicDifficulty
     ibj_in_logic: IBJInLogic
     hazard_runs: HazardRuns
-    walljumps: WallJumps
+    walljumps_in_logic: WalljumpsInLogic
     tricky_shinesparks: TrickyShinesparks
     skip_chozodia_stealth: SkipChozodiaStealth
     buff_pb_drops: BuffPowerBombDrops
