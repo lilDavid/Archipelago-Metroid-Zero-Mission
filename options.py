@@ -172,7 +172,7 @@ class WallJumps(Choice):
     """
     Determines how wall jumping will be handled:
     - Disabled: Wall jumping will not be possible. All locations can still be reached through other means.
-    - Unlockable: A Wall Jump Boots item will be placed into the item pool. Once found, you will be able to wall jump.
+    - Unlockable: A Wall Jump item will be placed into the item pool. Once found, you will be able to wall jump.
     - Enabled, Not Logical: Wall jumping will always be possible, but it will never be required to access any locations.
     - Enabled: Wall jumping will always be possible, and logic may expect using wall jumps to progress where applicable.
     """

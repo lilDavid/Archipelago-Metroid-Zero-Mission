@@ -112,7 +112,7 @@ class MZMWorld(World):
 
         if self.options.walljumps == WallJumps.option_enabled or \
                 self.options.walljumps == WallJumps.option_enabled_not_logical:
-            self.starting_items.append(self.create_item("Wall Jump Boots"))
+            self.starting_items.append(self.create_item("Wall Jump"))
 
         for item in self.starting_items:
             self.push_precollected(item)
@@ -147,7 +147,7 @@ class MZMWorld(World):
                 item_pool.append(self.create_item(name))
 
         if self.options.walljumps == WallJumps.option_disabled:
-            item_pool.remove(self.create_item("Wall Jump Boots"))
+            item_pool.remove(self.create_item("Wall Jump"))
 
         # TODO: factor in hazard runs when determining etank progression count
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks progression
