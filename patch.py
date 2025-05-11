@@ -314,7 +314,7 @@ def apply_json_data(rom: bytes, data: list | dict) -> bytes:
         bool(config.get("skip_chozodia_stealth", False)),
         bool(config.get("start_with_maps", False)),
         bool(config.get("skip_tourian_opening_cutscenes", False)),
-        PIXEL_SIZE * int(config.get("elevator_speed", 1)),
+        2 * PIXEL_SIZE * int(config.get("elevator_speed", 1)),
     )
     write(
         get_rom_address("sRandoSeed"),
