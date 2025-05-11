@@ -241,62 +241,13 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
             struct.pack("<H", 4)  # Acknowledge Mother Brain event locks
         )
 
-    # Write new intro text
-    world_version = f" / APworld {APWORLD_VERSION}" if APWORLD_VERSION is not None else ""
-    intro_text = (f"AP {multiworld.seed_name}\n"
-                  f"P{player} - {world.player_name}\n"
-                  f"Version {Utils.version_tuple.as_simple_string()}{world_version}\n"
-                  "\n"
-                  f"YOUR MISSION: {goal_texts[world.options.goal.value]}")
-    encoded_intro = Message(intro_text).append(TERMINATOR_CHAR)
-    assert len(encoded_intro) <= 235  # Original intro text is 235 characters
-    patch.write_token(
-        APTokenTypes.WRITE,
-        get_rom_address("sEnglishText_Story_PlanetZebes"),
-        encoded_intro.to_bytes()
-    )
-
-    # Write new ZSS text
-    zss_text = ("With Mother Brain taken down, I needed\n"
-                "to get my suit back in the ruins.\n")
-    plasma_beam = world.create_item("Plasma Beam")
-    if world.options.plasma_beam_hint.value and plasma_beam not in multiworld.precollected_items[player]:
-        location = multiworld.find_item(plasma_beam.name, player)
-        if location.native_item:
-            location_text = location.parent_region.hint_text
-        else:
-            location_text = f"at {location.name}"
-        if location.player != player:
-            player_text = f" in {multiworld.player_name[location.player]}'s world"
-        else:
-            player_text = ""
-        lines = split_text(f"Could I find the Plasma Beam {location_text}{player_text}?")
-        while len(lines) > 4:
-            location_text = location_text[:location_text.rfind(" ")]
-            lines = split_text(f"Could I find the Plasma Beam {location_text}{player_text}?")
-        if len(lines) < 4:
-            zss_text += "\n"
-        zss_text += "\n".join(lines)
-    else:
-        zss_text += "\nCould I survive long enough to escape?"
-    encoded_zss_text = Message(zss_text).append(TERMINATOR_CHAR)
-    assert len(encoded_zss_text) < 339
-    patch.write_token(
-        APTokenTypes.WRITE,
-        get_rom_address("sEnglishText_Story_TheTiming"),
-        encoded_zss_text.to_bytes()
-    )
-    patch.write_token(
-        APTokenTypes.WRITE,
-        get_rom_address("sEnglishTextPointers_Story", 4 * 2),  # Could I survive...?
-        get_symbol("sEnglishText_Story_TheTiming").to_bytes(4, "little")
-    )
-
     patch.write_file("token_data.bin", patch.get_token_binary())
+
 
 def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
     multiworld = world.multiworld
     player = world.player
+    data = {}
 
     locations = []
     for location in multiworld.get_locations(player):
@@ -320,16 +271,52 @@ def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
             "sprite": sprite,
             "message": message,
         })
+    data["locations"] = locations
 
-    patch.write_file(
-        "patch.json",
-        json.dumps({
-            "locations": locations,
-        }).encode()
-    )
+    text = {"Story": {}}
+
+    world_version = f" / APworld {APWORLD_VERSION}" if APWORLD_VERSION is not None else ""
+    text["Story"]["Intro"] = (f"AP {multiworld.seed_name}\n"
+                              f"P{player} - {world.player_name}\n"
+                              f"Version {Utils.version_tuple.as_simple_string()}{world_version}\n"
+                              "\n"
+                              f"YOUR MISSION: {goal_texts[world.options.goal.value]}")
+
+    plasma_beam = world.create_item("Plasma Beam")
+    if world.options.plasma_beam_hint.value and plasma_beam not in multiworld.precollected_items[player]:
+        zss_text = ("With Mother Brain taken down, I needed\n"
+                    "to get my suit back in the ruins.\n")
+        location = multiworld.find_item(plasma_beam.name, player)
+        if location.native_item:
+            location_text = location.parent_region.hint_text
+        else:
+            location_text = f"at {location.name}"
+        if location.player != player:
+            player_text = f" in {multiworld.player_name[location.player]}'s world"
+        else:
+            player_text = ""
+        lines = split_text(f"Could I find the Plasma Beam {location_text}{player_text}?")
+        while len(lines) > 4:
+            location_text = location_text[:location_text.rfind(" ")]
+            lines = split_text(f"Could I find the Plasma Beam {location_text}{player_text}?")
+        if len(lines) < 4:
+            zss_text += "\n"
+        zss_text += "\n".join(lines)
+        text["Story"]["Escape 2"] = zss_text
+
+    data["text"] = text
+
+    patch.write_file("patch.json", json.dumps(data).encode())
 
 
 RUINS_TEST_LOCATION_ID = 100
+
+
+TEXT_INDICES = {
+    ("Story", "Intro"): 0,
+    ("Story", "Escape 1"): 1,
+    ("Story", "Escape 2"): 2,
+}
 
 
 def apply_json_data(rom: bytes, data: list | dict) -> bytes:
@@ -414,5 +401,17 @@ def apply_json_data(rom: bytes, data: list | dict) -> bytes:
                 message_pointer, sound, item_data.acquisition, one_line
             )
         )
+
+    # Write text
+    text = cast(dict[str, dict[str, str]], data.get("text", {}))
+    for group, messages in text.items():
+        for name, message in messages.items():
+            array_index = TEXT_INDICES[(group, name)]
+            encoded_message = Message(message).append(TERMINATOR_CHAR)
+            text_address = write_to_arena(encoded_message.to_bytes())
+            write(
+                get_rom_address(f"sEnglishTextPointers_{group}", 4 * array_index),
+                struct.pack("<I", text_address)
+            )
 
     return bytes(local_rom)
