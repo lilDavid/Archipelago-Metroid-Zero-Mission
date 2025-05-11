@@ -16,7 +16,7 @@ from .items import item_data_table, major_item_data_table, mzm_item_name_groups,
 from .locations import full_location_table, location_count, mzm_location_name_groups
 from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty, \
     GameDifficulty
-from .patch import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_tokens
+from .patch import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_json_data, write_tokens
 from .regions import create_regions_and_connections
 from .rules import set_rules
 
@@ -204,6 +204,7 @@ class MZMWorld(World):
         patch = MZMProcedurePatch(player=self.player, player_name=self.player_name)
         patch.write_file("basepatch.bsdiff", data_path("basepatch.bsdiff"))
         write_tokens(self, patch)
+        write_json_data(self, patch)
         if self.options.layout_patches.value:
             patch.add_layout_patches(self.enabled_layout_patches)
 

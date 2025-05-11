@@ -3,11 +3,12 @@ Classes and functions related to creating a ROM patch
 """
 from __future__ import annotations
 
+import json
 import hashlib
 import logging
 from pathlib import Path
 import struct
-from typing import TYPE_CHECKING, Sequence, cast
+from typing import TYPE_CHECKING, Any, Sequence, cast
 
 from BaseClasses import Location
 import Utils
@@ -69,6 +70,10 @@ class MZMPatchExtensions(APPatchExtension):
         return entry_point + rom[4:]
 
     @staticmethod
+    def apply_json(caller: APProcedurePatch, rom: bytes, file_name: str):
+        return apply_json_data(rom, json.loads(caller.get_file("patch.json").decode()))
+
+    @staticmethod
     def add_decompressed_graphics(caller: APProcedurePatch, rom: bytes):
         return rom_data.add_item_sprites(rom)
 
@@ -96,10 +101,10 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
             ("support_vc", []),
             ("apply_bsdiff4", ["basepatch.bsdiff"]),
             ("apply_tokens", ["token_data.bin"]),
+            ("apply_json", ["patch.json"]),
             ("add_decompressed_graphics", []),
             ("apply_background_patches", []),
         ]
-        self.extra_data_address = get_rom_address("sRandoExtraData")
 
     @classmethod
     def get_source_data(cls) -> bytes:
@@ -108,12 +113,6 @@ class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
 
     def add_layout_patches(self, selected_patches: Sequence[str]):
         self.procedure.append(("apply_layout_patches", [selected_patches]))
-
-    def allocate(self, size: int) -> int:
-        assert size >= 0
-        address = self.extra_data_address
-        self.extra_data_address += size
-        return address
 
 
 def get_base_rom_path(file_name: str = "") -> Path:
@@ -216,76 +215,6 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
             (16).to_bytes(2, 'little')
         )
 
-    # Place items
-    def write_to_arena(data: bytes) -> int:
-        address = patch.allocate(len(data))
-        patch.write_token(
-            APTokenTypes.WRITE,
-            address,
-            data
-        )
-        return address | 0x8000000
-
-    message_pointers: dict[tuple[str, str], int] = {}
-    def get_message(first_line: str, second_line: str) -> int:
-        if (first_line, second_line) in message_pointers:
-            return message_pointers[(first_line, second_line)]
-        message_bytes = make_item_message(first_line, second_line).to_bytes()
-        message_ptr = write_to_arena(message_bytes)
-        message_pointers[(first_line, second_line)] = message_ptr
-        return message_ptr
-
-    file_pointers: dict[str, int] = {}
-    def get_file(name: str) -> int:
-        if name in file_pointers:
-            return file_pointers[name]
-        file_bytes = data_path(f"item_sprites/{name}")
-        file_ptr = write_to_arena(file_bytes)
-        file_pointers[name] = file_ptr
-        return file_ptr
-
-    sprite_pointers: dict[str, int] = {**builtin_sprite_pointers}
-    def get_sprite(name: str) -> int:
-        if name in sprite_pointers:
-            return sprite_pointers[name]
-        gfx, pal = sprite_imports[name]
-        gfx_pointer = gfx if type(gfx) is int else get_file(gfx)
-        pal_pointer = pal if type(pal) is int else get_file(pal)
-        sprite = struct.pack("<II", gfx_pointer, pal_pointer)
-        sprite_ptr = write_to_arena(sprite)
-        sprite_pointers[name] = sprite_ptr
-        return sprite_ptr
-
-    for location in multiworld.get_locations(player):
-        item = location.item
-        if item.code is None:
-            continue
-
-        sprite_name = get_item_sprite(location, world)
-        sprite_address = get_sprite(sprite_name)
-        if item.player == player:
-            item_data = item_data_table[item.name]
-            if type(item_data.message) is int:
-                message_ptr = item_data.message
-            else:
-                message_ptr = get_message(item_data.message, "")
-        else:
-            item_data = item_data_table["Nothing"]
-            message_ptr = get_message(item.name, f"Sent to {multiworld.player_name[item.player]}")
-
-        location_data = location_table[location.name]
-        sound = location_data.force_sound if location_data.force_sound is not None else item_data.sound
-        patch.write_token(
-            APTokenTypes.WRITE,
-            get_rom_address("sPlacedItems", 16 * location_data.id),
-            struct.pack(
-                "<BBHIIHBB",
-                item_data.type, False, item_data.bits,
-                sprite_address,
-                message_ptr, sound, item_data.acquisition, item.player == player
-            ),
-        )
-
     # Create starting inventory
     pickups = [0, 0, 0, 0]
     beams = misc = custom = 0
@@ -364,3 +293,126 @@ def write_tokens(world: MZMWorld, patch: MZMProcedurePatch):
     )
 
     patch.write_file("token_data.bin", patch.get_token_binary())
+
+def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
+    multiworld = world.multiworld
+    player = world.player
+
+    locations = []
+    for location in multiworld.get_locations(player):
+        item = location.item
+        if item.code is None:
+            continue
+
+        sprite = get_item_sprite(location, world)
+        if item.player == player:
+            item_name = item.name
+            message = None
+        else:
+            item_name = "Nothing"
+            message = f"{item.name}\nSent to {multiworld.player_name[item.player]}"
+
+        location_data = location_table[location.name]
+        assert location_data.id is not None
+        locations.append({
+            "id": location_data.id,
+            "item": item_name,
+            "sprite": sprite,
+            "message": message,
+        })
+
+    patch.write_file(
+        "patch.json",
+        json.dumps({
+            "locations": locations,
+        }).encode()
+    )
+
+
+RUINS_TEST_LOCATION_ID = 100
+
+
+def apply_json_data(rom: bytes, data: list | dict) -> bytes:
+    if type(data) != dict:
+        raise InvalidDataError("Invalid JSON provided, expected object")
+
+    local_rom = bytearray(rom)
+    def write(address: int, data: bytes):
+        assert address <= len(local_rom)
+        local_rom[address:address + len(data)] = data
+
+    extra_data_address = get_rom_address("sRandoExtraData")
+    def allocate(size: int) -> int:
+        nonlocal extra_data_address
+        assert size >= 0
+        address = extra_data_address
+        extra_data_address += size
+        return address
+
+    def write_to_arena(data: bytes) -> int:
+        address = allocate(len(data))
+        write(address, data)
+        return address | 0x8000000
+
+    # Place items
+    message_pointers: dict[tuple[str, str], int] = {}
+    def get_message(first_line: str, second_line: str = "") -> int:
+        if (first_line, second_line) in message_pointers:
+            return message_pointers[(first_line, second_line)]
+        message_bytes = make_item_message(first_line, second_line).to_bytes()
+        message_ptr = write_to_arena(message_bytes)
+        message_pointers[(first_line, second_line)] = message_ptr
+        return message_ptr
+
+    file_pointers: dict[str, int] = {}
+    def get_file(name: str) -> int:
+        if name in file_pointers:
+            return file_pointers[name]
+        file_bytes = data_path(f"item_sprites/{name}")
+        file_ptr = write_to_arena(file_bytes)
+        file_pointers[name] = file_ptr
+        return file_ptr
+
+    sprite_pointers: dict[str, int] = {**builtin_sprite_pointers}
+    def get_sprite(name: str) -> int:
+        if name in sprite_pointers:
+            return sprite_pointers[name]
+        gfx, pal = sprite_imports[name]
+        gfx_pointer = gfx if type(gfx) is int else get_file(gfx)
+        pal_pointer = pal if type(pal) is int else get_file(pal)
+        sprite = struct.pack("<II", gfx_pointer, pal_pointer)
+        sprite_ptr = write_to_arena(sprite)
+        sprite_pointers[name] = sprite_ptr
+        return sprite_ptr
+
+    locations = cast(list[dict[str, Any]], data["locations"])
+    for location in locations:
+        location_id = cast(int, location["id"])
+        item_name = cast(str, location["item"])
+        sprite_name = cast(str | None, location.get("sprite"))
+        message = cast(str | None, location.get("message"))
+
+        item_data = item_data_table[item_name]
+        sprite_pointer = get_sprite(item_data.sprite if sprite_name is None else sprite_name)
+        if message is None:
+            if type(item_data.message) is int:
+                message_pointer = item_data.message
+                one_line = True
+            else:
+                message = cast(str, item_data.message)
+        if message is not None:
+            message_lines = message.splitlines()
+            one_line = len(message_lines) <= 1
+            message_pointer = get_message(*message_lines)
+        sound = 0x4A if location_id == RUINS_TEST_LOCATION_ID else item_data.sound
+        write(
+            get_rom_address("sPlacedItems", 16 * location_id),
+            struct.pack(
+                "<BBHIIHBB",
+                item_data.type, False, item_data.bits,
+                sprite_pointer,
+                message_pointer, sound, item_data.acquisition, one_line
+            )
+        )
+
+    return bytes(local_rom)
