@@ -16,8 +16,8 @@ from .items import item_data_table, major_item_data_table, mzm_item_name_groups,
 from .locations import full_location_table, location_count, mzm_location_name_groups
 from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty, \
     GameDifficulty
+from .patch import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_tokens
 from .regions import create_regions_and_connections
-from .rom import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_tokens
 from .rules import set_rules
 
 
