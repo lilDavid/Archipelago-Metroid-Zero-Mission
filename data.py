@@ -11,18 +11,16 @@ def data_path(file_name: str):
     return data_bytes
 
 
-symbols_hash = None
 ram_symbols = None
 rom_symbols = None
 
 
 def _get_symbols():
-    global ram_symbols, rom_symbols, symbols_hash
+    global ram_symbols, rom_symbols
 
     symbol_data = data_path("extracted_symbols.json")
     hasher = hashlib.md5()
     hasher.update(symbol_data)
-    symbols_hash = hasher.hexdigest()
 
     symbols = json.loads(symbol_data.decode("utf-8"))
     ram_symbols = symbols["ewram"] | symbols["iwram"]

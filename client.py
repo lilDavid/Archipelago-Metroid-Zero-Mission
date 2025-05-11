@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import itertools
 import struct
-from typing import TYPE_CHECKING, Counter, Dict, Iterable, Iterator, List, NamedTuple, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Dict, Iterator, List, NamedTuple, Optional, Set, Tuple
 
 from NetUtils import ClientStatus, NetworkItem
 import Utils
@@ -18,7 +18,7 @@ from .items import ItemData, ItemType, item_data_table, major_item_data_table
 from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table)
-from .text import LINE_WIDTH, TERMINATOR_CHAR, Message, make_item_message
+from .text import Message, make_item_message
 
 if TYPE_CHECKING:
     from worlds._bizhawk.context import BizHawkClientContext
@@ -216,8 +216,8 @@ class MZMClient(BizHawkClient):
         try:
             read_result = iter(await bizhawk.read(bizhawk_ctx, [
                 read(0x80000A0, 12),
-                read(get_symbol("sRandoSeed", 2), 64),
-                read(get_symbol("sRandoSeed", 66), 64),
+                read(get_symbol("sRandoSeed", 0), 64),
+                read(get_symbol("sRandoSeed", 64), 64),
             ]))
         except bizhawk.RequestFailedError:
             return False  # Should verify on the next pass

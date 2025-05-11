@@ -12,12 +12,12 @@ import struct
 from typing import TYPE_CHECKING, Any, Sequence, cast
 
 import bsdiff4
-from BaseClasses import Item, Location
+from BaseClasses import Location
 import Utils
-from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, APTokenTypes, InvalidDataError
+from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, InvalidDataError
 
 from . import rom_data
-from .data import APWORLD_VERSION, data_path, get_rom_address, get_symbol, symbols_hash
+from .data import APWORLD_VERSION, data_path, get_rom_address
 from .items import ItemType, item_data_table, tank_data_table, major_item_data_table
 from .item_sprites import Sprite, get_zero_mission_sprite, builtin_sprite_pointers, sprite_imports, unknown_item_alt_sprites
 from .locations import full_location_table as location_table
@@ -160,7 +160,6 @@ def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
     multiworld = world.multiworld
     player = world.player
     data = {
-        "player_number": player,
         "player_name": world.player_name,
         "seed_name": multiworld.seed_name,
     }
@@ -300,13 +299,10 @@ def apply_json_data(rom: bytes, data: list | dict) -> bytes:
 
     # Config
     config = cast(dict[str, str | int | bool], data["config"])
-    goal = config.get("goal", "vanilla")
     seed_info = (
-        int(data.get("player_number", 0)),
         cast(str, data.get("player_name", "")).encode("utf-8")[:64],
         cast(str, data.get("seed_name", "")).encode("utf-8")[:64],
 
-        GOAL_MAPPING[goal],
         DIFFICULTY_MAPPING[config.get("difficulty", "either")],
         bool(config.get("remove_gravity_heat_resistance", False)),
         bool(config.get("power_bombs_without_bomb", False)),
@@ -318,10 +314,10 @@ def apply_json_data(rom: bytes, data: list | dict) -> bytes:
     )
     write(
         get_rom_address("sRandoSeed"),
-        struct.pack("<H64s64s2x9B", *seed_info)
+        struct.pack("<64s64s8B", *seed_info)
     )
 
-    if goal == "bosses":
+    if config.get("goal", "vanilla") == "bosses":
         write(
             get_rom_address("sHatchLockEventsChozodia", 8 * 15 + 1),  # sHatchLockEventsChozodia[15].event
             struct.pack("<B", 0x27)  # EVENT_MOTHER_BRAIN_KILLED
