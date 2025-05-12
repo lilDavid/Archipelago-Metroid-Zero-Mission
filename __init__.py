@@ -9,14 +9,13 @@ from BaseClasses import CollectionState, Item, ItemClassification, MultiWorld, T
 from Fill import fill_restrictive
 from worlds.AutoWorld import WebWorld, World
 
-from . import rom_data
 from .client import MZMClient
-from .data import data_path
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, location_count, mzm_location_name_groups
 from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty, \
     GameDifficulty
 from .patch import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_json_data
+from .patcher import rom_data
 from .regions import create_regions_and_connections
 from .rules import set_rules
 

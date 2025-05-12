@@ -7,6 +7,7 @@ APWORLD_NAME=mzm
 FILES="
     LICENSE
     data
+    patcher
     *.py
 "
 EXCLUDE="
@@ -34,4 +35,4 @@ echo "APWORLD_VERSION = '$WORLD_VERSION'" >> "$WORLD_DIR/data.py"
 cd "$WORLD_DIR"
 rm -rf $EXCLUDE
 cd ..
-zip -r "$APWORLD_NAME.apworld" "$APWORLD_NAME"
+zip -r "$APWORLD_NAME.apworld" "$APWORLD_NAME" -x "**/__pycache__/*"

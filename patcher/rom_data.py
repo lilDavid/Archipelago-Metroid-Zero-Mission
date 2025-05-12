@@ -3,8 +3,10 @@ import itertools
 import struct
 from typing import Callable, Mapping, NamedTuple, Optional, Sequence, Set, Tuple, Union
 
-from . import lz10, rle, iterators
-from .data import get_rom_address, get_symbol
+from . import lz10, rle
+
+from . import iterators
+from ..data import get_rom_address, get_symbol
 
 
 ByteString = Union[bytes, bytearray, memoryview]

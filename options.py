@@ -10,7 +10,7 @@ from Options import (
     PerGameCommonOptions, Removed, Visibility
 )
 
-from . import rom_data
+from .patcher import rom_data
 
 
 class Goal(Choice):

@@ -7,8 +7,7 @@ from BaseClasses import Item, ItemClassification
 from typing import Dict, NamedTuple
 
 from .data import get_symbol
-
-from .item_sprites import Sprite
+from .patcher.item_sprites import Sprite
 
 AP_MZM_ID_BASE = 261300
 

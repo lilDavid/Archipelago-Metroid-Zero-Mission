@@ -3,7 +3,7 @@ from typing import Mapping
 
 from BaseClasses import Item
 
-from .data import get_symbol
+from ..data import get_symbol
 
 
 class Sprite(StrEnum):

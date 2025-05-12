@@ -16,12 +16,12 @@ from BaseClasses import Location
 import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, InvalidDataError
 
-from . import rom_data
 from .data import APWORLD_VERSION, data_path, get_rom_address
 from .items import ItemType, item_data_table, tank_data_table, major_item_data_table
-from .item_sprites import Sprite, get_zero_mission_sprite, builtin_sprite_pointers, sprite_imports, unknown_item_alt_sprites
 from .locations import full_location_table as location_table
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
+from .patcher import rom_data
+from .patcher.item_sprites import Sprite, get_zero_mission_sprite, builtin_sprite_pointers, sprite_imports, unknown_item_alt_sprites
 from .text import TERMINATOR_CHAR, Message, make_item_message
 
 if TYPE_CHECKING:
