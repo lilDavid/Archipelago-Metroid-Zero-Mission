@@ -14,7 +14,7 @@ from .client import MZMClient
 from .data import data_path
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, location_count, mzm_location_name_groups
-from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, \
+from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, SpringBall, mzm_option_groups, \
     CombatLogicDifficulty, GameDifficulty, WallJumps
 from .regions import create_regions_and_connections
 from .rom import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_tokens
@@ -118,8 +118,12 @@ class MZMWorld(World):
         if self.options.walljumps == WallJumps.option_disabled:
             self.removed_items.append(self.create_item("Wall Jump"))
 
+        if "Spring Ball" in self.options.start_inventory_from_pool:
+            self.options.spring_ball = SpringBall(True)
         if not self.options.spring_ball.value:
             self.removed_items.append(self.create_item("Spring Ball"))
+            if "Spring Ball" in self.options.start_inventory:
+                self.options.spring_ball = SpringBall(True)
 
         for item in self.starting_items:
             self.push_precollected(item)
