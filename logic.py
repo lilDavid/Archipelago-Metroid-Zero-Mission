@@ -170,6 +170,14 @@ CanSpringBall = all(
         SpringBall,
     )
 )
+CanHiSpringBall = all(
+    MorphBall,
+    HiJump,
+    any(
+        SpringBall,
+        CombinedHiJumpAndSpringBall,
+    )
+)
 CanBallspark = all(
     SpeedBooster,
     CanSpringBall,
@@ -251,10 +259,7 @@ CanEnterHighMorphTunnel = any(
 )
 CanEnterMediumMorphTunnel = any(
     CanEnterHighMorphTunnel,
-    all(
-        HiJump,
-        CanSpringBall,
-    )
+    CanHiSpringBall
 )
 RuinsTestEscape = all(
     any(

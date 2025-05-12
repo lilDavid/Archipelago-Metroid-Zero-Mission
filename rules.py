@@ -223,7 +223,7 @@ kraid_main = {
                 CanHorizontalIBJ,
                 PowerGrip,
                 all(
-                    HiJump,
+                    CanHiSpringBall,
                     NormalLogic
                 )
             ),
@@ -273,7 +273,7 @@ kraid_left_shaft = {
                 Missiles,
                 Ziplines,
                 SpeedBooster,
-                HiJump
+                CanHiSpringBall
             ),
             all(
                 AdvancedLogic,
@@ -310,11 +310,11 @@ kraid_left_shaft = {
             ),
             any(  # To enter the morph tunnel to leave after getting the item on the statue
                 PowerGrip,
-                HiJump,
+                CanHiSpringBall,
                 CanIBJ,
                 all(
                     IceBeam,
-                    Bomb
+                    CanBallJump
                 )
             ),
         )
@@ -384,9 +384,9 @@ norfair_main = {
                     NormalLogic,
                     IceBeam,
                     any(
-                        HiJump,
+                        CanHiSpringBall,
                         all(
-                            Bomb,
+                            CanBallJump,
                             CanWallJump
                         )
                     )
@@ -517,11 +517,11 @@ lower_norfair = {
             ),
             any(
                 CanIBJ,
-                HiJump,
+                CanHiSpringBall,
                 PowerGrip,
                 all(
                     IceBeam,
-                    Bomb
+                    CanBallJump
                 )
             )
         ),
@@ -547,8 +547,8 @@ norfair_behind_superdoor = {
                     any(
                         GravitySuit,
                         all(
-                            NormalLogic,
-                            HiJump
+                            AdvancedLogic,
+                            CanSpringBall
                         )
                     )
                 ),
@@ -560,8 +560,8 @@ norfair_behind_superdoor = {
                     NormalLogic,
                     IceBeam,
                     any(
-                        CanEnterMediumMorphTunnel,
-                        Bomb
+                        PowerGrip,
+                        CanBallJump
                     ),
                     CanReachLocation("Norfair Behind Lower Super Missile Door - Right"),
                 ),
@@ -582,8 +582,14 @@ norfair_behind_superdoor = {
             SpaceJump,
             CanHorizontalIBJ,
             all(
-                GravitySuit,
-                CanIBJ
+                CanIBJ,
+                any(
+                    GravitySuit,
+                    all(
+                        AdvancedLogic,
+                        CanSpringBall
+                    )
+                )
             ),
             all(
                 IceBeam,
@@ -735,7 +741,7 @@ ridley_right_speed_puzzles = {
                 PowerGrip,
                 all(
                     AdvancedLogic,
-                    HiJump,
+                    CanHiSpringBall,
                     CanHorizontalIBJ
                 )
             ),
@@ -750,7 +756,7 @@ ridley_right_speed_puzzles = {
                 all(
                     AdvancedLogic,
                     PowerBombCount(2),
-                    HiJump
+                    CanHiSpringBall
                 )
             )
         ),
@@ -760,16 +766,16 @@ ridley_right_speed_puzzles = {
 ridley_central = {
         "Ridley Upper Ball Cannon Puzzle": all(
             any(
-                HiJump,
+                CanHiSpringBall,
                 CanIBJ,
                 all(
                     PowerGrip,
                     any(
                         CanWallJump,
                         SpaceJump,
-                        all(  # A well-placed bomb and well-timed unmorph will grab the ledge
+                        all(  # A well-placed balljump and well-timed unmorph will grab the ledge
                             NormalLogic,
-                            Bomb
+                            CanBallJump
                         )
                     )
                 )
@@ -1337,7 +1343,7 @@ def kraid_upper_right():
             PowerGrip,
             all(
                 AdvancedLogic,
-                HiJump  # Balljumps can get you up there using the crevices, but it's pretty tight
+                CanHiSpringBall  # Balljumps can get you up there using the crevices, but it's pretty tight
             )
         ),
         any(  # Getting up to the top door of the right shaft
@@ -1360,12 +1366,12 @@ def kraid_upper_right():
                 CanIBJ
             ),
             all(
-                NormalLogic,
+                AdvancedLogic,
                 any(
                     Hellrun(99),
                     VariaSuit
                 ),
-                HiJump,
+                CanSpringBall,
                 CanIBJ
             )
         )
@@ -1384,7 +1390,7 @@ def kraid_left_shaft_access():
             ),
             all(
                 NormalLogic,
-                HiJump
+                CanHiSpringBall
             ),
             all(  # weird, tight rising midair morph
                 SpaceJump,
@@ -1485,7 +1491,7 @@ def norfair_behind_ice_beam():
             CanIBJ,
             all(
                 IceBeam,
-                HiJump,
+                CanHiSpringBall,
                 any(
                     NormalMode,
                     CanWallJump,
@@ -1513,7 +1519,7 @@ def norfair_behind_ice_to_bottom():
             CanIBJ,
             all(
                 PowerBombs,
-                HiJump
+                CanHiSpringBall
             ),
             all(
                 PowerGrip,
@@ -1592,17 +1598,25 @@ def norfair_lower_right_shaft_to_lower_norfair():
                 CanHiGrip
             ),
             all(
+                CanIBJ,
                 any(
-                    HiJump,
-                    PowerGrip,
-                    CanIBJ
-                ),
+                    GravitySuit,
+                    all(
+                        AdvancedLogic,
+                        CanSpringBall
+                    )
+                )
+            ),
+            all(
+                CanEnterMediumMorphTunnel,
+                CanBallJump,
                 any(
                     PowerGrip,
                     CanHorizontalIBJ,
                     all(
                         AdvancedLogic,
-                        IceBeam
+                        IceBeam,
+                        VariaSuit  # You have to wait a while for the enemy, so a hellrun is not feasible
                     )
                 )
             ),
@@ -1639,7 +1653,7 @@ def lower_norfair_to_screwattack():
                 all(
                     AdvancedLogic,
                     IceBeam,
-                    HiJump
+                    HiJump  # Cursed. Requires good RNG and near perfect freeze positioning, but it's doable
                 )
             )
         ),
@@ -1668,7 +1682,7 @@ def lower_norfair_to_kraid():
             CanIBJ,
             PowerGrip,
             all(
-                HiJump,
+                CanSpringBall,
                 IceBeam
             ),
             all(
@@ -1694,7 +1708,7 @@ def lower_norfair_to_spaceboost_room():
                     PowerGrip,
                     all(
                         GravitySuit,
-                        HiJump
+                        CanHiSpringBall
                     )
                 )
             )
