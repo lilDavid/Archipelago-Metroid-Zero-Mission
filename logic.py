@@ -203,7 +203,7 @@ CanHorizontalIBJ = all(
 CanWallJump = all(
     Requirement.item("Wall Jump"),
     any(
-        Requirement.setting_is("walljumps", 1),  # Unlockable
+        Requirement.setting_is("walljumps", 1),  # Shuffled
         Requirement.setting_is("walljumps", 3)   # Enabled
     )
 )

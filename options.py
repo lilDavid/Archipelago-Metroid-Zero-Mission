@@ -19,6 +19,7 @@ PIXEL_SIZE = 4
 class Goal(Choice):
     """
     What you will be required to do to beat the game.
+
     Mecha Ridley: Mecha Ridley is always open and can be reached as long as you have the right items.
     Bosses: The door to Mecha Ridley is locked until Kraid, Ridley, Mother Brain, and the Chozo Ghost are defeated.
     """
@@ -32,12 +33,16 @@ class Goal(Choice):
 class GameDifficulty(Choice):
     """
     Which in-game difficulty you will play on.
+
     Normal: Easy and Normal will be available, and Hard will not.
     Hard: Hard will be the only available difficulty.
     Either: All difficulty options will be available.
-    Hard has a small effect on logic due to enemy placements. If Either is selected, logic will not require any tricks
-    that can't be done on all three difficulties. Either also forces logic to assume Hard Mode tank amounts, which may
-    slightly influence item placements.
+
+    Hard has a small effect on logic due to enemy placements.
+
+    If Either is selected, logic will not require any tricks that can't be done on all three difficulties. Either also
+    forces logic to assume Hard Mode tank amounts, which may slightly influence item placements and will make combat
+    logic and hazard runs more lenient if you play on Normal.
     """
     display_name = "Game Difficulty"
     option_normal = 1
@@ -89,15 +94,16 @@ class FullyPoweredSuit(Choice):
 
 class WallJumps(Choice):
     """
-    Determines how wall jumping will be handled:
-    - Disabled: Wall jumping will not be possible. All locations can still be reached through other means.
-    - Unlockable: A Wall Jump item will be placed into the item pool. Once found, you will be able to wall jump.
-    - Enabled, Not Logical: Wall jumping will always be possible, but it will never be required to access any locations.
-    - Enabled: Wall jumping will always be possible, and logic may expect using wall jumps to progress where applicable.
+    How wall jumping will be handled.
+
+    Disabled: Wall jumping will not be possible. All locations can still be reached through other means.
+    Shuffled: A Wall Jump item will be placed into the item pool. Once found, you will be able to wall jump.
+    Enabled, Not Logical: Wall jumping will always be possible, but it will never be required to access any locations.
+    Enabled: Wall jumping will always be possible, and logic may expect using wall jumps to progress where applicable.
     """
     display_name = "Wall Jumps"
     option_disabled = 0
-    option_unlockable = 1
+    option_shuffled = 1
     option_enabled_not_logical = 2
     option_enabled = 3
     default = option_enabled
@@ -133,10 +139,11 @@ class PlasmaBeamHint(DefaultOnToggle):
 class LogicDifficulty(Choice):
     """
     Determines the difficulty of room traversal and game knowledge required by the game's logic.
+
     Simple: For beginners to Zero Mission randomizer. Should be comfortable to anyone who has beaten the game. Includes
-    mostly routes similar to vanilla or otherwise intuitive to players that have not sequence broken the game.
+    routes similar to vanilla or otherwise intuitive to players that have not sequence broken the game.
     Normal: For players with more familiarity with the game. Should be comfortable to anyone who has sequence broken or
-    skipped items. Includes developer-intended sequence breaks, unintuitive paths, and some tricks.
+    skipped major items. Includes developer-intended sequence breaks, unintuitive paths, and some tricks.
     Advanced: For experts who want all their skills challenged. Should be comfortable to MZM Randomizer veterans and
     speedrunners. Includes all tricks, very difficult shinespark chains, crumble jumps, Acid Worm Skip, etc.
 
@@ -152,6 +159,7 @@ class LogicDifficulty(Choice):
 class CombatLogicDifficulty(Choice):
     """
     Determines the difficulty of combat required by the game's logic.
+
     Relaxed: Requires the player have an ample amount of resources to defeat bosses and traverse areas. Should be
     comfortable to anyone who has beaten the game. Bosses will not be a problem.
     Normal: Requires the player have enough resources to defeat bosses and traverse areas with some wiggle room.
@@ -238,6 +246,7 @@ class SelectedPatches(OptionSet):
 class MorphBallPlacement(Choice):
     """
     Influences where the Morph Ball will be placed.
+
     Normal: Shuffled into the pool with no special treatment.
     Early: Forced to be local in an early location.
     """
