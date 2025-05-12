@@ -52,25 +52,25 @@ builtin_sprite_pointers: Mapping[Sprite, int] = {
     Sprite.IceBeam: get_symbol("sRandoIceBeamSprite"),
     Sprite.WaveBeam: get_symbol("sRandoWaveBeamSprite"),
     Sprite.UnknownPlasmaBeam: get_symbol("sRandoUnknownPlasmaBeamSprite"),
-    Sprite.PlasmaBeam: get_symbol("sRandoPlasmaBeamSprite"),
     Sprite.Bomb: get_symbol("sRandoBombSprite"),
     Sprite.VariaSuit: get_symbol("sRandoVariaSuitSprite"),
     Sprite.UnknownGravitySuit: get_symbol("sRandoUnknownGravitySuitSprite"),
-    Sprite.GravitySuit: get_symbol("sRandoGravitySuitSprite"),
     Sprite.MorphBall: get_symbol("sRandoMorphBallSprite"),
     Sprite.SpeedBooster: get_symbol("sRandoSpeedBoosterSprite"),
     Sprite.HiJump: get_symbol("sRandoHiJumpSprite"),
     Sprite.ScrewAttack: get_symbol("sRandoScrewAttackSprite"),
     Sprite.UnknownSpaceJump: get_symbol("sRandoUnknownSpaceJumpSprite"),
-    Sprite.SpaceJump: get_symbol("sRandoSpaceJumpSprite"),
     Sprite.PowerGrip: get_symbol("sRandoPowerGripSprite"),
-    Sprite.Nothing: get_symbol("sRandoNothingSprite"),
 }
 
 
 # TODO: Edited vanilla sprites could/should be diffed, segmented, or something
 # Plasma Beam also
 sprite_imports: Mapping[Sprite, tuple[str | int, str | int]] = {
+    Sprite.PlasmaBeam: ("plasma_beam.gfx", "plasma_beam.pal"),
+    Sprite.GravitySuit: ("gravity_suit.gfx", "gravity_suit.pal"),
+    Sprite.SpaceJump: ("space_jump.gfx", "space_jump.pal"),
+    Sprite.Nothing: ("item_sphere.gfx", "item_sphere.pal"),
     Sprite.APLogo: ("ap_logo.gfx", "ap_logo.pal"),
     Sprite.APLogoProgression: ("ap_logo_progression.gfx", "ap_logo.pal"),
     Sprite.APLogoUseful: ("ap_logo_useful.gfx", "ap_logo.pal"),
@@ -79,7 +79,7 @@ sprite_imports: Mapping[Sprite, tuple[str | int, str | int]] = {
     Sprite.SpringBall: ("spring_ball.gfx", "spring_ball.pal"),
     Sprite.XRayScope: ("xray_scope.gfx", "xray_scope.pal"),
     Sprite.ReserveTank: ("reserve_tank.gfx", get_symbol("sCommonTilesPal")),
-    Sprite.WallJump: (get_symbol("sRandoHiJumpGfx"), "wall_jump.pal"),  # Will be moved back into patch when added as full item
+    Sprite.WallJump: (get_symbol("sRandoHiJumpGfx"), "wall_jump.pal"),
     Sprite.PowerBeam: ("power_beam.gfx", "power_beam.pal"),
     Sprite.SpiderBall: ("spider_ball.gfx", "spider_ball.pal"),
 }
