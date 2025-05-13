@@ -176,4 +176,4 @@ def write_decompressed_item_sprites(rom: LocalRom):
     # Power Grip
     powergrip = rom.decompress_lzss(get_rom_address("sPowerGripGfx"))
     powergrip = get_sprites(powergrip, 0, 0, 3)
-    rom.write(get_rom_address("sRandoPowerGripGfx"), powergrip)
+    rom.write(get_rom_address("sRandoPowerGripGfx"), make_4_frame_animation(powergrip))
