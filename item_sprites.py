@@ -1,88 +1,8 @@
-from enum import StrEnum
 from typing import Mapping
 
 from BaseClasses import Item
 
-from ..data import get_symbol
-
-
-class Sprite(StrEnum):
-    EnergyTank = "Energy Tank"
-    MissileTank = "Missile Tank"
-    SuperMissileTank = "Super Missile Tank"
-    PowerBombTank = "Power Bomb Tank"
-    LongBeam = "Long Beam"
-    ChargeBeam = "Charge Beam"
-    IceBeam = "Ice Beam"
-    WaveBeam = "Wave Beam"
-    UnknownPlasmaBeam = "Unknown Plasma Beam"
-    PlasmaBeam = "Plasma Beam"
-    Bomb = "Bomb"
-    VariaSuit = "Varia Suit"
-    UnknownGravitySuit = "Unknown Gravity Suit"
-    GravitySuit = "Gravity Suit"
-    MorphBall = "Morph Ball"
-    SpeedBooster = "Speed Booster"
-    HiJump = "Hi-Jump"
-    ScrewAttack = "Screw Attack"
-    UnknownSpaceJump = "Unknown Space Jump"
-    SpaceJump = "Space Jump"
-    PowerGrip = "Power Grip"
-    Nothing = "Nothing"
-    APLogo = "AP Logo"
-    APLogoProgression = "AP Progression"
-    APLogoUseful = "AP Useful"
-    SpazerBeam = "Spazer Beam"
-    GrappleBeam = "Grapple Beam"
-    SpringBall = "Spring Ball"
-    XRayScope = "X-Ray Scope"
-    ReserveTank = "Reserve Tank"
-    WallJump = "Wall Jump"
-    PowerBeam = "Power Beam"
-    SpiderBall = "Spider Ball"
-
-
-builtin_sprite_pointers: Mapping[Sprite, int] = {
-    Sprite.EnergyTank: get_symbol("sRandoEnergyTankSprite"),
-    Sprite.MissileTank: get_symbol("sRandoMissileTankSprite"),
-    Sprite.SuperMissileTank: get_symbol("sRandoSuperMissileTankSprite"),
-    Sprite.PowerBombTank: get_symbol("sRandoPowerBombTankSprite"),
-    Sprite.LongBeam: get_symbol("sRandoLongBeamSprite"),
-    Sprite.ChargeBeam: get_symbol("sRandoChargeBeamSprite"),
-    Sprite.IceBeam: get_symbol("sRandoIceBeamSprite"),
-    Sprite.WaveBeam: get_symbol("sRandoWaveBeamSprite"),
-    Sprite.UnknownPlasmaBeam: get_symbol("sRandoUnknownPlasmaBeamSprite"),
-    Sprite.Bomb: get_symbol("sRandoBombSprite"),
-    Sprite.VariaSuit: get_symbol("sRandoVariaSuitSprite"),
-    Sprite.UnknownGravitySuit: get_symbol("sRandoUnknownGravitySuitSprite"),
-    Sprite.MorphBall: get_symbol("sRandoMorphBallSprite"),
-    Sprite.SpeedBooster: get_symbol("sRandoSpeedBoosterSprite"),
-    Sprite.HiJump: get_symbol("sRandoHiJumpSprite"),
-    Sprite.ScrewAttack: get_symbol("sRandoScrewAttackSprite"),
-    Sprite.UnknownSpaceJump: get_symbol("sRandoUnknownSpaceJumpSprite"),
-    Sprite.PowerGrip: get_symbol("sRandoPowerGripSprite"),
-}
-
-
-# TODO: Edited vanilla sprites could/should be diffed, segmented, or something
-# Plasma Beam also
-sprite_imports: Mapping[Sprite, tuple[str | int, str | int]] = {
-    Sprite.PlasmaBeam: ("plasma_beam.gfx", "plasma_beam.pal"),
-    Sprite.GravitySuit: ("gravity_suit.gfx", "gravity_suit.pal"),
-    Sprite.SpaceJump: ("space_jump.gfx", "space_jump.pal"),
-    Sprite.Nothing: ("item_sphere.gfx", "item_sphere.pal"),
-    Sprite.APLogo: ("ap_logo.gfx", "ap_logo.pal"),
-    Sprite.APLogoProgression: ("ap_logo_progression.gfx", "ap_logo.pal"),
-    Sprite.APLogoUseful: ("ap_logo_useful.gfx", "ap_logo.pal"),
-    Sprite.SpazerBeam: ("spazer_beam.gfx", "spazer_beam.pal"),
-    Sprite.GrappleBeam: ("grapple_beam.gfx", "grapple_beam.pal"),
-    Sprite.SpringBall: ("spring_ball.gfx", "spring_ball.pal"),
-    Sprite.XRayScope: ("xray_scope.gfx", "xray_scope.pal"),
-    Sprite.ReserveTank: ("reserve_tank.gfx", get_symbol("sCommonTilesPal")),
-    Sprite.WallJump: (get_symbol("sRandoHiJumpGfx"), "wall_jump.pal"),
-    Sprite.PowerBeam: ("power_beam.gfx", "power_beam.pal"),
-    Sprite.SpiderBall: ("spider_ball.gfx", "spider_ball.pal"),
-}
+from .patcher.sprites import Sprite
 
 
 unknown_item_alt_sprites: Mapping[str, str] = {

@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from enum import IntEnum
 from io import StringIO
 import itertools
 from typing import Iterable, List, SupportsIndex, Union, overload
 
-from .data import data_path
+from ..data import data_path
 
 
 char_table = {}

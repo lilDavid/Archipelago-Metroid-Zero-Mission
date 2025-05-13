@@ -5,94 +5,43 @@ from __future__ import annotations
 
 from collections import Counter
 import json
-import hashlib
-import logging
 from pathlib import Path
-import struct
-from typing import TYPE_CHECKING, Any, Sequence, cast
+from typing import TYPE_CHECKING, cast
 
-import bsdiff4
 from BaseClasses import Location
 import Utils
-from worlds.Files import APPatchExtension, APProcedurePatch, APTokenMixin, InvalidDataError
+from worlds.Files import APPatchExtension, APProcedurePatch
 
-from .data import APWORLD_VERSION, data_path, get_rom_address
-from .items import ItemType, item_data_table, tank_data_table, major_item_data_table
+from .data import APWORLD_VERSION
+from .items import item_data_table, tank_data_table, major_item_data_table
 from .locations import full_location_table as location_table
-from .options import ChozodiaAccess, DisplayNonLocalItems, Goal
-from .patcher import rom_data
-from .patcher.item_sprites import Sprite, get_zero_mission_sprite, builtin_sprite_pointers, sprite_imports, unknown_item_alt_sprites
-from .text import TERMINATOR_CHAR, Message, make_item_message
+from .options import ChozodiaAccess, DisplayNonLocalItems, Goal, LayoutPatches
+from .patcher import MD5_US, patch_rom
+from .item_sprites import Sprite, get_zero_mission_sprite, unknown_item_alt_sprites
 
 if TYPE_CHECKING:
     from . import MZMWorld
-
-
-MD5_MZMUS = "ebbce58109988b6da61ebb06c7a432d5"
-MD5_MZMUS_VC = "e23c14997c2ea4f11e5996908e577125"
 
 
 class MZMPatchExtensions(APPatchExtension):
     game = "Metroid Zero Mission"
 
     @staticmethod
-    def support_vc(caller: APProcedurePatch, rom: bytes):
-        hasher = hashlib.md5()
-        hasher.update(rom)
-        if hasher.hexdigest() == MD5_MZMUS:
-            return rom
-
-        logging.warning("You appear to be using a Virtual Console ROM. "
-                        "This is not officially supported and may cause bugs.")
-        entry_point = (0xEA00002E).to_bytes(4, 'little')  # b 0x80000C0
-        return entry_point + rom[4:]
-
-    @staticmethod
-    def apply_basepatch(caller: APProcedurePatch, rom: bytes) -> bytes:
-        return bsdiff4.patch(rom, data_path("basepatch.bsdiff"))
-
-    @staticmethod
     def apply_json(caller: APProcedurePatch, rom: bytes, file_name: str) -> bytes:
-        return apply_json_data(rom, json.loads(caller.get_file(file_name).decode()))
-
-    @staticmethod
-    def add_decompressed_graphics(caller: APProcedurePatch, rom: bytes) -> bytes:
-        return rom_data.add_item_sprites(rom)
-
-    @staticmethod
-    def apply_background_patches(caller: APProcedurePatch, rom: bytes) -> bytes:
-        return rom_data.apply_always_background_patches(rom)
-
-    @staticmethod
-    def apply_layout_patches(caller: APProcedurePatch, rom: bytes, patches: Sequence[str]) -> bytes:
-        return rom_data.apply_layout_patches(rom, set(patches))
+        return patch_rom(rom, json.loads(caller.get_file(file_name).decode()))
 
 
-class MZMProcedurePatch(APProcedurePatch, APTokenMixin):
+class MZMProcedurePatch(APProcedurePatch):
     game = "Metroid Zero Mission"
-    hash = MD5_MZMUS
+    hash = MD5_US
     patch_file_ending = ".apmzm"
     result_file_ending = ".gba"
-
-    extra_data_address: int
-
-    def __init__(self, *args, **kwargs):
-        super(MZMProcedurePatch, self).__init__(*args, **kwargs)
-        self.procedure = [
-            ("support_vc", []),
-            ("apply_basepatch", []),
-            ("apply_json", ["patch.json"]),
-            ("add_decompressed_graphics", []),
-            ("apply_background_patches", []),
-        ]
+    procedure = [("apply_json", ["patch.json"])]
 
     @classmethod
     def get_source_data(cls) -> bytes:
         with open(get_base_rom_path(), "rb") as stream:
             return stream.read()
-
-    def add_layout_patches(self, selected_patches: Sequence[str]):
-        self.procedure.append(("apply_layout_patches", [selected_patches]))
 
 
 def get_base_rom_path(file_name: str = "") -> Path:
@@ -120,7 +69,7 @@ def get_item_sprite(location: Location, world: MZMWorld) -> str:
 
     if location.native_item and (nonlocal_item_handling != DisplayNonLocalItems.option_none or item.player == player):
         other_world = cast("MZMWorld", world.multiworld.worlds[item.player])
-        sprite = item_data_table[item.name].sprite
+        sprite = item_data_table[item.name].game_data.sprite
         if (item.name in unknown_item_alt_sprites and other_world.options.fully_powered_suit.use_alt_unknown_sprites()):
             sprite = unknown_item_alt_sprites[item.name]
         return sprite
@@ -246,185 +195,9 @@ def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
 
     data["text"] = text
 
+    if world.options.layout_patches.value == LayoutPatches.option_true:
+        data["layout_patches"] = "all"
+    else:
+        data["layout_patches"] = world.enabled_layout_patches
+
     patch.write_file("patch.json", json.dumps(data).encode())
-
-
-RUINS_TEST_LOCATION_ID = 100
-
-
-GOAL_MAPPING = {
-    "vanilla": 0,
-    "bosses": 1,
-}
-
-
-DIFFICULTY_MAPPING = {
-    "normal": 1,
-    "hard": 2,
-    "either": 3,
-}
-
-
-TEXT_INDICES = {
-    ("Story", "Intro"): 0,
-    ("Story", "Escape 1"): 1,
-    ("Story", "Escape 2"): 2,
-}
-
-
-PIXEL_SIZE = 4
-
-
-def apply_json_data(rom: bytes, data: list | dict) -> bytes:
-    if type(data) != dict:
-        raise InvalidDataError("Invalid JSON provided, expected object")
-
-    local_rom = bytearray(rom)
-    def write(address: int, data: bytes):
-        assert address <= len(local_rom)
-        local_rom[address:address + len(data)] = data
-
-    extra_data_address = get_rom_address("sRandoExtraData")
-    def allocate(size: int) -> int:
-        nonlocal extra_data_address
-        assert size >= 0
-        address = extra_data_address
-        extra_data_address += size
-        return address
-
-    def write_to_arena(data: bytes) -> int:
-        address = allocate(len(data))
-        write(address, data)
-        return address | 0x8000000
-
-    # Config
-    config = cast(dict[str, str | int | bool], data["config"])
-    seed_info = (
-        cast(str, data.get("player_name", "")).encode("utf-8")[:64],
-        cast(str, data.get("seed_name", "")).encode("utf-8")[:64],
-
-        DIFFICULTY_MAPPING[config.get("difficulty", "either")],
-        bool(config.get("remove_gravity_heat_resistance", False)),
-        bool(config.get("power_bombs_without_bomb", False)),
-        bool(config.get("buff_power_bomb_drops", False)),
-        bool(config.get("skip_chozodia_stealth", False)),
-        bool(config.get("start_with_maps", False)),
-        bool(config.get("skip_tourian_opening_cutscenes", False)),
-        2 * PIXEL_SIZE * int(config.get("elevator_speed", 1)),
-    )
-    write(
-        get_rom_address("sRandoSeed"),
-        struct.pack("<64s64s8B", *seed_info)
-    )
-
-    if config.get("goal", "vanilla") == "bosses":
-        write(
-            get_rom_address("sHatchLockEventsChozodia", 8 * 15 + 1),  # sHatchLockEventsChozodia[15].event
-            struct.pack("<B", 0x27)  # EVENT_MOTHER_BRAIN_KILLED
-        )
-        write(
-            get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * 6),  # sNumberOfHatchLockEventsPerArea[AREA_CHOZODIA]
-            struct.pack("<H", 16)
-        )
-
-    if config.get("chozodia_requires_mother_brain", False):
-        write(
-            get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * 5),
-            struct.pack("<H", 4)  # Mother Brain event locks
-        )
-
-    # Place items
-    message_pointers: dict[tuple[str, str], int] = {}
-    def get_message(first_line: str, second_line: str = "") -> int:
-        if (first_line, second_line) in message_pointers:
-            return message_pointers[(first_line, second_line)]
-        message_bytes = make_item_message(first_line, second_line).to_bytes()
-        message_ptr = write_to_arena(message_bytes)
-        message_pointers[(first_line, second_line)] = message_ptr
-        return message_ptr
-
-    file_pointers: dict[str, int] = {}
-    def get_file(name: str) -> int:
-        if name in file_pointers:
-            return file_pointers[name]
-        file_bytes = data_path(f"item_sprites/{name}")
-        file_ptr = write_to_arena(file_bytes)
-        file_pointers[name] = file_ptr
-        return file_ptr
-
-    sprite_pointers: dict[str, int] = {**builtin_sprite_pointers}
-    def get_sprite(name: str) -> int:
-        if name in sprite_pointers:
-            return sprite_pointers[name]
-        gfx, pal = sprite_imports[name]
-        gfx_pointer = gfx if type(gfx) is int else get_file(gfx)
-        pal_pointer = pal if type(pal) is int else get_file(pal)
-        sprite = struct.pack("<II", gfx_pointer, pal_pointer)
-        sprite_ptr = write_to_arena(sprite)
-        sprite_pointers[name] = sprite_ptr
-        return sprite_ptr
-
-    locations = cast(list[dict[str, Any]], data["locations"])
-    for location in locations:
-        location_id = cast(int, location["id"])
-        item_name = cast(str, location["item"])
-        sprite_name = cast(str | None, location.get("sprite"))
-        message = cast(str | None, location.get("message"))
-
-        item_data = item_data_table[item_name]
-        sprite_pointer = get_sprite(item_data.sprite if sprite_name is None else sprite_name)
-        if message is None:
-            if type(item_data.message) is int:
-                message_pointer = item_data.message
-                one_line = True
-            else:
-                message = cast(str, item_data.message)
-        if message is not None:
-            message_lines = message.splitlines()
-            one_line = len(message_lines) <= 1
-            message_pointer = get_message(*message_lines)
-        sound = 0x4A if location_id == RUINS_TEST_LOCATION_ID else item_data.sound
-        write(
-            get_rom_address("sPlacedItems", 16 * location_id),
-            struct.pack(
-                "<BBHIIHBB",
-                item_data.type, False, item_data.bits,
-                sprite_pointer,
-                message_pointer, sound, item_data.acquisition, one_line
-            )
-        )
-
-    # Starting inventory
-    pickups = [0, 0, 0, 0]
-    beams = misc = custom = 0
-    start_inventory = cast(dict[str, int | bool], data.get("start_inventory"))
-    for item_name, value in start_inventory.items():
-        item_data = item_data_table[item_name]
-        if value <= 0:
-            continue
-        if item_data.type == ItemType.BEAM:
-            beams |= item_data.bits
-        elif item_data.type == ItemType.MAJOR:
-            misc |= item_data.bits
-        elif item_data.type == ItemType.CUSTOM:
-            custom |= item_data.bits
-        elif item_data.type <= ItemType.POWER_BOMB_TANK:
-            pickups[item_data.type - 1] = value
-    write(
-        get_rom_address("sRandoStartingInventory"),
-        struct.pack("<BxHBBBBB", *pickups, beams, misc, custom)
-    )
-
-    # Write text
-    text = cast(dict[str, dict[str, str]], data.get("text", {}))
-    for group, messages in text.items():
-        for name, message in messages.items():
-            array_index = TEXT_INDICES[(group, name)]
-            encoded_message = Message(message).append(TERMINATOR_CHAR)
-            text_address = write_to_arena(encoded_message.to_bytes())
-            write(
-                get_rom_address(f"sEnglishTextPointers_{group}", 4 * array_index),
-                struct.pack("<I", text_address)
-            )
-
-    return bytes(local_rom)

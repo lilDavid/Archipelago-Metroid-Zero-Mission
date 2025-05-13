@@ -10,8 +10,7 @@ from Options import (
     PerGameCommonOptions, Removed, Visibility
 )
 
-from .patcher import rom_data
-
+from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
 
 class Goal(Choice):
     """
@@ -203,13 +202,12 @@ class LayoutPatches(Choice):
 class SelectedPatches(OptionSet):
     """
     If Layout Patches is set to Choice, list of layout patches to apply.
-    The names of valid layout patches can be found in the compatible_patches and
-    expansion_required_patches lists in rom_data here:
-    https://github.com/lilDavid/Archipelago-Metroid-Zero-Mission/blob/main/rom_data.py#L486
+    The names of valid layout patches can be found in the patcher here:
+    https://github.com/lilDavid/Archipelago-Metroid-Zero-Mission/blob/main/patcher/layout_patches.py
     Descriptions can be found in the apply_layout_patches function below that.
     """
     display_name = "Selected Layout Patches"
-    valid_keys = rom_data.layout_patches
+    valid_keys = LAYOUT_PATCH_MAPPING.keys()
 
 
 class MorphBallPlacement(Choice):

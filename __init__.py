@@ -14,8 +14,9 @@ from .items import item_data_table, major_item_data_table, mzm_item_name_groups,
 from .locations import full_location_table, location_count, mzm_location_name_groups
 from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty, \
     GameDifficulty
-from .patch import MD5_MZMUS, MD5_MZMUS_VC, MZMProcedurePatch, write_json_data
-from .patcher import rom_data
+from .patch import MZMProcedurePatch, write_json_data
+from .patcher import MD5_US, MD5_US_VC
+from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
 from .regions import create_regions_and_connections
 from .rules import set_rules
 
@@ -25,7 +26,7 @@ class MZMSettings(settings.Group):
         """File name of the Metroid: Zero Mission ROM."""
         description = "Metroid: Zero Mission (U) ROM file"
         copy_to = "Metroid - Zero Mission (USA).gba"
-        md5s = [MD5_MZMUS, MD5_MZMUS_VC]
+        md5s = [MD5_US, MD5_US_VC]
 
     class RomStart(str):
         """
@@ -90,7 +91,7 @@ class MZMWorld(World):
         self.junk_fill_cdf = list(itertools.accumulate(self.options.junk_fill_weights.value.values()))
 
         if self.options.layout_patches.value == LayoutPatches.option_true:
-            self.enabled_layout_patches = rom_data.layout_patches
+            self.enabled_layout_patches = list(LAYOUT_PATCH_MAPPING.keys())
         elif self.options.layout_patches.value == LayoutPatches.option_choice:
             self.enabled_layout_patches = list(self.options.selected_patches.value)
         else:
@@ -202,8 +203,6 @@ class MZMWorld(World):
 
         patch = MZMProcedurePatch(player=self.player, player_name=self.player_name)
         write_json_data(self, patch)
-        if self.options.layout_patches.value:
-            patch.add_layout_patches(self.enabled_layout_patches)
 
         output_filename = self.multiworld.get_out_file_name_base(self.player)
         patch.write(output_path / f"{output_filename}{patch.patch_file_ending}")

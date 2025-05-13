@@ -2,7 +2,7 @@ from typing import Type
 from test.bases import TestBase
 from worlds.AutoWorld import World
 
-from ..patcher.item_sprites import compatible_games
+from ..item_sprites import compatible_games
 
 class MZMTestNonNativeItems(TestBase):
     """Ensures that the names of compatible games and items are spelled correctly"""
