@@ -118,13 +118,13 @@ def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
         "difficulty": world.options.game_difficulty.value,
         "remove_gravity_heat_resistance": True,
         "power_bombs_without_bomb": True,
-        "buff_power_bomb_drops": world.options.buff_pb_drops.value,
-        "separate_hijump_springball": world.options.spring_ball.value,
-        "skip_chozodia_stealth": world.options.skip_chozodia_stealth.value,
-        "start_with_maps": world.options.start_with_maps.value,
-        "skip_tourian_opening_cutscenes": world.options.skip_tourian_opening_cutscenes.value,
+        "buff_power_bomb_drops": bool(world.options.buff_pb_drops),
+        "separate_hijump_springball": bool(world.options.spring_ball),
+        "skip_chozodia_stealth": bool(world.options.skip_chozodia_stealth),
+        "chozodia_requires_mother_brain": world.options.chozodia_access.value == ChozodiaAccess.option_closed,
+        "start_with_maps": bool(world.options.start_with_maps),
+        "skip_tourian_opening_cutscenes": bool(world.options.skip_tourian_opening_cutscenes),
         "elevator_speed": world.options.elevator_speed.value,
-        "chozodia_requires_mother_brain": world.options.chozodia_access.value == ChozodiaAccess.option_closed
     }
     data["config"] = config
 
