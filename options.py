@@ -15,6 +15,7 @@ from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
 class Goal(Choice):
     """
     What you will be required to do to beat the game.
+
     Mecha Ridley: Mecha Ridley is always open and can be reached as long as you have the right items.
     Bosses: The door to Mecha Ridley is locked until Kraid, Ridley, Mother Brain, and the Chozo Ghost are defeated.
     """
@@ -28,12 +29,16 @@ class Goal(Choice):
 class GameDifficulty(Choice):
     """
     Which in-game difficulty you will play on.
+
     Normal: Easy and Normal will be available, and Hard will not.
     Hard: Hard will be the only available difficulty.
     Either: All difficulty options will be available.
-    Hard has a small effect on logic due to enemy placements. If Either is selected, logic will not require any tricks
-    that can't be done on all three difficulties. Either also forces logic to assume Hard Mode tank amounts, which may
-    slightly influence item placements.
+
+    Hard has a small effect on logic due to enemy placements.
+
+    If Either is selected, logic will not require any tricks that can't be done on all three difficulties. Either also
+    forces logic to assume Hard Mode tank amounts, which may slightly influence item placements and will make combat
+    logic and hazard runs more lenient if you play on Normal.
     """
     display_name = "Game Difficulty"
     option_normal = "normal"
@@ -83,6 +88,30 @@ class FullyPoweredSuit(Choice):
         return self.option_start_with if self.value == self.option_legacy_always_usable else self.value
 
 
+class WallJumps(Choice):
+    """
+    How wall jumping will be handled.
+
+    Disabled: Wall jumping will not be possible. All locations can still be reached through other means.
+    Shuffled: A Wall Jump item will be placed into the item pool. Once found, you will be able to wall jump.
+    Enabled, Not Logical: Wall jumping will always be possible, but it will never be required to access any locations.
+    Enabled: Wall jumping will always be possible, and logic may expect using wall jumps to progress where applicable.
+    """
+    display_name = "Wall Jumps"
+    option_disabled = 0
+    option_shuffled = 1
+    option_enabled_not_logical = 2
+    option_enabled = 3
+    default = option_enabled
+
+
+class SpringBall(Toggle):
+    """
+    Remove Spring Ball functionality from Hi-Jump and shuffle it into the item pool as a separate item.
+    """
+    display_name = "Spring Ball"
+
+
 class SkipChozodiaStealth(DefaultOnToggle):
     """After escaping Tourian, place Samus in the save room just outside of the Chozo Ghost's room in Chozodia."""
     display_name = "Skip Chozodia Stealth"
@@ -106,10 +135,11 @@ class PlasmaBeamHint(DefaultOnToggle):
 class LogicDifficulty(Choice):
     """
     Determines the difficulty of room traversal and game knowledge required by the game's logic.
+
     Simple: For beginners to Zero Mission randomizer. Should be comfortable to anyone who has beaten the game. Includes
-    mostly routes similar to vanilla or otherwise intuitive to players that have not sequence broken the game.
+    routes similar to vanilla or otherwise intuitive to players that have not sequence broken the game.
     Normal: For players with more familiarity with the game. Should be comfortable to anyone who has sequence broken or
-    skipped items. Includes developer-intended sequence breaks, unintuitive paths, and some tricks.
+    skipped major items. Includes developer-intended sequence breaks, unintuitive paths, and some tricks.
     Advanced: For experts who want all their skills challenged. Should be comfortable to MZM Randomizer veterans and
     speedrunners. Includes all tricks, very difficult shinespark chains, crumble jumps, Acid Worm Skip, etc.
 
@@ -125,6 +155,7 @@ class LogicDifficulty(Choice):
 class CombatLogicDifficulty(Choice):
     """
     Determines the difficulty of combat required by the game's logic.
+
     Relaxed: Requires the player have an ample amount of resources to defeat bosses and traverse areas. Should be
     comfortable to anyone who has beaten the game. Bosses will not be a problem.
     Normal: Requires the player have enough resources to defeat bosses and traverse areas with some wiggle room.
@@ -164,12 +195,9 @@ class HazardRuns(Toggle):
     display_name = "Hazard Runs"
 
 
-class WalljumpsInLogic(DefaultOnToggle):
+class WalljumpsInLogic(Removed):
     """
-    Allows for using walljumps in logic. You may be required to walljump instead of using items such as Hi-Jump or
-    Power Grip in order to logically progress, where possible.
-
-    Disabling this option will not remove the ability to walljump, but it will never be logically required.
+    This option has been replaced with Wall Jumps.
     """
     display_name = "Wall Jumps In Logic"
 
@@ -213,6 +241,7 @@ class SelectedPatches(OptionSet):
 class MorphBallPlacement(Choice):
     """
     Influences where the Morph Ball will be placed.
+
     Normal: Shuffled into the pool with no special treatment.
     Early: Forced to be local in an early location.
     """
@@ -307,6 +336,8 @@ mzm_option_groups = [
     OptionGroup("Item Pool", [
         MorphBallPlacement,
         FullyPoweredSuit,
+        WallJumps,
+        SpringBall,
         JunkFillWeights,
     ]),
     OptionGroup("Logic", [
@@ -314,7 +345,6 @@ mzm_option_groups = [
         CombatLogicDifficulty,
         IBJInLogic,
         HazardRuns,
-        WalljumpsInLogic,
         TrickyShinesparks
     ]),
     OptionGroup("Quality of Life", [
@@ -344,6 +374,8 @@ class MZMOptions(PerGameCommonOptions):
     selected_patches: SelectedPatches
     morph_ball: MorphBallPlacement
     fully_powered_suit: FullyPoweredSuit
+    walljumps: WallJumps
+    spring_ball: SpringBall
     junk_fill_weights: JunkFillWeights
     logic_difficulty: LogicDifficulty
     combat_logic_difficulty: CombatLogicDifficulty

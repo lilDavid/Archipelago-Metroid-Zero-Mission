@@ -37,6 +37,7 @@ class SeedConfig(TypedDict):
     remove_gravity_heat_resistance: NotRequired[bool]
     power_bombs_without_bomb: NotRequired[bool]
     buff_power_bomb_drops: NotRequired[bool]
+    separate_hijump_springball: NotRequired[bool]
     skip_chozodia_stealth: NotRequired[bool]
     chozodia_requires_mother_brain: NotRequired[bool]
     start_with_maps: NotRequired[bool]
@@ -117,12 +118,13 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
         config.get("remove_gravity_heat_resistance", False),
         config.get("power_bombs_without_bomb", False),
         config.get("buff_power_bomb_drops", False),
+        config.get("separate_hijump_springball", False),
         config.get("skip_chozodia_stealth", False),
         config.get("start_with_maps", False),
         config.get("skip_tourian_opening_cutscenes", False),
         2 * PIXEL_SIZE * config.get("elevator_speed", 1),
     )
-    rom.write(get_rom_address("sRandoSeed"), struct.pack("<64s64s8B", *seed_info))
+    rom.write(get_rom_address("sRandoSeed"), struct.pack("<64s64s9B", *seed_info))
 
     if config.get("goal", "vanilla") == "bosses":
         rom.write(

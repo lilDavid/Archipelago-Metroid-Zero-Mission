@@ -42,4 +42,6 @@ item_data_table = {
     "Power Grip":         ItemData(ItemType.MAJOR,              21, 1 << 7, Sprite.PowerGrip,        get_symbol("sEnglishText_Message_PowerGrip"),                               0x7B),
 
     "Fully Powered Suit": ItemData(ItemType.CUSTOM,              0, 1 << 7, Sprite.GravitySuit,      get_symbol("sEnglishText_Message_FullyPoweredSuit"),                       0x1D3),  # TODO: Custom sprite
+    "Wall Jump":          ItemData(ItemType.CUSTOM,              0, 1 << 0, Sprite.WallJump,         "Wall Jump",                                                                0x76),
+    "Spring Ball":        ItemData(ItemType.CUSTOM,              0, 1 << 1, Sprite.SpringBall,       "Spring Ball",                                                              0x70),
 }

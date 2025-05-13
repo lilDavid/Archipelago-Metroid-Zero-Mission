@@ -81,6 +81,8 @@ LayoutPatches = lambda n: any(
 NormalMode = Requirement.setting_is("game_difficulty", "normal")
 HardMode = Requirement.setting_is("game_difficulty", "hard")
 
+CombinedHiJumpAndSpringBall = Requirement.setting_is("spring_ball", False)
+
 
 EnergyTanks = lambda n: Requirement.item("Energy Tank", n)
 MissileTanks = lambda n: Requirement.item("Missile Tank", n)
@@ -109,6 +111,7 @@ SpaceJump = all(
     CanUseUnknownItems
 )
 PowerGrip = Requirement.item("Power Grip")
+SpringBall = Requirement.item("Spring Ball")
 
 Missiles = any(
     MissileTanks(1),
@@ -157,16 +160,33 @@ CanSingleBombBlock = any(
     ScrewAttack
 )
 CanBallCannon = CanRegularBomb
-CanBallspark = all(
+CanSpringBall = all(
     MorphBall,
-    SpeedBooster,
+    any(
+        all(
+            HiJump,
+            CombinedHiJumpAndSpringBall,
+        ),
+        SpringBall,
+    )
+)
+CanHiSpringBall = all(
+    MorphBall,
     HiJump,
+    any(
+        SpringBall,
+        CombinedHiJumpAndSpringBall,
+    )
+)
+CanBallspark = all(
+    SpeedBooster,
+    CanSpringBall,
 )
 CanBallJump = all(
     MorphBall,
     any(
         Bomb,
-        HiJump
+        CanSpringBall
     )
 )
 CanLongBeam = lambda n: any(
@@ -188,7 +208,13 @@ CanHorizontalIBJ = all(
     CanIBJ,
     Requirement.setting_atleast("ibj_in_logic", 2)
 )
-CanWallJump = Requirement.setting_atleast("walljumps_in_logic", 1)
+CanWallJump = all(
+    Requirement.item("Wall Jump"),
+    any(
+        Requirement.setting_is("walljumps", 1),  # Shuffled
+        Requirement.setting_is("walljumps", 3)   # Enabled
+    )
+)
 CanTrickySparks = all(
     Requirement.setting_enabled("tricky_shinesparks"),
     SpeedBooster,
@@ -233,10 +259,7 @@ CanEnterHighMorphTunnel = any(
 )
 CanEnterMediumMorphTunnel = any(
     CanEnterHighMorphTunnel,
-    all(
-        MorphBall,
-        HiJump
-    )
+    CanHiSpringBall
 )
 RuinsTestEscape = all(
     any(

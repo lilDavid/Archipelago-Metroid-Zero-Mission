@@ -58,6 +58,8 @@ major_item_data_table = {
     "Power Grip":         ItemData(progression, 17, "Power Grip"),
 
     "Fully Powered Suit": ItemData(progression, 19, "Fully Powered Suit"),
+    "Wall Jump":          ItemData(progression, 20, "Wall Jump"),
+    "Spring Ball":        ItemData(progression, 21, "Spring Ball"),
 }
 
 extra_item_data_table = {

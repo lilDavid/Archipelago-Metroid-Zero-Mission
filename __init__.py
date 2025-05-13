@@ -12,8 +12,8 @@ from worlds.AutoWorld import WebWorld, World
 from .client import MZMClient
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, location_count, mzm_location_name_groups
-from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, mzm_option_groups, CombatLogicDifficulty, \
-    GameDifficulty
+from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, SpringBall, mzm_option_groups, \
+    CombatLogicDifficulty, GameDifficulty, WallJumps
 from .patch import MZMProcedurePatch, write_json_data
 from .patcher import MD5_US, MD5_US_VC
 from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
@@ -77,6 +77,7 @@ class MZMWorld(World):
     starting_items: list[MZMItem]
     locked_items: list[MZMItem]
     pre_fill_items: list[MZMItem]
+    removed_items: list[MZMItem]
 
     enabled_layout_patches: list[str]
 
@@ -87,6 +88,7 @@ class MZMWorld(World):
         self.starting_items = []
         self.locked_items = []
         self.pre_fill_items = []
+        self.removed_items = []
         self.junk_fill_items = list(self.options.junk_fill_weights.value.keys())
         self.junk_fill_cdf = list(itertools.accumulate(self.options.junk_fill_weights.value.values()))
 
@@ -109,6 +111,19 @@ class MZMWorld(World):
         elif self.options.fully_powered_suit == FullyPoweredSuit.option_legacy_always_usable:
             self.starting_items.append(self.create_item("Fully Powered Suit"))
             self.locked_items.append(self.create_item("Nothing"))
+
+        if self.options.walljumps == WallJumps.option_enabled or \
+                self.options.walljumps == WallJumps.option_enabled_not_logical:
+            self.starting_items.append(self.create_item("Wall Jump"))
+        if self.options.walljumps == WallJumps.option_disabled:
+            self.removed_items.append(self.create_item("Wall Jump"))
+
+        if "Spring Ball" in self.options.start_inventory_from_pool:
+            self.options.spring_ball = SpringBall(True)
+        if not self.options.spring_ball.value:
+            self.removed_items.append(self.create_item("Spring Ball"))
+            if "Spring Ball" in self.options.start_inventory:
+                self.options.spring_ball = SpringBall(True)
 
         for item in self.starting_items:
             self.push_precollected(item)
@@ -137,9 +152,10 @@ class MZMWorld(World):
 
         item_pool_size = location_count - len(self.locked_items) - len(self.pre_fill_items)
 
-        pre_fill_majors = set(item.name for item in self.starting_items + self.locked_items + self.pre_fill_items)
+        removed_majors = set(item.name for item in
+                                self.starting_items + self.locked_items + self.pre_fill_items + self.removed_items)
         for name in major_item_data_table:
-            if name not in pre_fill_majors:
+            if name not in removed_majors:
                 item_pool.append(self.create_item(name))
 
         # TODO: factor in hazard runs when determining etank progression count
@@ -152,15 +168,17 @@ class MZMWorld(World):
             item_pool.extend(self.create_tanks("Power Bomb Tank", 9, 4, 5))  # 4 progression + 5 useful power bombs out of 9
 
         if self.options.combat_logic_difficulty == CombatLogicDifficulty.option_relaxed:
-            item_pool.extend(self.create_tanks("Missile Tank", 50, 10))  # 50 progression missiles out of 250
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 4, 5))  # 8 progression + 10 useful supers out of 30
+            item_pool.extend(self.create_tanks("Missile Tank", 50, 10))  # 50 progression missiles out of 250
         elif self.options.combat_logic_difficulty == CombatLogicDifficulty.option_normal:
-            item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # 40 progression missiles out of 250
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3, 5))  # 6 progression + 10 useful supers out of 30
+            item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # 40 progression missiles out of 250
         elif self.options.combat_logic_difficulty == CombatLogicDifficulty.option_minimal:
-            item_pool.extend(self.create_tanks("Missile Tank", 50, 3))  # 15 progression missiles out of 250
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 1, 3))  # 1 progression + 6 useful supers out of 30
+            item_pool.extend(self.create_tanks("Missile Tank", 50, 3))  # 15 progression missiles out of 250
 
+        if len(item_pool) > item_pool_size:
+            item_pool = item_pool[:item_pool_size]  # Last items should always be filler missiles
         while len(item_pool) < item_pool_size:
             item_pool.append(self.create_filler())
 
@@ -212,13 +230,14 @@ class MZMWorld(World):
             "goal": self.options.goal.value,
             "game_difficulty": self.options.game_difficulty.value,
             "unknown_items_usable": self.options.fully_powered_suit.to_slot_data(),
+            "walljumps": self.options.walljumps.value,
+            "spring_ball": self.options.spring_ball.value,
             "layout_patches": self.options.layout_patches.value,
             "selected_patches": self.enabled_layout_patches,
             "logic_difficulty": self.options.logic_difficulty.value,
             "combat_logic_difficulty": self.options.combat_logic_difficulty.value,
             "ibj_in_logic": self.options.ibj_in_logic.value,
             "hazard_runs": self.options.hazard_runs.value,
-            "walljumps_in_logic": self.options.walljumps_in_logic.value,
             "tricky_shinesparks": self.options.tricky_shinesparks.value,
             "death_link": self.options.death_link.value,
             "remote_items": self.options.remote_items.value,
