@@ -5,8 +5,6 @@ Classes and functions related to AP items for Metroid: Zero Mission
 from BaseClasses import Item, ItemClassification
 from typing import Dict
 
-from .data import get_symbol
-from .patcher.constants import ItemType
 from .patcher.items import ItemData as ZMItemData, item_data_table
 
 

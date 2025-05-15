@@ -1,9 +1,8 @@
 from enum import StrEnum
-import struct
 from typing import Mapping
 
-from ..data import get_symbol
 from .local_rom import LocalRom, get_rom_address
+from .symbols import get_symbol
 
 
 class Sprite(StrEnum):

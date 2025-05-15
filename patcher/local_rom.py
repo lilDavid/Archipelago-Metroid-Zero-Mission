@@ -1,8 +1,8 @@
 import struct
-from typing import Any, override
+from typing import Any, overload
 
 from . import lz10
-from ..data import get_symbol
+from .symbols import get_symbol
 
 
 ROM_START = 0x8000000
@@ -26,11 +26,11 @@ class LocalRom:
         self.data = bytearray(data)
         self.extra_space_address = get_rom_address("sRandoExtraData")
 
-    @override
+    @overload
     def read(self, address: int, length: int) -> bytes:
         ...
 
-    @override
+    @overload
     def read(self, address: int, struct: str) -> tuple[Any, ...]:
         ...
 

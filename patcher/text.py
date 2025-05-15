@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from io import StringIO
 import itertools
-from typing import Iterable, List, SupportsIndex, Union, overload
-
-from ..data import data_path
+import pkgutil
+from typing import Iterable, SupportsIndex, overload
 
 
 char_table = {}
@@ -87,7 +86,7 @@ character_widths = [
 
 
 def _get_charmap():
-    char_data = data_path("charmap.txt").decode("utf-8")
+    char_data = pkgutil.get_data(__name__, "data/charmap.txt").decode("utf-8")
     with StringIO(char_data) as stream:
         for line in stream:
             splits = line.rsplit("=", 1)
@@ -129,7 +128,7 @@ def get_width_of_encoded_character(char: int):
 
 
 class Message:
-    buffer: List[int]
+    buffer: list[int]
 
     @overload
     def __init__(self, string: str):
@@ -139,7 +138,7 @@ class Message:
     def __init__(self, characters: Iterable[int]):
         ...
 
-    def __init__(self, value: Union[str, Iterable[int]]):
+    def __init__(self, value: str | Iterable[int]):
         if isinstance(value, str):
             self.buffer = list(char_table.get(c, char_table[" "]) for c in value)
         else:
@@ -171,7 +170,7 @@ class Message:
         if len(self.buffer) == 0:
             return self
         total_width = 0
-        buffer: List[int] = []
+        buffer: list[int] = []
         for char in self:
             next_width = total_width + get_width_of_encoded_character(char)
             if next_width > max_width:

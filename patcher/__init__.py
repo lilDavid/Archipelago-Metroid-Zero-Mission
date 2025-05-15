@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import pkgutil
 import struct
 from typing import Literal, NotRequired, TypedDict, cast
 
 import bsdiff4
 
-from ..data import data_path
 from .backgrounds import patch_chozodia_spotlight, write_item_clipdata_and_gfx
 from .constants import RC_COUNT, Area, PIXEL_SIZE, ItemType
 from .items import item_data_table
@@ -97,15 +97,17 @@ def patch_rom(data: bytes, patch: PatchJson) -> bytes:
 
 
 def apply_basepatch(rom: bytes) -> bytes:
+    basepatch = pkgutil.get_data(__name__, "data/basepatch.bsdiff")
+
     hasher = hashlib.md5()
     hasher.update(rom)
     if hasher.hexdigest() == MD5_US:
-        return bsdiff4.patch(rom, data_path("basepatch.bsdiff"))
+        return bsdiff4.patch(rom, basepatch)
 
     logging.warning("You appear to be using a Virtual Console ROM. "
                     "This is not officially supported and may cause bugs.")
     entry_point = (0xEA00002E).to_bytes(4, 'little')  # b 0x80000C0
-    return bsdiff4.patch(entry_point + rom[4:], data_path("basepatch.bsdiff"))
+    return bsdiff4.patch(entry_point + rom[4:], basepatch)
 
 
 def write_seed_config(rom: LocalRom, patch: PatchJson):
@@ -151,7 +153,7 @@ def place_items(rom: LocalRom, locations: list[Location]):
     def get_or_insert_file(name: str) -> int:
         if name in file_pointers:
             return file_pointers[name]
-        file_bytes = data_path(f"item_sprites/{name}")
+        file_bytes = pkgutil.get_data(__name__, f"data/item_sprites/{name}")
         file_ptr = rom.append(file_bytes)
         file_pointers[name] = file_ptr
         return file_ptr

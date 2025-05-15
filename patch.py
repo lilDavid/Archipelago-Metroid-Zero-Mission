@@ -12,9 +12,9 @@ from BaseClasses import Location
 import Utils
 from worlds.Files import APPatchExtension, APProcedurePatch
 
-from .data import APWORLD_VERSION
 from .items import item_data_table, tank_data_table, major_item_data_table
 from .locations import full_location_table as location_table
+from .metadata import APWORLD_VERSION
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal, LayoutPatches
 from .patcher import MD5_US, patch_rom
 from .item_sprites import Sprite, get_zero_mission_sprite, unknown_item_alt_sprites

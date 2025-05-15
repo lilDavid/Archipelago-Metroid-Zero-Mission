@@ -13,13 +13,13 @@ import Utils
 import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
 
-from .data import get_symbol
 from .items import ItemData, item_data_table, major_item_data_table
 from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table)
 from .patcher.constants import ItemType
 from .patcher.items import ItemData as ZMItemData
+from .patcher.symbols import get_symbol
 from .patcher.text import Message, make_item_message
 
 if TYPE_CHECKING:

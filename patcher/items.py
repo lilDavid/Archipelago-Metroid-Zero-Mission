@@ -1,8 +1,8 @@
 from typing import NamedTuple
 
-from ..data import get_symbol
 from .constants import ItemType
 from .sprites import Sprite
+from .symbols import get_symbol
 
 
 class ItemData(NamedTuple):
