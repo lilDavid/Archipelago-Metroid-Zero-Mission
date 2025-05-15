@@ -78,8 +78,8 @@ LayoutPatches = lambda n: any(
     )
 )
 
-NormalMode = Requirement.setting_is("game_difficulty", 1)
-HardMode = Requirement.setting_is("game_difficulty", 2)
+NormalMode = Requirement.setting_is("game_difficulty", "normal")
+HardMode = Requirement.setting_is("game_difficulty", "hard")
 
 CombinedHiJumpAndSpringBall = Requirement.setting_is("spring_ball", False)
 
@@ -120,24 +120,24 @@ Missiles = any(
 MissileCount = lambda n: Requirement(
     lambda world, state:
         5 * state.count("Missile Tank", world.player) +
-        2 * state.count("Super Missile Tank", world.player) >= n if world.options.game_difficulty == 1
+        2 * state.count("Super Missile Tank", world.player) >= n if world.options.game_difficulty == "normal"
         else 2 * state.count("Missile Tank", world.player) + state.count("Super Missile Tank", world.player) >= n
 )
 SuperMissiles = SuperMissileTanks(1)
 SuperMissileCount = lambda n: Requirement(
     lambda world, state:
-        2 * state.count("Super Missile Tank", world.player) >= n if world.options.game_difficulty == 1
+        2 * state.count("Super Missile Tank", world.player) >= n if world.options.game_difficulty == "normal"
         else state.count("Super Missile Tank", world.player) >= n
 )
 PowerBombs = PowerBombTanks(1)
 PowerBombCount = lambda n: Requirement(
     lambda world, state:
-        2 * state.count("Power Bomb Tank", world.player) >= n if world.options.game_difficulty == 1
+        2 * state.count("Power Bomb Tank", world.player) >= n if world.options.game_difficulty == "normal"
         else state.count("Power Bomb Tank", world.player) >= n
 )
 Energy = lambda n: Requirement(
     lambda world, state:
-        100 * state.count("Energy Tank", world.player) + 99 >= n if world.options.game_difficulty == 1
+        100 * state.count("Energy Tank", world.player) + 99 >= n if world.options.game_difficulty == "normal"
         else 50 * state.count("Energy Tank", world.player) + 99 >= n
 )
 
@@ -394,10 +394,10 @@ MechaRidleyCombat = any(
 # Goal
 ReachedGoal = any(
     all(
-        Requirement.setting_is("goal", 0)
+        Requirement.setting_is("goal", "mecha_ridley")
     ),
     all(
-        Requirement.setting_is("goal", 1),
+        Requirement.setting_is("goal", "bosses"),
         MotherBrainBoss,
         ChozoGhostBoss
     ),

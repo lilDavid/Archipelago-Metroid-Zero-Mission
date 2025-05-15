@@ -6,12 +6,12 @@ set -e
 APWORLD_NAME=mzm
 FILES="
     LICENSE
-    data
+    patcher
     *.py
 "
 EXCLUDE="
-    data/item_sprites/*.png
-    data/item_sprites/README.md
+    patcher/data/item_sprites/*.png
+    patcher/data/item_sprites/README.md
 "
 if [ $# -ge 1 ]; then
     WORLD_VERSION="$1"
@@ -29,9 +29,9 @@ rm -rf build/*
 mkdir "$WORLD_DIR"
 cp -r $FILES "$WORLD_DIR"
 
-echo "APWORLD_VERSION = '$WORLD_VERSION'" >> "$WORLD_DIR/data.py"
+echo "APWORLD_VERSION = '$WORLD_VERSION'" >> "$WORLD_DIR/metadata.py"
 
 cd "$WORLD_DIR"
 rm -rf $EXCLUDE
 cd ..
-zip -r "$APWORLD_NAME.apworld" "$APWORLD_NAME"
+zip -r "$APWORLD_NAME.apworld" "$APWORLD_NAME" -x "**/__pycache__/*"
