@@ -353,7 +353,8 @@ class MZMClient(BizHawkClient):
         first: NetworkItem | None = None
         last: NetworkItem | None = None
         for item in client_ctx.items_received:
-            if item.location not in self.local_checked_locations and not client_ctx.slot_data.get("remote_items"):
+            if (item.player == client_ctx.slot and item.location > 0 and
+                item.location not in self.local_checked_locations and not client_ctx.slot_data.get("remote_items")):
                 continue
             if item.item == item_data.code:
                 count += 1
