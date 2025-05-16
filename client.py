@@ -17,7 +17,7 @@ from .items import ItemData, item_data_table, major_item_data_table
 from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table)
-from .patcher.constants import ItemType
+from .patcher.constants import Event, ItemType
 from .patcher.items import ItemData as ZMItemData
 from .patcher.symbols import get_symbol
 from .patcher.text import Message, make_item_message
@@ -79,22 +79,19 @@ def batched(iterable, n):
 
 # DEOREM_KILLED and RUINS_TEST_PASSED are out of order to maintain tracker compatibility. DEOREM_KILLED was before any
 # of the vanilla events, and RUINS_TEST_PASSED replaces the vanilla FULLY_POWERED_SUIT_OBTAINED.
-EVENT_FLAGS = {
-    "EVENT_DEOREM_KILLED": 0x4F,
-    "EVENT_ACID_WORM_KILLED": 0x1C,
-    "EVENT_KRAID_KILLED": 0x1E,
-    "EVENT_IMAGO_COCOON_KILLED": 0x22,
-    "EVENT_IMAGO_KILLED": 0x23,
-    "EVENT_RIDLEY_KILLED": 0x25,
-    "EVENT_MOTHER_BRAIN_KILLED": 0x27,
-    "EVENT_ESCAPED_ZEBES": 0x41,
-    "EVENT_RUINS_TEST_PASSED": 0x50,
-    "EVENT_MECHA_RIDLEY_KILLED": 0x4A,
-    "EVENT_ESCAPED_CHOZODIA": 0x4B,
-}
-
-
-TRACKER_EVENT_FLAGS = list(EVENT_FLAGS.keys())
+EVENT_FLAGS = [
+    Event.DEOREM_KILLED,
+    Event.ACID_WORM_KILLED,
+    Event.KRAID_KILLED,
+    Event.IMAGO_COCOON_KILLED,
+    Event.IMAGO_KILLED,
+    Event.RIDLEY_KILLED,
+    Event.MOTHER_BRAIN_KILLED,
+    Event.ESCAPED_ZEBES,
+    Event.RUINS_TEST_PASSED,
+    Event.MECHA_RIDLEY_KILLED,
+    Event.ESCAPED_CHOZODIA,
+]
 
 
 def cmd_deathlink(self):
@@ -190,7 +187,7 @@ class MZMClient(BizHawkClient):
     patch_suffix = ".apmzm"
 
     local_checked_locations: Set[int]
-    local_set_events: Dict[str, bool]
+    local_set_events: Dict[Event, bool]
     local_area: int
 
     multiworld_item_count: int | None
@@ -205,7 +202,7 @@ class MZMClient(BizHawkClient):
     def __init__(self) -> None:
         super().__init__()
         self.local_checked_locations = set()
-        self.local_set_events = {flag: False for flag in TRACKER_EVENT_FLAGS}
+        self.local_set_events = {flag: False for flag in EVENT_FLAGS}
         self.local_area = 0
         self.multiworld_item_count = None
         self.ignore_locals_written = False
@@ -292,7 +289,7 @@ class MZMClient(BizHawkClient):
         gRandoLocationBitfields = struct.unpack(f"<{ZMConstants.AREA_MAX}I", next(read_result))
 
         checked_locations = set()
-        set_events = {flag: False for flag in TRACKER_EVENT_FLAGS}
+        set_events = {flag: False for flag in EVENT_FLAGS}
 
         if gMainGameMode == ZMConstants.GM_INGAME:
             for location_flags, location_table in zip(
@@ -306,11 +303,10 @@ class MZMClient(BizHawkClient):
                         checked_locations.add(location.code)
                     location_flags >>= 1
 
-        for name, number in EVENT_FLAGS.items():
-            block = gEventsTriggered[number // 32]
-            flag = 1 << (number & 31)
-            if block & flag:
-                set_events[name] = True
+        for event in EVENT_FLAGS:
+            block = gEventsTriggered[event.block_number()]
+            if block & event.bit_mask():
+                set_events[event] = True
 
         if self.local_checked_locations != checked_locations:
             self.local_checked_locations = checked_locations
@@ -319,7 +315,7 @@ class MZMClient(BizHawkClient):
                 "locations": list(checked_locations)
             }])
 
-        if ((set_events["EVENT_ESCAPED_CHOZODIA"] or gMainGameMode in (ZMConstants.GM_CHOZODIA_ESCAPE, ZMConstants.GM_CREDITS))
+        if ((set_events[Event.ESCAPED_CHOZODIA] or gMainGameMode in (ZMConstants.GM_CHOZODIA_ESCAPE, ZMConstants.GM_CREDITS))
             and not client_ctx.finished_game):
             await client_ctx.send_msgs([{
                 "cmd": "StatusUpdate",
@@ -329,7 +325,7 @@ class MZMClient(BizHawkClient):
         if self.local_set_events != set_events and client_ctx.slot is not None:
             self.local_set_events = set_events
             event_bitfield = 0
-            for i, flag in enumerate(TRACKER_EVENT_FLAGS):
+            for i, flag in enumerate(EVENT_FLAGS):
                 if set_events[flag]:
                     event_bitfield |= 1 << i
             await client_ctx.send_msgs([{

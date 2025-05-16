@@ -9,7 +9,7 @@ from typing import Literal, NotRequired, TypedDict, cast
 import bsdiff4
 
 from .backgrounds import patch_chozodia_spotlight, write_item_clipdata_and_gfx
-from .constants import RC_COUNT, Area, PIXEL_SIZE, ItemType
+from .constants import RC_COUNT, PIXEL_SIZE, Area, Event, ItemType
 from .items import item_data_table
 from .layout_patches import apply_layout_patches
 from .local_rom import LocalRom, get_rom_address
@@ -131,7 +131,7 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
     if config.get("goal", "vanilla") == "bosses":
         rom.write(
             get_rom_address("sHatchLockEventsChozodia", 8 * 15 + 1),  # sHatchLockEventsChozodia[15].event
-            struct.pack("<B", 0x27)  # EVENT_MOTHER_BRAIN_KILLED
+            struct.pack("<B", Event.MOTHER_BRAIN_KILLED)
         )
         rom.write(get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * Area.CHOZODIA), struct.pack("<H", 16))
 
