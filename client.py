@@ -170,17 +170,6 @@ class ZMConstants:
     gMultiworldItemCount = get_symbol("gMultiworldItemCount")
 
 
-class QueuedItem(NamedTuple):
-    network_items: List[NetworkItem]  # All should be the same item
-    index: int  # Position of first instance
-
-
-class ItemCollection(NamedTuple):
-    starting: List[NetworkItem]
-    local: List[NetworkItem]
-    remote: List[NetworkItem]
-
-
 class MZMClient(BizHawkClient):
     game = "Metroid Zero Mission"
     system = "GBA"
