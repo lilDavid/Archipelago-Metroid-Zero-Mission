@@ -53,6 +53,9 @@ class LocalRom:
 
     def alloc(self, size: int) -> int:
         assert size >= 0
+        # Word-align all allocations
+        if self.extra_space_address % 4 != 0:
+            self.extra_space_address += 4 - self.extra_space_address % 4
         address = self.extra_space_address
         self.extra_space_address += size
         return address
