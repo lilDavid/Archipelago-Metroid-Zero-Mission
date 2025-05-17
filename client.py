@@ -168,7 +168,6 @@ class ZMConstants:
     gCurrentArea = get_symbol("gCurrentArea")
     gRandoLocationBitfields = get_symbol("gRandoLocationBitfields")
     gIncomingMessage = get_symbol("gIncomingMessage")
-    gMultiworldItemCount = get_symbol("gMultiworldItemCount")
 
 
 class MZMClient(BizHawkClient):
@@ -180,7 +179,6 @@ class MZMClient(BizHawkClient):
     local_set_events: Dict[Event, bool]
     local_area: int
 
-    multiworld_item_count: int | None
     ignore_locals_written: bool
 
     rom_slot_name: Optional[str]
@@ -194,7 +192,6 @@ class MZMClient(BizHawkClient):
         self.local_checked_locations = set()
         self.local_set_events = {flag: False for flag in EVENT_FLAGS}
         self.local_area = 0
-        self.multiworld_item_count = None
         self.ignore_locals_written = False
         self.rom_slot_name = None
 
@@ -375,27 +372,22 @@ class MZMClient(BizHawkClient):
                     struct.pack("<IHBB", get_symbol("gDynamicMessageBuffer"), item_data.sound, item_data.acquisition,
                                 single_line)
                 ))
-            result = await bizhawk.guarded_write(client_ctx.bizhawk_ctx, write_list, [
+            await bizhawk.guarded_write(client_ctx.bizhawk_ctx, write_list, [
                 guard16(ZMConstants.gMainGameMode, ZMConstants.GM_INGAME),
                 guard16(ZMConstants.gGameModeSub1, ZMConstants.SUB_GAME_MODE_PLAYING),
                 guard32(get_symbol("gIncomingMessage"), 0),  # Null text data pointer
             ])
-            if result:
-                self.multiworld_item_count += 1
         except bizhawk.RequestFailedError:
             return
 
     async def handle_received_items(self, client_ctx: BizHawkClientContext, gameplay_state: Tuple[int, int]):
         bizhawk_ctx = client_ctx.bizhawk_ctx
 
-        if gameplay_state[0] != ZMConstants.GM_INGAME:
-            self.multiworld_item_count = None
         if gameplay_state != (ZMConstants.GM_INGAME, ZMConstants.SUB_GAME_MODE_PLAYING):
             return
 
         try:
             read_result = iter(await bizhawk.read(bizhawk_ctx, [
-                read16(ZMConstants.gMultiworldItemCount),
                 read32(ZMConstants.gIncomingMessage),
                 read8(ZMConstants.gDifficulty),
                 read(ZMConstants.gEquipment, struct.calcsize("<HHBB6xBxB")),
@@ -404,12 +396,7 @@ class MZMClient(BizHawkClient):
         except bizhawk.RequestFailedError:
             return
 
-        gMultiworldItemCount = next_int(read_result)
         gIncomingMessage_data = next_int(read_result)
-        if self.multiworld_item_count is None or gMultiworldItemCount != self.multiworld_item_count - 1:
-            self.multiworld_item_count = gMultiworldItemCount
-        else:
-            return  # Wait until the queue is freed up
         if gIncomingMessage_data != 0:
             return
 
