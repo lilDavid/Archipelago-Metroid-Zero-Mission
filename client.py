@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import itertools
 import struct
-from typing import TYPE_CHECKING, Dict, Iterator, List, NamedTuple, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, Iterator, NamedTuple, Optional, Set, Tuple
 
 from NetUtils import ClientStatus, NetworkItem
 import Utils
@@ -336,20 +336,25 @@ class MZMClient(BizHawkClient):
                 "operations": [{"operation": "replace", "value": gCurrentArea}]
             }])
 
-    def get_received_items(self, client_ctx: BizHawkClientContext, item_data: ItemData) -> tuple[int, NetworkItem | None, NetworkItem | None]:
-        count: int = 0
-        first: NetworkItem | None = None
-        last: NetworkItem | None = None
+    def received_items(self, client_ctx: BizHawkClientContext) -> Iterable[NetworkItem]:
+        """Iterate over the player's received items, skipping local ones if items aren't remote."""
+
         for item in client_ctx.items_received:
             if (item.player == client_ctx.slot and item.location > 0 and
                 item.location not in self.local_checked_locations and not client_ctx.slot_data.get("remote_items")):
                 continue
+            yield item
+
+    def count_received_item(self, client_ctx: BizHawkClientContext, item_data: ItemData) -> tuple[int, NetworkItem | None]:
+        """Get the number of times an item has been received as well as the most recent copy received."""
+
+        count: int = 0
+        last: NetworkItem | None = None
+        for item in self.received_items(client_ctx):
             if item.item == item_data.code:
                 count += 1
-                if first is None:
-                    first = item
                 last = item
-        return count, first, last
+        return count, last
 
     @staticmethod
     def make_received_message(client_ctx: BizHawkClientContext, item_name: str, item: NetworkItem) -> Message:
@@ -415,7 +420,7 @@ class MZMClient(BizHawkClient):
         # Energy tanks
         item = item_data_table["Energy Tank"]
         current_tanks = (energy - ZMConstants.sStartingHealthAmmo.energy) // ZMConstants.sTankIncreaseAmount[gDifficulty].energy
-        network_tanks, _, most_recent = self.get_received_items(client_ctx, item)
+        network_tanks, most_recent = self.count_received_item(client_ctx, item)
         to_receive = network_tanks - current_tanks
         if to_receive > 0:
             if to_receive == 1:
@@ -434,7 +439,7 @@ class MZMClient(BizHawkClient):
         # Missiles
         item = item_data_table["Missile Tank"]
         current_tanks = (missiles - ZMConstants.sStartingHealthAmmo.missile) // ZMConstants.sTankIncreaseAmount[gDifficulty].missile
-        network_tanks, _, most_recent = self.get_received_items(client_ctx, item)
+        network_tanks, most_recent = self.count_received_item(client_ctx, item)
         to_receive = network_tanks - current_tanks
         if to_receive > 0:
             if to_receive == 1:
@@ -453,7 +458,7 @@ class MZMClient(BizHawkClient):
         # Supers
         item = item_data_table["Super Missile Tank"]
         current_tanks = (supers - ZMConstants.sStartingHealthAmmo.super_missile) // ZMConstants.sTankIncreaseAmount[gDifficulty].super_missile
-        network_tanks, _, most_recent = self.get_received_items(client_ctx, item)
+        network_tanks, most_recent = self.count_received_item(client_ctx, item)
         to_receive = network_tanks - current_tanks
         if to_receive > 0:
             if to_receive == 1:
@@ -472,7 +477,7 @@ class MZMClient(BizHawkClient):
         # PBs
         item = item_data_table["Power Bomb Tank"]
         current_tanks = (powerbombs - ZMConstants.sStartingHealthAmmo.power_bomb) // ZMConstants.sTankIncreaseAmount[gDifficulty].power_bomb
-        network_tanks, _, most_recent = self.get_received_items(client_ctx, item)
+        network_tanks, most_recent = self.count_received_item(client_ctx, item)
         to_receive = network_tanks - current_tanks
         if to_receive > 0:
             if to_receive == 1:
@@ -489,7 +494,8 @@ class MZMClient(BizHawkClient):
             return
 
         # Majors
-        for name, item in major_item_data_table.items():
+        acquired_majors: dict[int, bool] = {}
+        for item in major_item_data_table.values():
             game_data = item.game_data
             if game_data.type == ItemType.BEAM:
                 has_item = beams & game_data.bits
@@ -497,17 +503,18 @@ class MZMClient(BizHawkClient):
                 has_item = majors & game_data.bits
             elif game_data.type == ItemType.CUSTOM:
                 has_item = customs & game_data.bits
-            else:
+            acquired_majors[item.code] = bool(has_item)
+        for item in self.received_items(client_ctx):
+            acquired = acquired_majors.get(item.item)
+            if acquired is None or acquired:
                 continue
-            if has_item:
-                continue
-            received, first, _ = self.get_received_items(client_ctx, item)
-            if not received:
-                continue
-            message = (self.make_received_message(client_ctx, name, first)
-                       if first.player != client_ctx.slot or first.location <= 0
+            name = client_ctx.item_names.lookup_in_game(item.item)
+            game_data = item_data_table[name].game_data
+            message = (self.make_received_message(client_ctx, name, item)
+                       if item.player != client_ctx.slot or item.location <= 0
                        else None)
-            await self.send_message_and_item(client_ctx, game_data, message, first.player == client_ctx.slot)
+            await self.send_message_and_item(client_ctx, game_data, message, item.player == client_ctx.slot)
+            break
 
     async def game_watcher(self, client_ctx: BizHawkClientContext) -> None:
         if self.dc_pending:
