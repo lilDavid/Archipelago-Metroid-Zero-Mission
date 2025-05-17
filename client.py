@@ -57,6 +57,7 @@ def write32(address: int, value: int):
 guard = write
 guard8 = write8
 guard16 = write16
+guard32 = write32
 
 
 def get_int(b: bytes) -> int:
@@ -372,6 +373,7 @@ class MZMClient(BizHawkClient):
             result = await bizhawk.guarded_write(client_ctx.bizhawk_ctx, write_list, [
                 guard16(ZMConstants.gMainGameMode, ZMConstants.GM_INGAME),
                 guard16(ZMConstants.gGameModeSub1, ZMConstants.SUB_GAME_MODE_PLAYING),
+                guard32(get_symbol("gIncomingMessage"), 0),  # Null text data pointer
             ])
             if result:
                 self.multiworld_item_count += 1
