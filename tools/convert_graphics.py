@@ -70,7 +70,7 @@ def convert_file(in_file: Path) -> tuple[bytes, bytes]:
 
 
 def main():
-    graphics_dir = Path(__file__).parents[1] / "data/item_sprites"
+    graphics_dir = Path(__file__).parents[1] / "patcher/data/item_sprites"
     for file in graphics_dir.glob("*.png"):
         try:
             gfx, pal = convert_file(file)
