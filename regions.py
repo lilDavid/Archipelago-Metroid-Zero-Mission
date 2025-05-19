@@ -138,3 +138,4 @@ def create_regions_and_connections(world: MZMWorld):
             "Chozodia Mothership Cockpit", deep_mothership_to_cockpit().create_rule(world))
     connect(multiworld, player, "Chozodia Cockpit -> Original PB", "Chozodia Mothership Cockpit", "Chozodia Original Power Bomb Room", cockpit_to_original_pb().create_rule(world))
     connect(multiworld, player, "Chozodia Cockpit -> Mecha Ridley", "Chozodia Mothership Cockpit", "Chozodia Mecha Ridley Hallway", cockpit_to_mecha_ridley().create_rule(world))
+    connect(multiworld, player, "Game Completion", "Chozodia Mecha Ridley Hallway", "Mission Accomplished!", MechaRidleyBoss.create_rule(world))
