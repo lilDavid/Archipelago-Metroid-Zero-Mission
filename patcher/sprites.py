@@ -28,6 +28,7 @@ class Sprite(StrEnum):
     SpaceJump = "Space Jump"
     PowerGrip = "Power Grip"
     Nothing = "Nothing"
+    ItemSphere = "Item Sphere"
     APLogo = "AP Logo"
     APLogoProgression = "AP Progression"
     APLogoUseful = "AP Useful"
@@ -69,7 +70,8 @@ sprite_imports: Mapping[Sprite, tuple[str | int, str | int]] = {
     Sprite.PlasmaBeam: ("plasma_beam.gfx", "plasma_beam.pal"),
     Sprite.GravitySuit: ("gravity_suit.gfx", "gravity_suit.pal"),
     Sprite.SpaceJump: ("space_jump.gfx", "space_jump.pal"),
-    Sprite.Nothing: ("item_sphere.gfx", "item_sphere.pal"),
+    Sprite.Nothing: ("nothing.gfx", "nothing.pal"),
+    Sprite.ItemSphere: ("item_sphere.gfx", "item_sphere.pal"),
     Sprite.APLogo: ("ap_logo.gfx", "ap_logo.pal"),
     Sprite.APLogoProgression: ("ap_logo_progression.gfx", "ap_logo.pal"),
     Sprite.APLogoUseful: ("ap_logo_useful.gfx", "ap_logo.pal"),
