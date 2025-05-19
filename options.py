@@ -53,8 +53,8 @@ class ChozodiaAccess(Choice):
     Closed: You must defeat Mother Brain to access Chozodia.
     """
     display_name = "Chozodia Access"
-    option_open = False
-    option_closed = True
+    option_open = 0
+    option_closed = 1
     default = option_open
 
 
