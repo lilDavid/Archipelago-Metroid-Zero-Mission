@@ -92,7 +92,7 @@ def main():
     with open(graphics_dir / "ap_logo_useful.gfx", "wb") as stream:
         stream.write(ap_logo_gfx[1024:])
 
-    (graphics_dir / "reserve_tank.gfx").unlink()
+    (graphics_dir / "reserve_tank.pal").unlink()
 
 
 if __name__ == "__main__":
