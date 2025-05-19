@@ -24,7 +24,7 @@ compatible_games: Mapping[str, Mapping[str, str]] = {
         "Hi-Jump Boots": Sprite.HiJump,
         "Speed Booster": Sprite.SpeedBooster,
         "Wave Beam": Sprite.WaveBeam,
-        "Spazer Beam": Sprite.SpazerBeam,
+        "Spazer": Sprite.SpazerBeam,
         "Spring Ball": Sprite.SpringBall,
         "Varia Suit": Sprite.VariaSuit,
         "Plasma Beam": Sprite.PlasmaBeam,

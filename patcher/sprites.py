@@ -32,7 +32,7 @@ class Sprite(StrEnum):
     APLogo = "AP Logo"
     APLogoProgression = "AP Progression"
     APLogoUseful = "AP Useful"
-    SpazerBeam = "Spazer Beam"
+    SpazerBeam = "Spazer"
     GrappleBeam = "Grapple Beam"
     SpringBall = "Spring Ball"
     XRayScope = "X-Ray Scope"
