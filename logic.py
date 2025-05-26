@@ -330,8 +330,13 @@ MotherBrainCombat = any(
             VariaSuit,
             GravitySuit
         ),
-        WaveBeam,
-        ScrewAttack,
+        any(
+            ChargeBeam,
+            LongBeam,
+            WaveBeam,
+            PlasmaBeam,
+            ScrewAttack
+        ),
         PowerGrip,
         MissileTanks(10),
         SuperMissileTanks(3),
