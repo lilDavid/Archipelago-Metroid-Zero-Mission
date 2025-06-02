@@ -219,10 +219,8 @@ CanTrickySparks = all(
     Requirement.setting_enabled("tricky_shinesparks"),
     SpeedBooster,
 )
-Hellrun = lambda n: all(
-    Requirement.setting_enabled("hazard_runs"),
-    Energy(n),
-)
+NormalHazardRuns = Requirement.setting_is("hazard_runs", 1)
+MinimalHazardRuns = Requirement.setting_is("hazard_runs", 2)
 
 # Miscellaneous rules
 CanFly = any(  # infinite vertical

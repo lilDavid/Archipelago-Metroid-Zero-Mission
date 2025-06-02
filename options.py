@@ -183,16 +183,20 @@ class IBJInLogic(Choice):
     option_horizontal_and_vertical = 2
 
 
-# TODO: split into none/comfortable/minimal
-class HazardRuns(Toggle):
+class HazardRuns(Choice):
     """
     Allows for traversing heated rooms and acid/lava dives without the appropriate suit(s) in logic.
 
-    When enabled, logic will ensure you have a reasonable amount of energy before requiring an environmental damage
-    run. When disabled, you will not be required to endure any environmental damage before receiving the appropriate
-    mitigating suit.
+    Disabled: Hazard runs are not in logic. You will be expected to have Varia Suit before needing to traverse heat,
+    Gravity Suit before needing to traverse lava, and either suit before needing to traverse acid.
+    Normal: Hazard runs are enabled, with somewhat lenient energy requirements. You will still need to be pretty fast!
+    Minimal: Hazard runs are enabled with stringent energy requirements, requiring the bare minimum energy that can make it through with clean movement.
+    Warning -- some minimal hazard runs are REALLY tight!
     """
     display_name = "Hazard Runs"
+    option_disabled = 0
+    option_normal = 1
+    option_minimal = 2
 
 
 class WalljumpsInLogic(Removed):

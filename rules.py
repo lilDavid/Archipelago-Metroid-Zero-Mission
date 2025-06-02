@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .logic import *
+from .tricks import *
 from worlds.generic.Rules import add_rule
 
 if TYPE_CHECKING:
@@ -143,13 +144,14 @@ brinstar_top = {
                 ),
                 all(
                     any(
-                        Hellrun(199),
+                        NormalHazardRuns,  # only 99 energy required as you can refill at the Chozo statue
+                        MinimalHazardRuns,
                         VariaSuit
                     ),
                     CanHiWallJump,
-                    any(
+                    any(  # The walljump up is a little tight
                         SpaceJump,
-                        AdvancedLogic
+                        NormalLogic
                     )
                 ),
             ),
@@ -160,6 +162,7 @@ brinstar_top = {
                     NormalLogic
                 )
             ),
+            CanEnterMediumMorphTunnel,
             Missiles
         ),
         "Brinstar Acid Near Varia": all(
@@ -184,7 +187,8 @@ brinstar_top = {
             any(
                 VariaSuit,
                 GravitySuit,
-                Hellrun(199),
+                BrinstarAcidNearVariaAcidDiveNormal,
+                BrinstarAcidNearVariaAcidDiveMinimal
             )
         ),
         "Brinstar Upper Pillar": None
@@ -426,7 +430,8 @@ norfair_upper_right = {
         ),
         "Norfair Heated Room Above Ice Beam": any(
             VariaSuit,
-            Hellrun(199)
+            NorfairAboveIceHellrunNormal,
+            NorfairAboveIceHellrunMinimal
         )
     }
 
@@ -450,13 +455,10 @@ norfair_under_brinstar_elevator = {
         ),
         "Norfair Heated Room Under Brinstar Elevator": all(
             SuperMissiles,
-            any(  # TODO: Redo this hellrun; Hard mode has extra considerations
+            any(
                 VariaSuit,
-                Hellrun(499),
-                all(
-                    SpeedBooster,
-                    Hellrun(199)
-                )
+                NorfairUnderElevatorHellrunNormal,
+                NorfairUnderElevatorHellrunMinimal
             )
         ),
 }
@@ -489,11 +491,8 @@ lower_norfair = {
             MissileCount(5),
             any(
                 GravitySuit,
-                all(
-                    VariaSuit,
-                    Hellrun(599)
-                ),
-                Hellrun(999)
+                NorfairLavaDiveNormal,
+                NorfairLavaDiveMinimal
             ),
             any(
                 CanBombTunnelBlock,
@@ -513,7 +512,8 @@ lower_norfair = {
             CanVerticalWall,
             any(
                 VariaSuit,
-                Hellrun(299)
+                NorfairWaveHellrunLeftNormal,
+                NorfairWaveHellrunLeftMinimal
             ),
             any(
                 CanIBJ,
@@ -529,7 +529,8 @@ lower_norfair = {
             CanVerticalWall,
             any(
                 VariaSuit,
-                Hellrun(299)
+                NorfairWaveHellrunRightNormal,
+                NorfairWaveHellrunRightMinimal
             )
         ),
     }
@@ -1059,7 +1060,7 @@ chozodia_ruins_test = {
                 )
             )
         ),
-        "Chozodia Lava Dive": all(  # TODO redo this whole lava dive
+        "Chozodia Lava Dive": all(
             any(
                 ScrewAttack,
                 all(
@@ -1071,20 +1072,14 @@ chozodia_ruins_test = {
                 )
             ),
             any(
-                GravitySuit,
                 all(
-                    Hellrun(499),
-                    VariaSuit,
-                    CanHiGrip
+                    GravitySuit,
+                    CanEnterHighMorphTunnel,
+                    CanBallJump
                 ),
-                all(
-                    AdvancedLogic,
-                    Hellrun(699),
-                    CanHiGrip
-                )
+                ChozodiaItemLavaDiveNormal,
+                ChozodiaItemLavaDiveMinimal
             ),
-            CanEnterHighMorphTunnel,
-            CanBallJump,
             any(
                 CanWallJump,
                 all(
@@ -1368,7 +1363,8 @@ def kraid_upper_right():
             all(
                 AdvancedLogic,
                 any(
-                    Hellrun(99),
+                    NormalHazardRuns,
+                    MinimalHazardRuns,
                     VariaSuit
                 ),
                 CanSpringBall,
@@ -1590,6 +1586,11 @@ def norfair_lower_right_shaft_to_lower_norfair():
         Missiles,
         CanBombTunnelBlock,
         any(
+            VariaSuit,
+            NorfairRightShaftToLowerHellrunNormal,
+            NorfairRightShaftToLowerHellrunMinimal
+        ),
+        any(
             SpaceJump,
             CanWallJump,
             CanHorizontalIBJ,
@@ -1612,7 +1613,10 @@ def norfair_lower_right_shaft_to_lower_norfair():
                 CanBallJump,
                 any(
                     PowerGrip,
-                    CanHorizontalIBJ,
+                    all(
+                        Bomb,
+                        NormalLogic  # Slightly tight bomb jump, but you can do it with just one bomb
+                    ),
                     all(
                         AdvancedLogic,
                         IceBeam,
@@ -1622,12 +1626,14 @@ def norfair_lower_right_shaft_to_lower_norfair():
             ),
         ),
         any(
-            VariaSuit,
-            Hellrun(699)
-        ),
-        any(
             SpaceJump,
-            CanHorizontalIBJ,
+            any(
+                CanHorizontalIBJ,
+                all(
+                    GravitySuit,
+                    CanIBJ
+                )
+            ),
             all(
                 CanSingleBombBlock,
                 SpeedBooster
@@ -1723,7 +1729,8 @@ def lower_norfair_to_bottom_norfair():
         SpeedBooster,
         any(
             VariaSuit,
-            Hellrun(199)
+            NormalHazardRuns,  # TODO: bomb method of doing this is not currently in logic, which will matter for hellruns
+            MinimalHazardRuns
         ),
         any(
             WaveBeam,
@@ -1775,11 +1782,25 @@ def lower_norfair_to_bottom_norfair():
 # Needed for Kraid -> Norfair shortcut, so this rule is for getting to Hi-Jump location from that entrance
 def lower_norfair_to_lower_right_shaft():
     return all(
-        CanVerticalWall,
+        any(
+            PowerGrip,
+            HiJump,
+            SpaceJump,
+            CanWallJump,
+            CanHorizontalIBJ,
+            all(
+                CanIBJ,
+                any(
+                    IceBeam,
+                    GravitySuit
+                )
+            )
+        ),
         CanBombTunnelBlock,
         any(
             VariaSuit,
-            Hellrun(299)  # TODO: may be possible with even just 1
+            LowerNorfairToRightShaftHellrunNormal,
+            LowerNorfairToRightShaftHellrunMinimal
         )
     )
 
@@ -1855,7 +1876,8 @@ def ridley_main_to_left_shaft():
         ),
         any(
             VariaSuit,
-            Hellrun(199),
+            RidleyHellrunNormal,
+            RidleyHellrunMinimal,
             all(
                 CanFly,
                 CanBombTunnelBlock
@@ -2127,11 +2149,8 @@ def ruins_test_to_ruins():
                 ),
                 any(
                     GravitySuit,
-                    all(
-                        Hellrun(249),
-                        VariaSuit
-                    ),
-                    Hellrun(399)
+                    ChozodiaEscapeLavaDiveNormal,
+                    ChozodiaEscapeLavaDiveMinimal
                 )
             ),
             all(  # Or going all the way back through the ruins
