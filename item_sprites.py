@@ -75,6 +75,37 @@ compatible_games: Mapping[str, Mapping[str, str]] = {
         # "CardLowerNorfairL1":
         # "CardLowerNorfairBoss":
     },
+    "Metroid Fusion": {
+        "Nothing": Sprite.Nothing,
+        # "Level 0 Keycard":
+        # "Missile Data":
+        "Morph Ball": Sprite.MorphBall,
+        "Charge Beam": Sprite.ChargeBeam,
+        # "Level 1 Keycard":
+        "Bomb Data": Sprite.Bomb,
+        "Hi-Jump": Sprite.HiJump,
+        "Speed Booster": Sprite.SpeedBooster,
+        # "Level 2 Keycard":
+        # "Super Missile":
+        "Varia Suit": Sprite.VariaSuit,
+        # "Level 3 Keycard":
+        # "Ice Missile":
+        "Wide Beam": Sprite.SpazerBeam,
+        # "Power Bomb Data":
+        "Space Jump": Sprite.SpaceJump,
+        "Plasma Beam": Sprite.PlasmaBeam,
+        "Gravity Suit": Sprite.GravitySuit,
+        # "Level 4 Keycard":
+        # "Diffusion Missile":
+        "Wave Beam": Sprite.WaveBeam,
+        "Screw Attack": Sprite.ScrewAttack,
+        "Ice Beam": Sprite.IceBeam,
+        "Missile Tank": Sprite.MissileTank,
+        "Energy Tank": Sprite.EnergyTank,
+        "Power Bomb Tank": Sprite.PowerBombTank,
+        # "Ice Trap":
+        # "Infant Metroid":
+    },
     "Metroid Prime": {
         "Power Beam": Sprite.PowerBeam,
         "Ice Beam": Sprite.IceBeam,
