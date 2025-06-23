@@ -68,6 +68,37 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
         # "CardLowerNorfairL1":
         # "CardLowerNorfairBoss":
     },
+    "Metroid Fusion": {
+        "Nothing": ItemID.Nothing,
+        # "Level 0 Keycard":
+        # "Missile Data":
+        "Morph Ball": ItemID.MorphBall,
+        "Charge Beam": ItemID.ChargeBeam,
+        # "Level 1 Keycard":
+        "Bomb Data": ItemID.Bomb,
+        "Hi-Jump": ItemID.HiJump,
+        "Speed Booster": ItemID.SpeedBooster,
+        # "Level 2 Keycard":
+        # "Super Missile":
+        "Varia Suit": ItemID.VariaSuit,
+        # "Level 3 Keycard":
+        # "Ice Missile":
+        "Wide Beam": ItemID.SpazerBeam,
+        # "Power Bomb Data":
+        "Space Jump": ItemID.SpaceJump,
+        "Plasma Beam": ItemID.PlasmaBeam,
+        "Gravity Suit": ItemID.GravitySuit,
+        # "Level 4 Keycard":
+        # "Diffusion Missile":
+        "Wave Beam": ItemID.WaveBeam,
+        "Screw Attack": ItemID.ScrewAttack,
+        "Ice Beam": ItemID.IceBeam,
+        "Missile Tank": ItemID.MissileTank,
+        "Energy Tank": ItemID.EnergyTank,
+        "Power Bomb Tank": ItemID.PowerBombTank,
+        # "Ice Trap":
+        # "Infant Metroid":
+    },
     "Metroid Prime": {
         "Power Beam": ItemID.PowerBeam,
         "Ice Beam": ItemID.IceBeam,
@@ -151,7 +182,7 @@ compatible_games: Mapping[str, Mapping[str, int]] = {
     "Subversion": {
         "Energy Tank": ItemID.EnergyTank,
         # "Missile":
-        # "Super Missile": 
+        # "Super Missile":
         # "Power Bomb":
         # "Small Ammo": - Subversion uses an Ammo system, Missiles, Supers, and PB's all share one ammo count and these two raise that. There is only one of each Missile, Super, and PB in the world.
         # "Large Ammo":
