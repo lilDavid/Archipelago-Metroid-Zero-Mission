@@ -247,4 +247,15 @@ mzm_location_name_groups = {
         "Chozodia Chozo Ghost Area Long Shinespark",
         "Chozodia Under Mecha Ridley Hallway",
     },
+    "Shinespark Puzzles": {
+        "Brinstar Ballspark",
+        "Kraid Acid Ballspark",
+        "Ridley Bomb Puzzle",
+        "Ridley Speed Jump",
+        "Tourian Left of Mother Brain",  # Can be done with a spaceboost, but that's also a bit tough
+        "Crateria Landing Site Ballspark",
+        "Crateria East Ballspark",
+        "Crateria Northeast Corner",
+        "Chozodia Chozo Ghost Area Long Shinespark",
+    },
 }
