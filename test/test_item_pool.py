@@ -1,6 +1,6 @@
 from collections import Counter
 
-from . import MZMTestBase
+from .bases import MZMTestBase
 
 
 class MZMTestItemPool(MZMTestBase):
