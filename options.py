@@ -11,6 +11,8 @@ from Options import (
 )
 
 from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
+from .tricks import all_tricks
+
 
 class Goal(Choice):
     """
@@ -25,7 +27,6 @@ class Goal(Choice):
     default = option_bosses
 
 
-# TODO: test Hard mode logic more
 class GameDifficulty(Choice):
     """
     Which in-game difficulty you will play on.
@@ -136,15 +137,13 @@ class LogicDifficulty(Choice):
     """
     Determines the difficulty of room traversal and game knowledge required by the game's logic.
 
-    Simple: For beginners to Zero Mission randomizer. Should be comfortable to anyone who has beaten the game. Includes
-    routes similar to vanilla or otherwise intuitive to players that have not sequence broken the game.
-    Normal: For players with more familiarity with the game. Should be comfortable to anyone who has sequence broken or
-    skipped major items. Includes developer-intended sequence breaks, unintuitive paths, and some tricks.
-    Advanced: For experts who want all their skills challenged. Should be comfortable to MZM Randomizer veterans and
-    speedrunners. Includes all tricks, very difficult shinespark chains, crumble jumps, Acid Worm Skip, etc.
+    Simple: For beginners to Zero Mission randomizer who have completed the game 100%.
+    Normal: For players with more familiarity with the game, who know some tricks and sequence breaks.
+    Advanced: For experts who want more of a challenge. Includes all tricks, very difficult shinespark chains, crumble
+    jumps, Acid Worm Skip, etc.
 
-    This setting does not affect the difficulty of non-suited runs through heated rooms or acid/lava.
-    Specific tricks can be included or excluded in other options.
+    This setting does not affect the difficulty of hazard runs.
+    Specific tricks like IBJ can be included or excluded in other options.
     """
     display_name = "Logic Difficulty"
     option_simple = 0
@@ -156,12 +155,10 @@ class CombatLogicDifficulty(Choice):
     """
     Determines the difficulty of combat required by the game's logic.
 
-    Relaxed: Requires the player have an ample amount of resources to defeat bosses and traverse areas. Should be
-    comfortable to anyone who has beaten the game. Bosses will not be a problem.
-    Normal: Requires the player have enough resources to defeat bosses and traverse areas with some wiggle room.
-    Bosses may be somewhat challenging.
+    Relaxed: Requires the player have an ample amount of resources to defeat bosses and traverse areas.
+    Normal: Requires the player have enough resources to defeat bosses and traverse areas with a bit of leniency.
     Minimal: Requires only the minimum amount of resources to complete the game. You may have to fight bosses like in
-    a low% run or find progression items deep in late-game areas with low energy.
+    a low% run or find early progression items deep in late-game areas.
     """
     display_name = "Combat Logic Difficulty"
     option_relaxed = 0
@@ -187,10 +184,9 @@ class HazardRuns(Choice):
     """
     Allows for traversing heated rooms and acid/lava dives without the appropriate suit(s) in logic.
 
-    Disabled: Hazard runs are not in logic. You will be expected to have Varia Suit before needing to traverse heat,
-    Gravity Suit before needing to traverse lava, and either suit before needing to traverse acid.
+    Disabled: Hazard runs are not in logic. Suits are expected before needing to traverse any hazard.
     Normal: Hazard runs are enabled, with somewhat lenient energy requirements. You will still need to be pretty fast!
-    Minimal: Hazard runs are enabled with stringent energy requirements, requiring the bare minimum energy that can make it through with clean movement.
+    Minimal: Hazard runs are enabled, requiring only the bare minimum energy that can make it through with clean movement.
     Warning -- some minimal hazard runs are REALLY tight!
     """
     display_name = "Hazard Runs"
@@ -206,7 +202,27 @@ class WalljumpsInLogic(Removed):
     display_name = "Wall Jumps In Logic"
 
 
-# TODO: turn into a general trick include/exclude option
+class TricksAllowed(OptionSet):
+    """
+    List of paths/tricks/hazard runs to always allow in logic, regardless of logic difficulty setting.
+    The names of valid tricks can be found in the tricks.py file here:
+    [[insert link when we have one]]
+    """
+    display_name = "Trick Allow List"
+    valid_keys = all_tricks
+
+
+class TricksDenied(OptionSet):
+    """
+    List of paths/tricks/hazard runs to never allow in logic, regardless of logic difficulty setting.
+    The names of valid tricks can be found in the tricks.py file here:
+    [[insert link when we have one]]
+    """
+    display_name = "Trick Deny List"
+    valid_keys = all_tricks
+
+
+# TODO: disable or keep?
 class TrickyShinesparks(Toggle):
     """
     If enabled, logic will include long, difficult, and/or unintuitive Shinesparks as valid methods of collecting
@@ -349,7 +365,8 @@ mzm_option_groups = [
         CombatLogicDifficulty,
         IBJInLogic,
         HazardRuns,
-        TrickyShinesparks
+        TricksAllowed,
+        TricksDenied,
     ]),
     OptionGroup("Quality of Life", [
         SkipChozodiaStealth,
@@ -386,6 +403,8 @@ class MZMOptions(PerGameCommonOptions):
     ibj_in_logic: IBJInLogic
     hazard_runs: HazardRuns
     walljumps_in_logic: WalljumpsInLogic
+    tricks_allowed: TricksAllowed
+    tricks_denied: TricksDenied
     tricky_shinesparks: TrickyShinesparks
     skip_chozodia_stealth: SkipChozodiaStealth
     buff_pb_drops: BuffPowerBombDrops

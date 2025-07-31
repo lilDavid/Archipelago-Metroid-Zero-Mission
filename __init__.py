@@ -13,12 +13,13 @@ from .client import MZMClient
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, location_count, mzm_location_name_groups
 from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, SpringBall, mzm_option_groups, \
-    CombatLogicDifficulty, GameDifficulty, WallJumps
+    CombatLogicDifficulty, GameDifficulty, WallJumps, LogicDifficulty, HazardRuns
 from .patch import MZMProcedurePatch, write_json_data
 from .patcher import MD5_US, MD5_US_VC
 from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
 from .regions import create_regions_and_connections
-from .rules import set_rules
+from .rules import set_location_rules
+from .tricks import tricks_normal, tricks_advanced, hazard_runs_normal, hazard_runs_minimal, tricks_allowed
 
 
 class MZMSettings(settings.Group):
@@ -80,6 +81,7 @@ class MZMWorld(World):
     removed_items: list[MZMItem]
 
     enabled_layout_patches: list[str]
+    trick_allow_list: list[str]
 
     junk_fill_items: list[str]
     junk_fill_cdf: list[int]
@@ -99,6 +101,28 @@ class MZMWorld(World):
         else:
             self.enabled_layout_patches = []
 
+        if self.options.logic_difficulty.value == LogicDifficulty.option_normal:
+            self.trick_allow_list = list(tricks_normal.keys())
+        elif self.options.logic_difficulty.value == LogicDifficulty.option_advanced:
+            self.trick_allow_list = list(tricks_normal.keys())
+            self.trick_allow_list.extend(tricks_advanced.keys())
+        else:
+            self.trick_allow_list = []
+
+        if self.options.hazard_runs == HazardRuns.option_normal:
+            self.trick_allow_list.extend(hazard_runs_normal.keys())
+        elif self.options.hazard_runs == HazardRuns.option_minimal:
+            self.trick_allow_list.extend(hazard_runs_minimal.keys())
+
+        for allowed_trick in self.options.tricks_allowed.value:
+            self.trick_allow_list.append(allowed_trick)
+        for denied_trick in self.options.tricks_denied.value:
+            # If a player has put the same trick in both allow and deny, the trick will not be used
+            if denied_trick in self.trick_allow_list:
+                self.trick_allow_list.remove(denied_trick)
+                
+        tricks_allowed.extend(self.trick_allow_list)
+
         if "Morph Ball" in self.options.start_inventory_from_pool:
             self.options.morph_ball = MorphBallPlacement(MorphBallPlacement.option_normal)
         if self.options.morph_ball == MorphBallPlacement.option_early:
@@ -112,8 +136,8 @@ class MZMWorld(World):
             self.starting_items.append(self.create_item("Fully Powered Suit"))
             self.locked_items.append(self.create_item("Nothing"))
 
-        if self.options.walljumps == WallJumps.option_enabled or \
-                self.options.walljumps == WallJumps.option_enabled_not_logical:
+        if (self.options.walljumps == WallJumps.option_enabled
+                or self.options.walljumps == WallJumps.option_enabled_not_logical):
             self.starting_items.append(self.create_item("Wall Jump"))
         if self.options.walljumps == WallJumps.option_disabled:
             self.removed_items.append(self.create_item("Wall Jump"))
@@ -185,7 +209,7 @@ class MZMWorld(World):
         self.multiworld.itempool += item_pool
 
     def set_rules(self) -> None:
-        set_rules(self, full_location_table)
+        set_location_rules(self, full_location_table)
         self.multiworld.completion_condition[self.player] = lambda state: (
             state.has("Mission Accomplished!", self.player))
 
@@ -238,6 +262,8 @@ class MZMWorld(World):
             "combat_logic_difficulty": self.options.combat_logic_difficulty.value,
             "ibj_in_logic": self.options.ibj_in_logic.value,
             "hazard_runs": self.options.hazard_runs.value,
+            "tricks_allowed": self.options.tricks_allowed.value,
+            "tricks_denied": self.options.tricks_denied.value,
             "tricky_shinesparks": self.options.tricky_shinesparks.value,
             "death_link": self.options.death_link.value,
             "remote_items": self.options.remote_items.value,
@@ -247,14 +273,14 @@ class MZMWorld(World):
     def get_filler_item_name(self) -> str:
         return self.multiworld.random.choices(self.junk_fill_items, cum_weights=self.junk_fill_cdf)[0]
 
-    def create_item(self, name: str, force_classification: Optional[ItemClassification] = None):
+    def create_item(self, name: str, force_classification: Optional[ItemClassification] = None) -> MZMItem:
         return MZMItem(name,
                        force_classification if force_classification is not None else item_data_table[name].progression,
                        self.item_name_to_id[name],
                        self.player)
 
     # Overridden so the extra minor items can be forced filler
-    def create_filler(self) -> Item:
+    def create_filler(self) -> MZMItem:
         return self.create_item(self.get_filler_item_name(), ItemClassification.filler)
 
     def create_tanks(self, item_name: str, count: int,

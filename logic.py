@@ -219,8 +219,7 @@ CanTrickySparks = all(
     Requirement.setting_enabled("tricky_shinesparks"),
     SpeedBooster,
 )
-NormalHazardRuns = Requirement.setting_is("hazard_runs", 1)
-MinimalHazardRuns = Requirement.setting_is("hazard_runs", 2)
+HazardRuns = Requirement.setting_atleast("hazard_runs", 1)
 
 # Miscellaneous rules
 CanFly = any(  # infinite vertical
@@ -248,14 +247,14 @@ CanHiWallJump = all(
     HiJump,
     CanWallJump
 )
-CanEnterHighMorphTunnel = any(
+CanEnterHighMorphTunnel = any(  # morph tunnel 5 tiles above ground
     CanIBJ,
     all(
         MorphBall,
         PowerGrip
     )
 )
-CanEnterMediumMorphTunnel = any(
+CanEnterMediumMorphTunnel = any(  # morph tunnel 3 or 4 tiles above ground
     CanEnterHighMorphTunnel,
     CanHiSpringBall
 )
@@ -263,7 +262,7 @@ RuinsTestEscape = all(
     any(
         all(
             NormalLogic,
-            CanHiGrip,
+            HiJump,
             CanWallJump
         ),
         CanIBJ,
