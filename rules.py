@@ -354,17 +354,11 @@ def set_location_rules(world: MZMWorld, locations):
 
     norfair_lowerrightshaft = {
             "Norfair Hi-Jump": Missiles,
-            "Norfair Right Shaft Near Hi-Jump": any(
-                CanIBJ,
-                CanHiGrip,
-                all(
-                    SpaceJump,
-                    PowerGrip
-                ),
-                Trick("Norfair Right Shaft Get-Around Walljump"),
-                CanReachEntrance("Norfair Bottom -> Norfair Lower Right Shaft")
-            )
         }
+
+    norfair_lowerrightshaft_by_hijump = {
+        "Norfair Right Shaft Near Hi-Jump": None
+    }
 
     lower_norfair = {
             "Norfair Lava Dive Left": all(
@@ -1072,6 +1066,7 @@ def set_location_rules(world: MZMWorld, locations):
             **norfair_behind_ice,
             **norfair_under_brinstar_elevator,
             **norfair_lowerrightshaft,
+            **norfair_lowerrightshaft_by_hijump,
             **lower_norfair,
             **norfair_screwattack,
             **norfair_behind_superdoor,
@@ -1333,7 +1328,7 @@ def norfair_shaft_to_under_elevator():
 
 # under elevator to lower right shaft
 def norfair_lower_right_shaft():
-    #RightShaftNearHiJumpRule = norfair_lowerrightshaft["Norfair Right Shaft Near Hi-Jump"] TODO work out a new region
+    LRSByHiJumpRule = norfair_lower_right_shaft_to_lrs_by_hijump()
     LowerNorfairAccess = norfair_lower_right_shaft_to_lower_norfair()
     return any(
         all(
@@ -1345,9 +1340,9 @@ def norfair_lower_right_shaft():
         ),
         all(
             SpeedBooster,
-            any(  # escape
+            any(  # escape via ballcannon
                 all(
-                    #RightShaftNearHiJumpRule,  # shorthand for accessing that area of the room
+                    LRSByHiJumpRule,
                     any(
                         Missiles,
                         CanVertical
@@ -1357,6 +1352,30 @@ def norfair_lower_right_shaft():
                 # to reach a save station and warp out
                 LowerNorfairAccess
             )
+        )
+    )
+
+
+# This region only contains the Lower Right Shaft By Hi-Jump item, and serves a pathfinding purpose
+def norfair_lower_right_shaft_to_lrs_by_hijump():
+    return any(
+        CanIBJ,
+        CanHiGrip,
+        all(
+            SpaceJump,
+            PowerGrip
+        ),
+        Trick("Norfair Right Shaft Get-Around Walljump")
+    )
+
+
+def by_hijump_to_lower_right_shaft():
+    return any(
+        CanIBJ,
+        all(
+            MorphBall,
+            PowerGrip,
+            CanFlyWall
         )
     )
 
@@ -1555,27 +1574,27 @@ def lower_norfair_to_lower_right_shaft():
     )
 
 
-def bottom_norfair_to_lower_shaft():
-    #BottomShaftLocationRule = norfair_bottom["Norfair Right Shaft Bottom"] TODO work out a new region
+def bottom_norfair_to_lower_shaft_by_hijump():
     return any(
         all(
             Missiles,
-            #BottomShaftLocationRule,
+            CanReachLocation("Norfair Right Shaft Bottom"),
             any(
                 CanBombTunnelBlock,
                 WaveBeam
             ),
             CanFlyWall,
-            any(
-                PowerGrip,
-                CanIBJ
-            )
         ),
         all(
+            NormalLogic,
             SpeedBooster,
-            NormalLogic
+            CanFlyWall
         ),
     )
+
+
+def bottom_norfair_to_right_shaft():
+    return SpeedBooster
 
 
 def bottom_norfair_to_ridley():
