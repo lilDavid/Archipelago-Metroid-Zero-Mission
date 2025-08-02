@@ -1524,7 +1524,7 @@ def lower_norfair_to_bottom_norfair():
         any(
             WaveBeam,
             Trick("Lower Norfair Wave Beam Skip Tricky Spark"),
-            Trick("Lower Norfair Wave Beam Skip Bombs")
+            Trick("Lower Norfair Wave Beam Skip With Bombs")
         ),
         any(  # Escape from under the first larva
             CanBallJump,
