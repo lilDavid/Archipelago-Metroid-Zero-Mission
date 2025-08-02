@@ -93,10 +93,7 @@ tricks_normal = {
     "Varia Area Access Enemy Freeze":
         all(
             IceBeam,
-            any(
-                CanVertical,
-                #Trick("Varia Area Access Tricky Spark") TODO how do
-            )
+            CanVertical
         ),
 
     # Precisely place a Power Bomb in the acid to break the bomb chain but not kill the bugs to open the Geron
@@ -348,6 +345,16 @@ tricks_advanced = {
         all(
             IceBeam,
             HiJump
+        ),
+
+    # Use Long Beam to destroy the top row of blocks, then place bombs along the top of the other row to clear out
+    # enough shot blocks to let you shoot the others out as you run through to get a speed charge
+    "Lower Norfair Wave Beam Skip With Bombs":
+        all(
+            Bomb,
+            LongBeam,
+            CanSpringBall,
+            VariaSuit  # I don't want to figure out reasonable hellruns doing this
         ),
 
     # Access the items in the Ridley Southwest Puzzle area without Power Grip by using a one-frame crumble jump

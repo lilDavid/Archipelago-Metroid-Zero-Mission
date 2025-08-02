@@ -1151,7 +1151,8 @@ def brinstar_top_to_varia():
             CanHorizontalIBJ,
             CanHiGrip,
             Trick("Varia Area Access Enemy Freeze"),
-            Trick("Varia Area Access Get-Around Walljump")
+            Trick("Varia Area Access Get-Around Walljump"),
+            Trick("Varia Area Access Tricky Spark")
         ),
         CanBallJump
     )
@@ -1518,11 +1519,12 @@ def lower_norfair_to_bottom_norfair():
         SpeedBooster,
         any(
             VariaSuit,
-            HazardRuns  # TODO: bomb method of doing this is not currently in logic, which will matter for hellruns
+            HazardRuns
         ),
         any(
             WaveBeam,
             Trick("Lower Norfair Wave Beam Skip Tricky Spark"),
+            Trick("Lower Norfair Wave Beam Skip Bombs")
         ),
         any(  # Escape from under the first larva
             CanBallJump,
