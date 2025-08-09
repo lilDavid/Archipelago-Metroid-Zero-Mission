@@ -19,7 +19,7 @@ from .patcher import MD5_US, MD5_US_VC
 from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
 from .regions import create_regions_and_connections
 from .rules import set_location_rules
-from .tricks import tricks_normal, tricks_advanced, hazard_runs_normal, hazard_runs_minimal, tricks_allowed
+from .tricks import tricks_normal, tricks_advanced, tricky_shinesparks, hazard_runs_normal, hazard_runs_minimal
 
 
 class MZMSettings(settings.Group):
@@ -106,6 +106,8 @@ class MZMWorld(World):
         elif self.options.logic_difficulty.value == LogicDifficulty.option_advanced:
             self.trick_allow_list = list(tricks_normal.keys())
             self.trick_allow_list.extend(tricks_advanced.keys())
+            #TODO just testing for now, determine if this is wanted
+            self.trick_allow_list.extend(tricky_shinesparks.keys())
         else:
             self.trick_allow_list = []
 
@@ -120,8 +122,6 @@ class MZMWorld(World):
             # If a player has put the same trick in both allow and deny, the trick will not be used
             if denied_trick in self.trick_allow_list:
                 self.trick_allow_list.remove(denied_trick)
-                
-        tricks_allowed.extend(self.trick_allow_list)
 
         if "Morph Ball" in self.options.start_inventory_from_pool:
             self.options.morph_ball = MorphBallPlacement(MorphBallPlacement.option_normal)

@@ -47,6 +47,15 @@ class Requirement(NamedTuple):
     def setting_contains(cls, setting: str, value: Any):
         return cls(lambda world, _: value in getattr(world.options, setting))
 
+    @classmethod
+    def trick_enabled(cls, trick: str):
+        return cls(lambda world, _: trick in world.trick_allow_list)
+
+    @classmethod
+    def trick_rule(cls, trick: str):
+        from .tricks import all_tricks
+        return all_tricks[trick]
+
 
 def all(*args: Requirement):
     return Requirement(lambda world, state: builtins.all(req.rule(world, state) for req in args))
@@ -76,6 +85,10 @@ LayoutPatches = lambda n: any(
         Requirement.setting_is("layout_patches", 2),
         Requirement.setting_contains("selected_patches", n)
     )
+)
+Trick = lambda n: all(
+    Requirement.trick_enabled(n),
+    Requirement.trick_rule(n)
 )
 
 NormalMode = Requirement.setting_is("game_difficulty", "normal")

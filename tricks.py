@@ -177,7 +177,7 @@ tricks_normal = {
 
     # Jump into the ceiling and shoot missiles to kill the first larva in the room with two
     "Norfair Larvae Room Missiles":
-        None,  # Access to this room already requires 2 missiles
+        Missiles,
 
     # Cross the fake floor in Ridley without flight or going the long way -- not that hard, but punishing to miss
     "Ridley Fake Floor Skip":
@@ -336,7 +336,7 @@ tricks_advanced = {
     # Freeze a Sova on the wall (with a low chance of being frozen) in a certain spot to jump up with just Hi-Jump
     # More annoying than difficult
     "Behind Ice Beam Shaft Hard Mode Enemy Freeze":
-        None,
+        IceBeam,
 
     # Kinda cursed enemy freeze to get up to Screw Attack area with just Hi-Jump. Requires very precise freeze
     # positions for the Sova, and good RNG (you need to freeze it twice and it resists freezing).
@@ -761,7 +761,3 @@ hazard_runs_minimal = {
 
 all_tricks = {**tricks_normal, **tricks_advanced, **tricks_lunatic, **tricky_shinesparks,
               **hazard_runs_normal, **hazard_runs_minimal}
-
-tricks_allowed = []
-
-Trick = lambda trick: all_tricks[trick] if trick in tricks_allowed else Requirement(lambda _, __: False)
