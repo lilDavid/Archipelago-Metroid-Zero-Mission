@@ -67,7 +67,7 @@ class MZMWorld(World):
 
     web = MZMWeb()
 
-    required_client_version = (0, 5, 0)
+    required_client_version = (0, 6, 3)
 
     item_name_to_id = {name: data.code for name, data in item_data_table.items()}
     location_name_to_id = {name: data.code for name, data in full_location_table.items()}
@@ -193,13 +193,13 @@ class MZMWorld(World):
 
         if self.options.combat_logic_difficulty == CombatLogicDifficulty.option_relaxed:
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 4, 5))  # 8 progression + 10 useful supers out of 30
-            item_pool.extend(self.create_tanks("Missile Tank", 50, 10))  # 50 progression missiles out of 250
+            item_pool.extend(self.create_missile_tanks(50, 10, 3))  # 50 progression missiles out of 250
         elif self.options.combat_logic_difficulty == CombatLogicDifficulty.option_normal:
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 3, 5))  # 6 progression + 10 useful supers out of 30
-            item_pool.extend(self.create_tanks("Missile Tank", 50, 8))  # 40 progression missiles out of 250
+            item_pool.extend(self.create_missile_tanks(50, 8))  # 40 progression missiles out of 250
         elif self.options.combat_logic_difficulty == CombatLogicDifficulty.option_minimal:
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 1, 3))  # 1 progression + 6 useful supers out of 30
-            item_pool.extend(self.create_tanks("Missile Tank", 50, 3))  # 15 progression missiles out of 250
+            item_pool.extend(self.create_missile_tanks(50, 3))  # 15 progression missiles out of 250
 
         if len(item_pool) > item_pool_size:
             item_pool = item_pool[:item_pool_size]  # Last items should always be filler missiles
@@ -284,17 +284,35 @@ class MZMWorld(World):
         return self.create_item(self.get_filler_item_name(), ItemClassification.filler)
 
     def create_tanks(self, item_name: str, count: int,
-                     progression_count: Optional[int] = None, useful_count: Optional[int] = None):
+                     progression_count: int | None = None, useful_count: int = 0,
+                     progression_balancing_count: int | None = None, non_priority: bool = False):
         if progression_count is None:
             progression_count = count
+        if progression_balancing_count is None:
+            skip_balancing_count = 0
+        else:
+            skip_balancing_count = progression_count - progression_balancing_count
+            progression_count = progression_balancing_count
         if useful_count is None:
             useful_count = 0
-        for _ in range(progression_count):
-            yield self.create_item(item_name)
+
+        if non_priority:
+            for _ in range(progression_count):
+                yield self.create_item(item_name, ItemClassification.progression_deprioritized)
+            for _ in range(skip_balancing_count):
+                yield self.create_item(item_name, ItemClassification.progression_deprioritized_skip_balancing)
+        else:
+            for _ in range(progression_count):
+                yield self.create_item(item_name)
+            for _ in range(skip_balancing_count):
+                yield self.create_item(item_name, ItemClassification.progression_skip_balancing)
         for _ in range(useful_count):
             yield self.create_item(item_name, ItemClassification.useful)
         for _ in range(count - progression_count - useful_count):
             yield self.create_item(item_name, ItemClassification.filler)
+
+    def create_missile_tanks(self, count: int, progression_count: int, balance_count: int = 3):
+        return self.create_tanks("Missile Tank", count, progression_count, 0, balance_count, True)
 
     def place_event(self, name: str, location_name: Optional[str] = None):
         if location_name is None:
