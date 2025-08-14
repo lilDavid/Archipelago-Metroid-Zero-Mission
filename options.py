@@ -2,11 +2,10 @@
 Option definitions for Metroid: Zero Mission
 """
 
-from schema import And, Schema
 from dataclasses import dataclass
 
 from Options import (
-    Choice, DeathLink, DefaultOnToggle, OptionDict, OptionGroup, OptionSet, StartInventoryPool, Toggle,
+    Choice, DeathLink, DefaultOnToggle, ItemDict, OptionGroup, OptionSet, StartInventoryPool, Toggle,
     PerGameCommonOptions, Removed, Visibility
 )
 
@@ -317,16 +316,14 @@ class ElevatorSpeed(Choice):
     default = option_fast
 
 
-class JunkFillWeights(OptionDict):
+class JunkFillWeights(ItemDict):
     """
     Specify the distribution of extra capacity expansions that should be used to fill vacancies in the pool.
     This option only has any effect if there are unfilled locations, e.g. when some items are removed.
     """
     display_name = "Junk Fill Weights"
     visibility = Visibility.template | Visibility.complex_ui | Visibility.spoiler
-    schema = Schema({item_name: And(int, lambda n: n >= 0) for item_name in (
-        "Missile Tank", "Super Missile Tank", "Power Bomb Tank", "Nothing"
-    )})
+    valid_keys = ["Missile Tank", "Super Missile Tank", "Power Bomb Tank", "Nothing"]
     default = {
         "Missile Tank": 1,
         "Super Missile Tank": 0,
