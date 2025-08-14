@@ -206,7 +206,7 @@ class TricksAllowed(OptionSet):
     """
     List of paths/tricks/hazard runs to always allow in logic, regardless of logic difficulty setting.
     The names of valid tricks can be found in the tricks.py file here:
-    [[insert link when we have one]]
+    https://github.com/lilDavid/Archipelago-Metroid-Zero-Mission/blob/main/tricks.py
     """
     display_name = "Trick Allow List"
     valid_keys = all_tricks
@@ -216,7 +216,7 @@ class TricksDenied(OptionSet):
     """
     List of paths/tricks/hazard runs to never allow in logic, regardless of logic difficulty setting.
     The names of valid tricks can be found in the tricks.py file here:
-    [[insert link when we have one]]
+    https://github.com/lilDavid/Archipelago-Metroid-Zero-Mission/blob/main/tricks.py
     """
     display_name = "Trick Deny List"
     valid_keys = all_tricks
@@ -365,6 +365,7 @@ mzm_option_groups = [
         CombatLogicDifficulty,
         IBJInLogic,
         HazardRuns,
+        TrickyShinesparks,
         TricksAllowed,
         TricksDenied,
     ]),
