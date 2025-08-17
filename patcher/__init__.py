@@ -41,6 +41,7 @@ class SeedConfig(TypedDict):
     skip_chozodia_stealth: NotRequired[bool]
     chozodia_requires_mother_brain: NotRequired[bool]
     start_with_maps: NotRequired[bool]
+    reveal_maps: NotRequired[bool]
     skip_tourian_opening_cutscenes: NotRequired[bool]
     elevator_speed: NotRequired[int]
 
@@ -123,10 +124,11 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
         config.get("separate_hijump_springball", False),
         config.get("skip_chozodia_stealth", False),
         config.get("start_with_maps", False),
+        config.get("reveal_maps", False),
         config.get("skip_tourian_opening_cutscenes", False),
         2 * PIXEL_SIZE * config.get("elevator_speed", 1),
     )
-    rom.write(get_rom_address("sRandoSeed"), struct.pack("<64s64s9B", *seed_info))
+    rom.write(get_rom_address("sRandoSeed"), struct.pack("<64s64s10B", *seed_info))
 
     if config.get("goal", "vanilla") == "bosses":
         rom.write(
@@ -137,6 +139,9 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
 
     if config.get("chozodia_requires_mother_brain", False):
         rom.write(get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * Area.TOURIAN), struct.pack("<H", 4))
+
+    if config.get("reveal_maps"):
+        rom.write(get_rom_address("sMinimapTilesPal"), pkgutil.get_data(__name__, "data/revealed_map_tile.pal"))
 
 
 def place_items(rom: LocalRom, locations: list[Location]):

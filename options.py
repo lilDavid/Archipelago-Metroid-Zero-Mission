@@ -118,7 +118,7 @@ class SkipChozodiaStealth(DefaultOnToggle):
 
 
 class StartWithMaps(DefaultOnToggle):
-    """Start the game with all map stations visited."""
+    """Reveal all map tiles, and start the game with all map stations visited."""
     display_name = "Start with Maps"
 
 
