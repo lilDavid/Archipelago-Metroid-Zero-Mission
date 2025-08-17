@@ -42,6 +42,7 @@ class SeedConfig(TypedDict):
     chozodia_requires_mother_brain: NotRequired[bool]
     start_with_maps: NotRequired[bool]
     reveal_maps: NotRequired[bool]
+    reveal_hidden_blocks: NotRequired[bool]
     skip_tourian_opening_cutscenes: NotRequired[bool]
     elevator_speed: NotRequired[int]
 
@@ -125,10 +126,11 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
         config.get("skip_chozodia_stealth", False),
         config.get("start_with_maps", False),
         config.get("reveal_maps", False),
+        config.get("reveal_hidden_blocks", False),
         config.get("skip_tourian_opening_cutscenes", False),
         2 * PIXEL_SIZE * config.get("elevator_speed", 1),
     )
-    rom.write(get_rom_address("sRandoSeed"), struct.pack("<64s64s10B", *seed_info))
+    rom.write(get_rom_address("sRandoSeed"), struct.pack("<64s64s11B", *seed_info))
 
     if config.get("goal", "vanilla") == "bosses":
         rom.write(

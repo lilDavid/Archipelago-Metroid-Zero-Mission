@@ -122,6 +122,11 @@ class StartWithMaps(DefaultOnToggle):
     display_name = "Start with Maps"
 
 
+class RevealHiddenBlocks(DefaultOnToggle):
+    """Reveal the types of destructible blocks."""
+    display_name = "Reveal Hidden Blocks"
+
+
 class BuffPowerBombDrops(Toggle):
     """Make Power Bombs drop from enemies twice as often and give 2 units of ammo."""
     display_name = "Buff Power Bomb Drops"
@@ -372,6 +377,7 @@ mzm_option_groups = [
         PlasmaBeamHint,
         ElevatorSpeed,
         StartWithMaps,
+        RevealHiddenBlocks,
         FastItemBanners,
         SkipTourianOpeningCutscenes,
     ]),
@@ -409,6 +415,7 @@ class MZMOptions(PerGameCommonOptions):
     plasma_beam_hint: PlasmaBeamHint
     elevator_speed: ElevatorSpeed
     start_with_maps: StartWithMaps
+    reveal_hidden_blocks: RevealHiddenBlocks
     fast_item_banners: FastItemBanners
     skip_tourian_opening_cutscenes: SkipTourianOpeningCutscenes
     display_nonlocal_items: DisplayNonLocalItems

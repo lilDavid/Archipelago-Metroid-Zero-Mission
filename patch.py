@@ -124,6 +124,7 @@ def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
         "chozodia_requires_mother_brain": world.options.chozodia_access.value == ChozodiaAccess.option_closed,
         "start_with_maps": bool(world.options.start_with_maps),
         "reveal_maps": bool(world.options.start_with_maps),
+        "reveal_hidden_blocks": bool(world.options.reveal_hidden_blocks),
         "skip_tourian_opening_cutscenes": bool(world.options.skip_tourian_opening_cutscenes),
         "elevator_speed": world.options.elevator_speed.value,
     }
