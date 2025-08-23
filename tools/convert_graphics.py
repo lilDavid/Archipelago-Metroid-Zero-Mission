@@ -70,8 +70,10 @@ def convert_file(in_file: Path) -> tuple[bytes, bytes]:
 
 
 def main():
-    graphics_dir = Path(__file__).parents[1] / "patcher/data/item_sprites"
-    for file in graphics_dir.glob("*.png"):
+    data_dir = Path(__file__).parents[1] / "patcher/data"
+    item_sprites = data_dir / "item_sprites"
+
+    for file in data_dir.rglob("*.png"):
         try:
             gfx, pal = convert_file(file)
             with open(file.with_suffix(".gfx"), "wb") as stream:
@@ -83,17 +85,18 @@ def main():
 
     # TODO: Handle AP logo and unneeded palettes better than this
 
-    with open(graphics_dir / "ap_logo.gfx", "rb") as stream:
+    with open(item_sprites / "ap_logo.gfx", "rb") as stream:
         ap_logo_gfx = stream.read()
-    with open(graphics_dir / "ap_logo.gfx", "wb") as stream:
+    with open(item_sprites / "ap_logo.gfx", "wb") as stream:
         stream.write(ap_logo_gfx[:512])
-    with open(graphics_dir / "ap_logo_progression.gfx", "wb") as stream:
+    with open(item_sprites / "ap_logo_progression.gfx", "wb") as stream:
         stream.write(ap_logo_gfx[512:1024])
-    with open(graphics_dir / "ap_logo_useful.gfx", "wb") as stream:
+    with open(item_sprites / "ap_logo_useful.gfx", "wb") as stream:
         stream.write(ap_logo_gfx[1024:])
 
-    (graphics_dir / "reserve_tank.pal").unlink()
+    (item_sprites / "reserve_tank.pal").unlink()
 
+    (data_dir / "pause_screen/warp.pal").unlink()
 
 if __name__ == "__main__":
     main()

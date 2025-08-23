@@ -10,7 +10,7 @@ FILES="
     *.py
 "
 EXCLUDE="
-    patcher/data/item_sprites/*.png
+    patcher/data/*/*.png
     patcher/data/item_sprites/README.md
 "
 if [ $# -ge 1 ]; then

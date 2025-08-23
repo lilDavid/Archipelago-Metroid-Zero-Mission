@@ -182,6 +182,10 @@ class Message:
         self.buffer = buffer
         return self
 
+    def center_align(self, line_width: int = LINE_WIDTH):
+        pad = ((line_width - self.display_width()) // 2) & 0xFF
+        return self.insert(0, 0x8000 | pad)
+
     def to_bytes(self):
         return bytes(itertools.chain.from_iterable(c.to_bytes(2, "little") for c in self))
 
@@ -215,12 +219,8 @@ class Message:
 
 
 def make_item_message(first: str, second: str) -> Message:
-    first_msg = Message(first).trim_to_max_width().insert(0, 0x8105)
-    pad = ((224 - first_msg.display_width()) // 2) & 0xFF
-    first_msg.insert(0, 0x8000 | pad)
+    first_msg = Message(first).trim_to_max_width().insert(0, 0x8105).center_align()
     first_msg.append(NEWLINE)
-    second_msg = Message(second).trim_to_max_width()
-    pad = ((224 - second_msg.display_width()) // 2) & 0xFF
-    second_msg.insert(0, 0x8000 | pad)
+    second_msg = Message(second).trim_to_max_width().center_align()
     second_msg.append(TERMINATOR_CHAR)
     return first_msg + second_msg

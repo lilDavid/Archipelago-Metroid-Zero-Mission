@@ -8,13 +8,14 @@ from typing import Literal, NotRequired, TypedDict, cast
 
 import bsdiff4
 
+from . import lz10
 from .backgrounds import patch_chozodia_spotlight, write_item_clipdata_and_gfx
 from .constants import RC_COUNT, PIXEL_SIZE, Area, Event, ItemType
 from .items import item_data_table
 from .layout_patches import apply_layout_patches
 from .local_rom import LocalRom, get_rom_address
 from .sprites import builtin_sprite_pointers, sprite_imports, write_decompressed_item_sprites
-from .text import TERMINATOR_CHAR, Message, make_item_message
+from .text import NEWLINE, TERMINATOR_CHAR, Message, make_item_message
 
 
 MD5_US = "ebbce58109988b6da61ebb06c7a432d5"
@@ -93,6 +94,8 @@ def patch_rom(data: bytes, patch: PatchJson) -> bytes:
     patch_chozodia_spotlight(rom)
     apply_layout_patches(rom, patch.get("layout_patches", []))
 
+    write_warp_to_start_cosmetics(rom)
+
     write_text(rom, patch.get("text", {}))
 
     return rom.to_bytes()
@@ -143,7 +146,7 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
         rom.write(get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * Area.TOURIAN), struct.pack("<H", 4))
 
     if config.get("reveal_maps"):
-        rom.write(get_rom_address("sMinimapTilesPal"), pkgutil.get_data(__name__, "data/revealed_map_tile.pal"))
+        rom.write(get_rom_address("sMinimapTilesPal"), pkgutil.get_data(__name__, "data/pause_screen/revealed_map_tile.pal"))
 
 
 def place_items(rom: LocalRom, locations: list[Location]):
@@ -242,6 +245,30 @@ def write_start_inventory(rom: LocalRom, start_inventory: dict[str, int | bool])
     rom.write(
         get_rom_address("sRandoStartingInventory"),
         struct.pack("<BxHBBBBB", *pickups, beams, misc, custom)
+    )
+
+
+def write_warp_to_start_cosmetics(rom: LocalRom):
+    menu_names = rom.decompress_lzss(get_rom_address("sMenuNamesEnglishGfx"))
+    edited_menu_names = lz10.compress(menu_names[:0x20] +
+                                      pkgutil.get_data(__name__, f"data/pause_screen/warp.gfx") +
+                                      menu_names[0x80:])
+    assert len(edited_menu_names) <= len(menu_names)
+    rom.write(get_rom_address("sMenuNamesEnglishGfx"), edited_menu_names)
+
+    warp_to_start_text = [Message(line).center_align() for line in [
+        "Warp to start?",
+        "You will be returned to your starting",
+        "location, and your progress will be",
+        "reset to your last save."
+    ]]
+    line_1 = warp_to_start_text[0].append(NEWLINE) + warp_to_start_text[1].append(TERMINATOR_CHAR)
+    line_2 = warp_to_start_text[2].append(NEWLINE) + warp_to_start_text[3].append(TERMINATOR_CHAR)
+    line_1_ptr = rom.append(line_1.to_bytes())
+    line_2_ptr = rom.append(line_2.to_bytes())
+    rom.write(
+        get_rom_address(f"sEnglishTextPointers_Message", 4 * 36),
+        struct.pack("<II", line_1_ptr, line_2_ptr)
     )
 
 
