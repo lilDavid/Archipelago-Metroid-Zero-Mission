@@ -48,6 +48,10 @@ class Requirement(NamedTuple):
         return cls(lambda world, _: value in getattr(world.options, setting))
 
     @classmethod
+    def has_metroid_dna(cls):
+        return cls(lambda world, state: state.has("Metroid DNA", world.player, world.options.metroid_dna_required.value))
+
+    @classmethod
     def trick_enabled(cls, trick: str):
         return cls(lambda world, _: trick in world.trick_allow_list)
 
@@ -415,5 +419,9 @@ ReachedGoal = any(
         Requirement.setting_is("goal", "bosses"),
         MotherBrainBoss,
         ChozoGhostBoss
+    ),
+    all(
+        Requirement.setting_is("goal", "metroid_dna"),
+        Requirement.has_metroid_dna(),
     ),
 )

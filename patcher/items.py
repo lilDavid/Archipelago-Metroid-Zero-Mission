@@ -44,4 +44,6 @@ item_data_table = {
     "Fully Powered Suit": ItemData(ItemType.CUSTOM,              0, 1 << 7, Sprite.GravitySuit,      get_symbol("sEnglishText_Message_FullyPoweredSuit"),                       0x1D3),  # TODO: Custom sprite
     "Wall Jump":          ItemData(ItemType.CUSTOM,              0, 1 << 0, Sprite.WallJump,         "Wall Jump",                                                                0x76),
     "Spring Ball":        ItemData(ItemType.CUSTOM,              0, 1 << 1, Sprite.SpringBall,       "Spring Ball",                                                              0x70),
+
+    "Metroid DNA":        ItemData(ItemType.METROID_DNA,         0,      1, Sprite.MetroidDNA,       "Metroid DNA acquired.",                                                   0x172),
 }

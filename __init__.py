@@ -12,7 +12,7 @@ from worlds.AutoWorld import WebWorld, World
 from .client import MZMClient
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, location_count, mzm_location_name_groups
-from .options import FullyPoweredSuit, LayoutPatches, MZMOptions, MorphBallPlacement, SpringBall, mzm_option_groups, \
+from .options import FullyPoweredSuit, Goal, LayoutPatches, MZMOptions, MorphBallPlacement, SpringBall, mzm_option_groups, \
     CombatLogicDifficulty, GameDifficulty, WallJumps, LogicDifficulty, HazardRuns
 from .patch import MZMProcedurePatch, write_json_data
 from .patcher import MD5_US, MD5_US_VC
@@ -93,6 +93,9 @@ class MZMWorld(World):
         self.removed_items = []
         self.junk_fill_items = list(self.options.junk_fill_weights.value.keys())
         self.junk_fill_cdf = list(itertools.accumulate(self.options.junk_fill_weights.value.values()))
+
+        if self.options.metroid_dna_available.value < self.options.metroid_dna_required.value:
+            self.options.metroid_dna_available = self.options.metroid_dna_required
 
         if self.options.layout_patches.value == LayoutPatches.option_true:
             self.enabled_layout_patches = list(LAYOUT_PATCH_MAPPING.keys())
@@ -181,6 +184,9 @@ class MZMWorld(World):
         for name in major_item_data_table:
             if name not in removed_majors:
                 item_pool.append(self.create_item(name))
+
+        if self.options.goal.value == Goal.option_metroid_dna:
+            item_pool.extend(self.create_tanks("Metroid DNA", self.options.metroid_dna_available, progression_balancing_count=0))
 
         # TODO: factor in hazard runs when determining etank progression count
         item_pool.extend(self.create_tanks("Energy Tank", 12))  # All energy tanks progression

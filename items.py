@@ -14,6 +14,7 @@ progression = ItemClassification.progression
 filler = ItemClassification.filler
 useful = ItemClassification.useful
 trap = ItemClassification.trap
+skip_balancing = ItemClassification.progression_skip_balancing
 
 
 class MZMItem(Item):
@@ -32,10 +33,11 @@ class ItemData:
 
 
 tank_data_table = {
-    "Energy Tank":        ItemData(progression,  0, "Energy Tank"),
-    "Missile Tank":       ItemData(progression,  1, "Missile Tank"),
-    "Super Missile Tank": ItemData(progression,  2, "Super Missile Tank"),
-    "Power Bomb Tank":    ItemData(progression,  3, "Power Bomb Tank"),
+    "Energy Tank":        ItemData(progression,     0, "Energy Tank"),
+    "Missile Tank":       ItemData(progression,     1, "Missile Tank"),
+    "Super Missile Tank": ItemData(progression,     2, "Super Missile Tank"),
+    "Power Bomb Tank":    ItemData(progression,     3, "Power Bomb Tank"),
+    "Metroid DNA":        ItemData(skip_balancing, 22, "Metroid DNA"),
 }
 
 major_item_data_table = {

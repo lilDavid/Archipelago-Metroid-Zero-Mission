@@ -40,6 +40,7 @@ class Sprite(StrEnum):
     WallJump = "Wall Jump"
     PowerBeam = "Power Beam"
     SpiderBall = "Spider Ball"
+    MetroidDNA = "Metroid DNA"
 
 
 builtin_sprite_pointers: Mapping[Sprite, int] = {
@@ -83,6 +84,7 @@ sprite_imports: Mapping[Sprite, tuple[str | int, str | int]] = {
     Sprite.WallJump: (get_symbol("sRandoHiJumpGfx"), "wall_jump.pal"),
     Sprite.PowerBeam: ("power_beam.gfx", "power_beam.pal"),
     Sprite.SpiderBall: ("spider_ball.gfx", "spider_ball.pal"),
+    Sprite.MetroidDNA: ("metroid_dna.gfx", get_symbol("sCommonTilesPal")),
 }
 
 

@@ -33,7 +33,7 @@ class PatchJson(TypedDict):
 
 
 class SeedConfig(TypedDict):
-    goal: NotRequired[Literal["vanilla", "bosses"]]
+    goal: NotRequired[Literal["vanilla", "bosses", "metroid_dna"]]
     difficulty: NotRequired[Literal["normal", "hard", "either"]]
     remove_gravity_heat_resistance: NotRequired[bool]
     power_bombs_without_bomb: NotRequired[bool]
@@ -46,6 +46,7 @@ class SeedConfig(TypedDict):
     reveal_hidden_blocks: NotRequired[bool]
     skip_tourian_opening_cutscenes: NotRequired[bool]
     elevator_speed: NotRequired[int]
+    metroid_dna_required: NotRequired[int]
 
 
 class Location(TypedDict):
@@ -132,13 +133,23 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
         config.get("reveal_hidden_blocks", False),
         config.get("skip_tourian_opening_cutscenes", False),
         2 * PIXEL_SIZE * config.get("elevator_speed", 1),
-    )
-    rom.write(get_rom_address("sRandoSeed"), struct.pack("<64s64s11B", *seed_info))
 
-    if config.get("goal", "vanilla") == "bosses":
+        config.get("metroid_dna_required", 0),
+    )
+    rom.write(get_rom_address("sRandoSeed"), struct.pack("<64s64s12B", *seed_info))
+
+    goal = config.get("goal", "vanilla")
+    if goal != "vanilla":
+        if goal == "bosses":
+            event = Event.MOTHER_BRAIN_KILLED
+        elif goal == "metroid_dna":
+            event = Event.METROID_DNA_ACQUIRED
+        else:
+            raise ValueError(f"Invalid goal: {goal}")
+
         rom.write(
             get_rom_address("sHatchLockEventsChozodia", 8 * 15 + 1),  # sHatchLockEventsChozodia[15].event
-            struct.pack("<B", Event.MOTHER_BRAIN_KILLED)
+            struct.pack("<B", event)
         )
         rom.write(get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * Area.CHOZODIA), struct.pack("<H", 16))
 

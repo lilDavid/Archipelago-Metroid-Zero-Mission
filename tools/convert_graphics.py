@@ -95,6 +95,7 @@ def main():
         stream.write(ap_logo_gfx[1024:])
 
     (item_sprites / "reserve_tank.pal").unlink()
+    (item_sprites / "metroid_dna.pal").unlink()
 
     (data_dir / "pause_screen/warp.pal").unlink()
 
