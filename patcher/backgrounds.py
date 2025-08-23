@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from enum import IntEnum
 import itertools
 import struct
-from typing import NamedTuple
+from typing import NamedTuple, cast
 
 from . import iterators, lz10, rle
 from .constants import Area
@@ -92,6 +94,7 @@ class RoomInfo(NamedTuple):
     bg3: BackgroundInfo
     clipdata: BackgroundInfo
     default_sprite_data_address: int
+    address: int
 
     @classmethod
     def from_pointer(cls, rom: LocalRom, ptr: int):
@@ -106,8 +109,33 @@ class RoomInfo(NamedTuple):
         bg3 = BackgroundInfo.from_data(rom, bg3_prop, bg3_ptr)
         clipdata = BackgroundInfo.from_data(rom, BackgroundProperties.RLE_COMPRESSED, clipdata_ptr)
         default_sprites = default_sprite_ptr
-        return cls(bg0, bg1, bg2, bg3, clipdata, default_sprites)
+        return cls(bg0, bg1, bg2, bg3, clipdata, default_sprites, ptr)
 
+    @staticmethod
+    def _raise_bg_number(bg: int):
+        if bg not in range(4):
+            raise ValueError(f"Invalid background number: {bg}")
+
+    def _tilemap_ptr_address(self, index: int):
+        return self.address + struct.calcsize("<xBBBBxxx") + 4 * index
+
+    def bg_ptr_address(self, bg: int):
+        self._raise_bg_number(bg)
+        if bg == 3:
+            bg += 1
+        return self._tilemap_ptr_address(bg)
+
+    def clipdata_ptr_address(self):
+        return self._tilemap_ptr_address(3)
+
+    def write_background(self, bg_number: int, tilemap: BackgroundTilemap):
+        self._raise_bg_number(bg_number)
+        background = cast(BackgroundInfo, self[bg_number])
+        tilemap.write(background.rom, self.bg_ptr_address(bg_number), background.rom_address())
+
+    def write_clipdata(self, tilemap: BackgroundTilemap):
+        clipdata = self.clipdata
+        tilemap.write(clipdata.rom, self.clipdata_ptr_address(), clipdata.rom_address())
 
 class BackgroundTilemap:
     width: int
@@ -115,9 +143,9 @@ class BackgroundTilemap:
     compression: BackgroundProperties
     bg_size: int | None
     decompressed: bytearray
-    max_compressed_size: int | None
+    compressed_size: int
 
-    def __init__(self, compressed_data: memoryview, compression: BackgroundProperties, max_compressed_size: int | None = None):
+    def __init__(self, compressed_data: memoryview, compression: BackgroundProperties, vanilla_size: int = 0):
         if compression & BackgroundProperties.RLE_COMPRESSED:
             self.width = compressed_data[0]
             self.height = compressed_data[1]
@@ -134,10 +162,10 @@ class BackgroundTilemap:
             self.decompressed = lz10.decompress(compressed_data[4:])
         else:
             raise ValueError(f"Invalid background properties: {compression:02x}")
-        self.max_compressed_size = max_compressed_size
+        self.compressed_size = vanilla_size
 
     @classmethod
-    def from_info(cls, info: BackgroundInfo, max_compressed_size: int | None = None):
+    def from_info(cls, info: BackgroundInfo, max_compressed_size: int = 0):
         return cls(info.compressed_data(), info.properties, max_compressed_size)
 
     def set(self, x: int, y: int, tile: int, original_tile: int | None = None):
@@ -153,9 +181,14 @@ class BackgroundTilemap:
             compressed_data = bytes((self.width, self.height)) + rle.compress(self.decompressed)
         if self.compression == BackgroundProperties.LZ77_COMPRESSED:
             compressed_data = self.bg_size.to_bytes(4, "little") + lz10.compress(self.decompressed)
-        if self.max_compressed_size is not None and len(compressed_data) > self.max_compressed_size:
-            raise ValueError(f"Compressed size over limit (size: {len(compressed_data)}, limit: {self.max_compressed_size})")
         return compressed_data
+
+    def write(self, rom: LocalRom, ptr_address: int, data_address: int):
+        data = self.to_compressed_data()
+        if len(data) > self.compressed_size:
+            rom.write(ptr_address, rom.append(data).to_bytes(4, "little"))
+        else:
+            rom.write(data_address, data)
 
     def to_halfword_matrix(self) -> list[list[int]]:
         return tuple(iterators.batched(itertools.chain.from_iterable(struct.iter_unpack("<H", self.decompressed)), self.width))
@@ -286,6 +319,7 @@ def patch_chozodia_spotlight(rom: LocalRom):
             tile_info = tile & 0x0FFF
             chozodia_before_map_bg0.set(x, y, tile_info | (0 << 12))
     rom.write(chozodia_before_map.rom_address(), chozodia_before_map_bg0.to_compressed_data())
+
     chozodia_dark_spotlight = get_backgrounds(rom, Area.CHOZODIA, 25).bg0
     chozodia_dark_spotlight_bg0 = BackgroundTilemap.from_info(chozodia_dark_spotlight, 356)
     for y, row in enumerate(chozodia_dark_spotlight_bg0.to_halfword_matrix()):
