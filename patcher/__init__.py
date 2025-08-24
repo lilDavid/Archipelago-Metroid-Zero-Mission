@@ -203,11 +203,11 @@ def place_items(rom: LocalRom, locations: list[Location]):
         item_data = item_data_table[item_name]
         sprite_pointer = get_or_insert_sprite(item_data.sprite if sprite_name is None else sprite_name)
         if message is None:
-            if type(item_data.message) is int:
-                message_pointer = item_data.message
+            if item_data.message is None:
+                message_pointer = 0
                 one_line = True
             else:
-                message = cast(str, item_data.message)
+                message = item_data.message
         if message is not None:
             message_lines = message.splitlines()
             one_line = len(message_lines) <= 1
