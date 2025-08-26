@@ -151,7 +151,6 @@ def crateria_water_speedway(rom: LocalRom):
     # Change speed booster blocks in watery room next to elevator to beam blocks
     # This allows reaching the ship to warp out with no requirements
     # Without this, it is easy to get locked in Crateria early, unable to get back to central Norfair
-    # TODO: additionally change the landing site to not require a walljump to reach the ship when this patch is on
     crateria_water_speedway = get_backgrounds(rom, Area.CRATERIA, 11)
     clipdata = BackgroundTilemap.from_info(crateria_water_speedway.clipdata, 150)
     clipdata.set(0x11, 0xA, Clipdata.LARGE_BEAM_BLOCK_NW_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
@@ -160,7 +159,20 @@ def crateria_water_speedway(rom: LocalRom):
     clipdata.set(0x12, 0xB, Clipdata.LARGE_BEAM_BLOCK_SE_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     clipdata.set(0x13, 0xB, Clipdata.BEAM_BLOCK_NO_REFORM, Clipdata.SPEED_BOOSTER_BLOCK_NO_REFORM)
     crateria_water_speedway.write_clipdata(clipdata)
-
+    # Additionally, raise a slope by one tile to allow access to the ship to save with no items or walljumps
+    crateria_landing_site_0 = get_backgrounds(rom, Area.CRATERIA, 0)
+    crateria_landing_site_5 = get_backgrounds(rom, Area.CRATERIA, 5)
+    landing_site_data = {
+        crateria_landing_site_0: 664,  # Room : Clipdata size
+        crateria_landing_site_5: 712,
+    }
+    for room in landing_site_data:
+        clipdata = BackgroundTilemap.from_info(room.clipdata, landing_site_data[room])
+        bg1 = BackgroundTilemap.from_info(room.bg1, 1429)  # Conveniently both have the same size bg1
+        clipdata.set(0x42, 0x44, Clipdata.LOWER_SLIGHT_SLOPE_FALLING, Clipdata.AIR)
+        bg1.set(0x42, 0x44, 0x69, 0xCF)
+        room.write_clipdata(clipdata)
+        room.write_background(1, bg1)
 
 def crateria_left_of_grip(rom: LocalRom):
     # Change the room left of the Power Grip climb to be escapable with the same requirements as the climb itself

@@ -14,6 +14,7 @@ class Clipdata(IntEnum):
     AIR = 0x00
     SOLID = 0x10
     STEEP_SLOPE_RISING = 0x11  # Positive gradient, like /
+    LOWER_SLIGHT_SLOPE_FALLING = 0x16  # Negative gradient, like \, lower half
     ELEVATOR_UP = 0x29
     VERY_DUSTY_GROUND = 0x2D
     BEAM_BLOCK_NEVER_REFORM = 0x52
