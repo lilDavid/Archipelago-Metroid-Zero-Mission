@@ -306,18 +306,34 @@ def set_location_rules(world: MZMWorld, locations):
         }
 
     norfair_upper_right = {
-            "Norfair Ice Beam": any(
-                CanFly,
-                PowerGrip,
-                all(
-                    HazardRuns,
-                    CanWallJump
+            "Norfair Ice Beam": all(
+                any(
+                    CanFly,
+                    PowerGrip,
+                    all(
+                        HazardRuns,
+                        CanWallJump
+                    ),
+                    all(
+                        IceBeam,
+                        HardMode
+                    ),
+                    Trick("Norfair Ice Beam Hi-Jump Only")
                 ),
-                all(
-                    IceBeam,
-                    HardMode
-                ),
-                Trick("Norfair Ice Beam Hi-Jump Only")
+                any(  # Escape
+                    SuperMissiles,
+                    all(
+                        any(
+                            CanLongBeam(2),
+                            WaveBeam
+                        ),
+                        any(
+                            IceBeam,
+                            CanFlyWall,
+                            CanHiGrip
+                        )
+                    )
+                )
             ),
             "Norfair Heated Room Above Ice Beam": any(
                 VariaSuit,
@@ -1283,7 +1299,7 @@ def norfair_behind_ice_beam():
     return all(
         CanReachLocation("Norfair Ice Beam"),
         any(
-            CanLongBeam(1),
+            CanLongBeam(2),
             WaveBeam
         ),
         MorphBall,
