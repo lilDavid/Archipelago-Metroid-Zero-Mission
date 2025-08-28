@@ -201,6 +201,8 @@ class MZMWorld(World):
             item_pool.extend(self.create_tanks("Super Missile Tank", 15, 1, 3))  # 1 progression + 6 useful supers out of 30
             item_pool.extend(self.create_missile_tanks(50, 3))  # 15 progression missiles out of 250
 
+        print(len(item_pool))
+
         if len(item_pool) > item_pool_size:
             item_pool = item_pool[:item_pool_size]  # Last items should always be filler missiles
         while len(item_pool) < item_pool_size:
@@ -308,7 +310,7 @@ class MZMWorld(World):
                 yield self.create_item(item_name, ItemClassification.progression_skip_balancing)
         for _ in range(useful_count):
             yield self.create_item(item_name, ItemClassification.useful)
-        for _ in range(count - progression_count - useful_count):
+        for _ in range(count - progression_count - skip_balancing_count - useful_count):
             yield self.create_item(item_name, ItemClassification.filler)
 
     def create_missile_tanks(self, count: int, progression_count: int, balance_count: int = 3):
