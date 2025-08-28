@@ -5,11 +5,11 @@ from .sprites import Sprite
 
 
 class ItemData(NamedTuple):
-    type: ItemType  # used for determining the memory address to write bits to as each go somewhere different
-    acquisition: int
+    type: ItemType  # Used for determining the memory address to write bits to as each go somewhere different
+    acquisition: int  # Acquisition value (= message ID) of vanilla item
     bits: int
     sprite: Sprite
-    message: str | None  # Custom message text if str; vanilla message (= acquisition) if none
+    message: str | None  # Custom message text if str; defer to basepatch if none
     sound: int
 
 
@@ -40,7 +40,7 @@ item_data_table = {
     "Space Jump":         ItemData(ItemType.MAJOR,              20, 1 << 2, Sprite.SpaceJump,        "Space Jump",                       0x6B),
     "Power Grip":         ItemData(ItemType.MAJOR,              21, 1 << 7, Sprite.PowerGrip,        None,                               0x7B),
 
-    "Fully Powered Suit": ItemData(ItemType.CUSTOM,              0, 1 << 7, Sprite.GravitySuit,      None,                              0x1D3),  # TODO: Custom sprite
+    "Fully Powered Suit": ItemData(ItemType.CUSTOM,             32, 1 << 7, Sprite.GravitySuit,      None,                              0x1D3),  # TODO: Custom sprite
     "Wall Jump":          ItemData(ItemType.CUSTOM,              0, 1 << 0, Sprite.WallJump,         "Wall Jump",                        0x76),
     "Spring Ball":        ItemData(ItemType.CUSTOM,              0, 1 << 1, Sprite.SpringBall,       "Spring Ball",                      0x70),
 
