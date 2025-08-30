@@ -4,7 +4,7 @@ import hashlib
 import logging
 import pkgutil
 import struct
-from typing import Literal, NotRequired, TypedDict, cast
+from typing import Literal, NotRequired, TypedDict
 
 import bsdiff4
 
@@ -15,6 +15,7 @@ from .items import item_data_table
 from .layout_patches import apply_layout_patches
 from .local_rom import LocalRom, get_rom_address
 from .sprites import builtin_sprite_pointers, sprite_imports, write_decompressed_item_sprites
+from .symbols import get_symbol
 from .text import NEWLINE, TERMINATOR_CHAR, Message, make_item_message
 
 
@@ -144,6 +145,7 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
             event = Event.MOTHER_BRAIN_KILLED
         elif goal == "metroid_dna":
             event = Event.METROID_DNA_ACQUIRED
+            write_metroid_dna_status_screen_patch(rom)
         else:
             raise ValueError(f"Invalid goal: {goal}")
 
@@ -158,6 +160,87 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
 
     if config.get("reveal_maps"):
         rom.write(get_rom_address("sMinimapTilesPal"), pkgutil.get_data(__name__, "data/pause_screen/revealed_map_tile.pal"))
+
+
+def _make_tile_bytes(tile_id: int, palette: int, hflip=False, vflip=False):
+    return (tile_id | hflip << 10 | vflip << 11 | palette << 12).to_bytes(2, "little")
+
+
+def write_metroid_dna_status_screen_patch(rom: LocalRom):
+    def get_frame_address(animation_index, frame_number) -> int:
+        frame_data_ptr, = rom.read(get_rom_address("sPauseScreenMiscOam", 8 * animation_index), "<I")
+        return get_rom_address(frame_data_ptr, 8 * frame_number)
+
+    def shift_sprite(array_address, index, x_amount):
+        sprite_address = array_address + 2 * (1 + 3 * index)
+        attr1, = rom.read(sprite_address + 2, "<H")
+        x = ((attr1 & 0x1FF) + x_amount) & 0x1FF
+        attr1 = (attr1 & 0xFE00) | x
+        rom.write(sprite_address + 2, struct.pack("<H", attr1))
+
+    # Add DNA header
+    frame_data = struct.pack("<I", get_symbol("sRandoOam_EnergyDNAHeader"))
+    rom.write(get_frame_address(23, 0), frame_data)
+
+    # Shift bomb category pointer graphic
+    for i, frame_count in enumerate([1, 2, 2, 3, 2, 3, 4, 5, 2]):
+        oam_ptr, = rom.read(get_frame_address(33, i), "<I")
+        oam_addr = get_rom_address(oam_ptr)
+        for j in range(frame_count):
+            shift_sprite(oam_addr, j, 1)
+    oam_ptr, = rom.read(get_frame_address(33, 8), "<I")
+    shift_sprite(get_rom_address(oam_ptr), 3, 1)
+
+    # Add sprite tiles
+    sprites_gfx = rom.decompress_lzss(get_rom_address("sTankIconsGfx"))
+    edited_gfx = bytearray(sprites_gfx)
+    edited_gfx[0x29C0:0x2A80] = bytes(64) + pkgutil.get_data(__name__, "data/pause_screen/dna_bar_sprite.gfx")
+    edited_gfx = lz10.compress(edited_gfx)
+    assert len(edited_gfx) <= 4 * (1786 + 11)
+    rom.write(get_rom_address("sTankIconsGfx"), edited_gfx)
+
+    # Add background tiles
+    wireframe_bg_gfx = rom.decompress_lzss(get_rom_address("sMotifBehindWireframeSamusGfx"))
+    edited_gfx = bytearray(wireframe_bg_gfx)
+    edited_gfx[0x40:0xA0] = pkgutil.get_data(__name__, "data/pause_screen/dna_icon_bottom.gfx")
+    edited_gfx[0x100:0x140] = pkgutil.get_data(__name__, "data/pause_screen/dna_bar_extension.gfx")
+    edited_gfx = lz10.compress(edited_gfx)
+    assert len(edited_gfx) <= 4 * (278 + 7)
+    rom.write(get_rom_address("sMotifBehindWireframeSamusGfx"), edited_gfx)
+
+    pause_screen_gfx = rom.decompress_lzss(get_rom_address("sPauseScreenHudGfx"))
+    edited_gfx = bytearray(pause_screen_gfx)
+    edited_gfx[0x4E60:0x4EC0] = pkgutil.get_data(__name__, "data/pause_screen/dna_icon_top.gfx")
+    edited_gfx = lz10.compress(edited_gfx)
+    assert len(edited_gfx) <= 4 * 1404
+    rom.write(get_rom_address("sPauseScreenHudGfx"), edited_gfx)
+
+    # Copy color to unused spot in background palette
+    rom.write(get_rom_address("sPauseScreen_3fcef0", 2 * (6 * 16 + 15)), (0x797F).to_bytes(2, "little"))
+
+    # Patch tile map
+    grid_tile = _make_tile_bytes(736, 11)
+    slash_tile = _make_tile_bytes(748, 11)
+    pause_screen_tilemap = rom.decompress_lzss(get_rom_address("sStatusScreenTilemap"))
+    edited_tilemap = bytearray(pause_screen_tilemap)
+    edited_tilemap[0x58:0x5A] = _make_tile_bytes(757, 11)
+    edited_tilemap[0x84:0xA4] = (
+        4 * grid_tile + slash_tile + 4 * grid_tile +
+        _make_tile_bytes(755, 11) + _make_tile_bytes(756, 11) +
+        2 * grid_tile + slash_tile + 2 * grid_tile
+    )
+    edited_tilemap[0xC4:0xD0] = 6 * _make_tile_bytes(758, 11)
+    for i, tile in enumerate(range(0xD4, 0xDA, 2)):
+        edited_tilemap[tile:tile + 2] = _make_tile_bytes(2 + i, 11)
+    for i, tile in enumerate(range(0xE0, 0xE4, 2)):
+        edited_tilemap[tile:tile + 2] = _make_tile_bytes(8 + i, 11)
+    edited_tilemap = lz10.compress(edited_tilemap)
+    assert len(edited_tilemap) <= 4 * 264
+    rom.write(get_rom_address("sStatusScreenTilemap"), edited_tilemap)
+
+    # Shift energy text position
+    rom.write(get_rom_address("sStatusScreenGroupsData", 5 * 5 + 2), bytes([2, 5]))
+    rom.write(get_rom_address("sStatusScreenGroupsData", 5 * 6 + 2), bytes([7, 10]))
 
 
 def place_items(rom: LocalRom, locations: list[Location]):
