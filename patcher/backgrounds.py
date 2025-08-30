@@ -15,8 +15,14 @@ class Clipdata(IntEnum):
     SOLID = 0x10
     STEEP_SLOPE_RISING = 0x11  # Positive gradient, like /
     LOWER_SLIGHT_SLOPE_FALLING = 0x16  # Negative gradient, like \, lower half
+    DOOR_TRANSITION = 0x20
     ELEVATOR_UP = 0x29
     VERY_DUSTY_GROUND = 0x2D
+    GRAY_DOOR = 0x30
+    BLUE_DOOR = 0x36
+    MISSILE_DOOR = 0x40
+    SUPER_MISSILE_DOOR = 0x46
+    POWER_BOMB_DOOR = 0x4C
     BEAM_BLOCK_NEVER_REFORM = 0x52
     LARGE_BEAM_BLOCK_NW_NO_REFORM = 0x53
     LARGE_BEAM_BLOCK_NE_NO_REFORM = 0x54
@@ -40,6 +46,7 @@ class Clipdata(IntEnum):
 class BackgroundProperties(IntEnum):
     NONE = 0
     RLE_COMPRESSED = 0x10
+    MOVING = 0x31
     LZ77_COMPRESSED = 0x40
     DARK_ROOM = LZ77_COMPRESSED | 5
     STARTS_FROM_BOTTOM = LZ77_COMPRESSED | 6
@@ -184,6 +191,11 @@ class BackgroundTilemap:
             compressed_data = self.bg_size.to_bytes(4, "little") + lz10.compress(self.decompressed)
         return compressed_data
 
+    def write_in_place(self, rom: LocalRom, address: int):
+        data = self.to_compressed_data()
+        assert len(data) <= self.compressed_size, f"Compressed data of size {len(data)} overflows original buffer of size {self.compressed_size}"
+        rom.write(address, data)
+
     def write(self, rom: LocalRom, ptr_address: int, data_address: int):
         data = self.to_compressed_data()
         if len(data) > self.compressed_size:
@@ -319,7 +331,7 @@ def patch_chozodia_spotlight(rom: LocalRom):
         for x, tile in enumerate(row):
             tile_info = tile & 0x0FFF
             chozodia_before_map_bg0.set(x, y, tile_info | (0 << 12))
-    rom.write(chozodia_before_map.rom_address(), chozodia_before_map_bg0.to_compressed_data())
+    chozodia_before_map_bg0.write_in_place(rom, chozodia_before_map.rom_address())
 
     chozodia_dark_spotlight = get_backgrounds(rom, Area.CHOZODIA, 25).bg0
     chozodia_dark_spotlight_bg0 = BackgroundTilemap.from_info(chozodia_dark_spotlight, 356)
@@ -327,4 +339,46 @@ def patch_chozodia_spotlight(rom: LocalRom):
         for x, tile in enumerate(row):
             tile_info = tile & 0x0FFF
             chozodia_dark_spotlight_bg0.set(x, y, tile_info | (0 << 12))
-    rom.write(chozodia_dark_spotlight.rom_address(), chozodia_dark_spotlight_bg0.to_compressed_data())
+    chozodia_dark_spotlight_bg0.write_in_place(rom, chozodia_dark_spotlight.rom_address())
+
+
+def _door_tiles(start: int) -> range:
+    return range(start, start + 0x40, 0x10)
+
+
+def fix_crateria_door_locks(rom: LocalRom):
+    # (Door function data patched in basepatch)
+    gray_door_left_tiles = _door_tiles(6)
+    gray_door_right_tiles = _door_tiles(7)
+    blue_door_left_tiles = _door_tiles(8)
+    blue_door_right_tiles = _door_tiles(9)
+
+    # Remove unused door to Brinstar transport access in escape version of Parlor equivalent
+    parlor_escape = get_backgrounds(rom, Area.CRATERIA, 1)
+    parlor_bg1 = BackgroundTilemap.from_info(parlor_escape.bg1, 1608)
+    parlor_clip = BackgroundTilemap.from_info(parlor_escape.clipdata, 672)
+    for y, gray_door_tile, blue_door_tile in zip(range(0x24, 0x28), gray_door_left_tiles, blue_door_left_tiles):
+        parlor_bg1.set(0x2D, y, gray_door_tile, blue_door_tile)
+        parlor_clip.set(0x2D, y, Clipdata.GRAY_DOOR, Clipdata.BLUE_DOOR)
+    parlor_bg1.write_in_place(rom, parlor_escape.bg1.rom_address())
+    parlor_clip.write_in_place(rom, parlor_escape.clipdata.rom_address())
+
+    # Make left door of power grip tower usable before collecting item
+    power_grip_tower_pre_grip = get_backgrounds(rom, Area.CRATERIA, 8)
+    grip_tower_bg1 = BackgroundTilemap.from_info(power_grip_tower_pre_grip.bg1, 744)
+    grip_tower_clip = BackgroundTilemap.from_info(power_grip_tower_pre_grip.clipdata, 230)
+    for y, gray_door_tile, blue_door_tile in zip(range(7, 11), gray_door_right_tiles, blue_door_right_tiles):
+        grip_tower_bg1.set(3, y, blue_door_tile, gray_door_tile)
+        grip_tower_clip.set(3, y, Clipdata.BLUE_DOOR, Clipdata.GRAY_DOOR)
+    grip_tower_bg1.write_in_place(rom, power_grip_tower_pre_grip.bg1.rom_address())
+    grip_tower_clip.write_in_place(rom, power_grip_tower_pre_grip.clipdata.rom_address())
+
+    # Make the right door usable before the tower fully extends
+    power_grip_tower_rising = get_backgrounds(rom, Area.CRATERIA, 16)
+    grip_tower_bg1 = BackgroundTilemap.from_info(power_grip_tower_rising.bg1, 759)
+    grip_tower_clip = BackgroundTilemap.from_info(power_grip_tower_rising.clipdata, 241)
+    for y, gray_door_tile, blue_door_tile in zip(range(7, 11), gray_door_left_tiles, blue_door_left_tiles):
+        grip_tower_bg1.set(30, y, blue_door_tile, gray_door_tile)
+        grip_tower_clip.set(30, y, Clipdata.BLUE_DOOR, Clipdata.SOLID)
+    grip_tower_bg1.write_in_place(rom, power_grip_tower_rising.bg1.rom_address())
+    grip_tower_clip.write_in_place(rom, power_grip_tower_rising.clipdata.rom_address())

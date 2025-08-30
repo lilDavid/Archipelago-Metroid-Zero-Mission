@@ -9,7 +9,7 @@ from typing import Literal, NotRequired, TypedDict, cast
 import bsdiff4
 
 from . import lz10
-from .backgrounds import patch_chozodia_spotlight, write_item_clipdata_and_gfx
+from .backgrounds import fix_crateria_door_locks, patch_chozodia_spotlight, write_item_clipdata_and_gfx
 from .constants import RC_COUNT, PIXEL_SIZE, Area, Event, ItemType
 from .items import item_data_table
 from .layout_patches import apply_layout_patches
@@ -92,6 +92,7 @@ def patch_rom(data: bytes, patch: PatchJson) -> bytes:
 
     write_item_clipdata_and_gfx(rom)
     patch_chozodia_spotlight(rom)
+    fix_crateria_door_locks(rom)
     apply_layout_patches(rom, patch.get("layout_patches", []))
 
     write_warp_to_start_cosmetics(rom)
