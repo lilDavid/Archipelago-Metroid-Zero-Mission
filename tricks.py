@@ -429,7 +429,7 @@ tricks_advanced = {
 
 # Super hard tricks - Off by default, opt-in only
 # TODO
-tricks_lunatic = {
+tricks_ludicrous = {
     # Cross the big acid pool with a series of almost-pure-horizontal bomb jumps
     "Acid Worm Skip Bomb Only":
         all(
@@ -759,5 +759,5 @@ hazard_runs_minimal = {
         ),
 }
 
-all_tricks = {**tricks_normal, **tricks_advanced, **tricks_lunatic, **tricky_shinesparks,
+all_tricks = {**tricks_normal, **tricks_advanced, **tricks_ludicrous, **tricky_shinesparks,
               **hazard_runs_normal, **hazard_runs_minimal}
