@@ -116,13 +116,13 @@ tourian_location_table = {
 }
 
 crateria_location_table = {
-    "Crateria Landing Site Ballspark": LocationData("Crateria", 75),
-    "Crateria Power Grip": LocationData("Upper Crateria", 76),
-    "Crateria Moat": LocationData("Crateria", 77),
-    "Crateria Statue Water": LocationData("Upper Crateria", 78),
-    "Crateria Unknown Item Statue": LocationData("Upper Crateria", 79),
-    "Crateria East Ballspark": LocationData("Upper Crateria", 80),
-    "Crateria Northeast Corner": LocationData("Upper Crateria", 81)
+    "Crateria Landing Site Ballspark": LocationData("Lower Crateria", 75),
+    "Crateria Power Grip": LocationData("Crateria Power Grip", 76),
+    "Crateria Moat": LocationData("Lower Crateria", 77),
+    "Crateria Statue Water": LocationData("Lower Crateria", 78),
+    "Crateria Unknown Item Statue": LocationData("Lower Crateria", 79),
+    "Crateria East Ballspark": LocationData("Upper Right Crateria", 80),
+    "Crateria Northeast Corner": LocationData("Upper Right Crateria", 81)
 }
 
 chozodia_location_table = {

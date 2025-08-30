@@ -61,8 +61,10 @@ def create_regions_and_connections(world: MZMWorld):
     create_region(multiworld, player, "Central Ridley", "in Ridley's lair")
     create_region(multiworld, player, "Ridley Room", "in Ridley's lair")
     create_region(multiworld, player, "Tourian", "in Tourian")
-    create_region(multiworld, player, "Crateria", "in Crateria")
-    create_region(multiworld, player, "Upper Crateria", "in Crateria")
+    create_region(multiworld, player, "Lower Crateria", "in Crateria")
+    create_region(multiworld, player, "Upper Right Crateria", "in Crateria")
+    create_region(multiworld, player, "Upper Left Crateria", "in Crateria")
+    create_region(multiworld, player, "Crateria Power Grip", "in Crateria")
     create_region(multiworld, player, "Chozodia Ruins", "in the Chozo Ruins")
     create_region(multiworld, player, "Chozodia Ruins Test Area", "in the Chozo Ruins")
     create_region(multiworld, player, "Chozodia Glass Tube", "in the Chozo Ruins")
@@ -75,6 +77,7 @@ def create_regions_and_connections(world: MZMWorld):
     create_region(multiworld, player, "Chozodia Original Power Bomb Room", "in the Pirates' mother ship")
     create_region(multiworld, player, "Chozodia Mecha Ridley Hallway", "in the Pirates' mother ship")
 
+    # Brinstar connections
     connect(multiworld, player, "Game Start", "Menu", "Brinstar Start")
     connect(multiworld, player, "Brinstar Start -> Main Shaft", "Brinstar Start", "Brinstar Main", MorphBall.create_rule(world))
     connect(multiworld, player, "Brinstar Main -> Brinstar Top", "Brinstar Main", "Brinstar Top", brinstar_main_to_brinstar_top().create_rule(world))
@@ -85,12 +88,16 @@ def create_regions_and_connections(world: MZMWorld):
     connect(multiworld, player, "Brinstar -> Kraid Elevator", "Brinstar Start", "Kraid Main", CanSingleBombBlock.create_rule(world))
     connect(multiworld, player, "Brinstar -> Norfair Elevator", "Brinstar Main", "Norfair Main", CanBombTunnelBlock.create_rule(world))
     connect(multiworld, player, "Brinstar -> Tourian Elevator", "Brinstar Main", "Tourian", all(MorphBall, KraidBoss, RidleyBoss).create_rule(world))
-    connect(multiworld, player, "Brinstar -> Crateria Ballcannon", "Brinstar Start", "Upper Crateria", brinstar_crateria_ballcannon().create_rule(world))
+    connect(multiworld, player, "Brinstar -> Crateria Ballcannon", "Brinstar Start", "Lower Crateria", brinstar_crateria_ballcannon().create_rule(world))
+
+    # Kraid connections
     connect(multiworld, player, "Kraid Main -> Acid Worm Area", "Kraid Main", "Kraid Acid Worm Area", kraid_upper_right().create_rule(world))
     connect(multiworld, player, "Kraid Main -> Left Shaft", "Kraid Main", "Kraid Left Shaft", kraid_left_shaft_access().create_rule(world))
     connect(multiworld, player, "Kraid Left Shaft -> Bottom", "Kraid Left Shaft", "Kraid Bottom", kraid_left_shaft_to_bottom().create_rule(world))
     connect(multiworld, player, "Kraid -> Lower Norfair Shortcut", "Kraid Bottom", "Lower Norfair", kraid_bottom_to_lower_norfair().create_rule(world))
-    connect(multiworld, player, "Norfair -> Crateria Elevator", "Norfair Main", "Crateria", norfair_main_to_crateria().create_rule(world))
+
+    # Norfair connections
+    connect(multiworld, player, "Norfair -> Crateria Elevator", "Norfair Main", "Lower Crateria", norfair_main_to_crateria().create_rule(world))
     connect(multiworld, player, "Norfair Elevator -> Right Shaft", "Norfair Main", "Norfair Right Shaft", norfair_right_shaft_access().create_rule(world))
     connect(multiworld, player, "Norfair Right Shaft -> Upper", "Norfair Right Shaft", "Norfair Upper Right Shaft", norfair_upper_right_shaft().create_rule(world))
     connect(multiworld, player, "Norfair Right Shaft -> Under Elevator", "Norfair Right Shaft", "Norfair Under Brinstar Elevator", norfair_shaft_to_under_elevator().create_rule(world))
@@ -111,6 +118,8 @@ def create_regions_and_connections(world: MZMWorld):
     connect(multiworld, player, "Norfair Bottom -> Screw Attack", "Norfair Bottom", "Norfair Screw Attack Area", bottom_norfair_to_screw().create_rule(world))
     connect(multiworld, player, "Norfair Bottom -> Central Right Shaft", "Norfair Bottom", "Norfair Right Shaft", bottom_norfair_to_right_shaft().create_rule(world))
     connect(multiworld, player, "Norfair Screw Attack -> Lower Norfair", "Norfair Screw Attack Area", "Lower Norfair", screw_to_lower_norfair().create_rule(world))
+
+    # Ridley connections
     connect(multiworld, player, "Ridley Elevator -> Left Shaft", "Ridley Main", "Ridley Left Shaft", ridley_main_to_left_shaft().create_rule(world))
     connect(multiworld, player, "Ridley Elevator -> Right Shaft Shortcut", "Ridley Main", "Ridley Right Shaft", ridley_main_to_right_shaft().create_rule(world))
     connect(multiworld, player, "Ridley Left Shaft -> SW Puzzle", "Ridley Left Shaft", "Ridley SW Puzzle", ridley_left_shaft_to_sw_puzzle().create_rule(world))
@@ -120,14 +129,24 @@ def create_regions_and_connections(world: MZMWorld):
     connect(multiworld, player, "Ridley Right Shaft -> Central", "Ridley Right Shaft", "Central Ridley", ridley_right_shaft_to_central().create_rule(world))
     connect(multiworld, player, "Ridley Right Shaft -> SW Puzzle", "Ridley Right Shaft", "Ridley SW Puzzle", ridley_left_shaft_to_sw_puzzle().create_rule(world))
     connect(multiworld, player, "Ridley Central -> Ridley's Room", "Central Ridley", "Ridley Room", ridley_central_to_ridley_room().create_rule(world))
+
+    # Tourian connections
     #connect(multiworld, player, "Tourian Escape -> Chozodia", "Tourian", "Chozodia Ruins Test Area", tourian_to_chozodia().create_rule(world))
-    connect(multiworld, player, "Crateria -> Upper", "Crateria", "Upper Crateria", crateria_main_to_crateria_upper().create_rule(world))
-    connect(multiworld, player, "Crateria -> Chozodia Lower Door", "Crateria", "Chozodia Under Tube", crateria_to_under_tube().create_rule(world))
-    connect(multiworld, player, "Crateria -> Chozodia Upper Door", "Upper Crateria", "Chozodia Ruins", crateria_upper_to_chozo_ruins().create_rule(world))
+
+    # Crateria connections
+    connect(multiworld, player, "Lower Crateria -> Upper Right Crateria", "Lower Crateria", "Upper Right Crateria", crateria_lower_to_crateria_upper_right().create_rule(world))
+    connect(multiworld, player, "Lower Crateria -> Upper Left Crateria", "Lower Crateria", "Upper Left Crateria", crateria_lower_to_crateria_upper_left().create_rule(world))
+    connect(multiworld, player, "Upper Right Crateria -> Power Grip", "Upper Right Crateria", "Crateria Power Grip", crateria_upper_to_powergrip().create_rule(world))
+    connect(multiworld, player, "Upper Left Crateria -> Power Grip", "Upper Left Crateria", "Crateria Power Grip", crateria_upper_to_powergrip().create_rule(world))
+    connect(multiworld, player, "Upper Left Crateria -> Upper Right Crateria", "Upper Left Crateria", "Upper Right Crateria", crateria_upper_leftright_connection().create_rule(world))
+    connect(multiworld, player, "Crateria -> Chozodia Upper Door", "Lower Crateria", "Chozodia Under Tube", crateria_to_under_tube().create_rule(world))
+    connect(multiworld, player, "Crateria -> Chozodia Lower Door", "Upper Right Crateria", "Chozodia Ruins", crateria_upper_to_chozo_ruins().create_rule(world))
+
+    # Chozodia connections
     connect(multiworld, player, "Chozo Ruins -> Chozo Ruins Test", "Chozodia Ruins", "Chozodia Ruins Test Area", chozo_ruins_to_ruins_test().create_rule(world))
     connect(multiworld, player, "Chozo Ruins Test -> Chozo Ruins", "Chozodia Ruins Test Area", "Chozodia Ruins", ruins_test_to_ruins().create_rule(world))
     connect(multiworld, player, "Chozo Ruins -> Glass Tube", "Chozodia Ruins", "Chozodia Glass Tube", chozo_ruins_to_chozodia_tube().create_rule(world))
-    connect(multiworld, player, "Chozodia Under Tube -> Crateria", "Chozodia Under Tube", "Crateria", under_tube_to_crateria().create_rule(world))
+    connect(multiworld, player, "Chozodia Under Tube -> Crateria", "Chozodia Under Tube", "Lower Crateria", under_tube_to_crateria().create_rule(world))
     connect(multiworld, player, "Chozodia Under Tube -> Glass Tube", "Chozodia Under Tube", "Chozodia Glass Tube", under_tube_to_tube().create_rule(world))
     connect(multiworld, player, "Chozodia Glass Tube -> Under Tube", "Chozodia Glass Tube", "Chozodia Under Tube", tube_to_under_tube().create_rule(world))
     connect(multiworld, player, "Chozodia Glass Tube -> Chozo Ruins", "Chozodia Glass Tube", "Chozodia Ruins", chozodia_tube_to_chozo_ruins().create_rule(world))
