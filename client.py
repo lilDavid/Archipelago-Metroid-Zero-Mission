@@ -391,7 +391,7 @@ class MZMClient(BizHawkClient):
                 read32(ZMConstants.gIncomingMessage),
                 read8(ZMConstants.gDifficulty),
                 read(ZMConstants.gEquipment, struct.calcsize("<HHBB6xBxB")),
-                read(ZMConstants.gRandoEquipment, struct.calcsize("<B")),
+                read(ZMConstants.gRandoEquipment, struct.calcsize("<BB")),
             ]))
         except bizhawk.RequestFailedError:
             return
