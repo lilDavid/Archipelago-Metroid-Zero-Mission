@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from Options import (
     Choice, DeathLink, DefaultOnToggle, ItemDict, OptionGroup, OptionSet, StartInventoryPool, Toggle,
-    PerGameCommonOptions, Removed, Visibility
+    PerGameCommonOptions, Range, Removed, Visibility
 )
 
 from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
@@ -19,11 +19,27 @@ class Goal(Choice):
 
     Mecha Ridley: Mecha Ridley is always open and can be reached as long as you have the right items.
     Bosses: The door to Mecha Ridley is locked until Kraid, Ridley, Mother Brain, and the Chozo Ghost are defeated.
+    Metroid DNA: The door to Mecha Ridley is locked until you find enough Metroid DNA.
     """
     display_name = "goal"
     option_mecha_ridley = "vanilla"
     option_bosses = "bosses"
-    default = option_bosses
+    option_metroid_dna = "metroid_dna"
+    default = option_metroid_dna
+
+
+class MetroidDNAAvailable(Range):
+    display_name = "Metroid DNA Available"
+    range_start = 1
+    range_end = 25
+    default = 5
+
+
+class MetroidDNARequired(Range):
+    display_name = "Metroid DNA Required"
+    range_start = 1
+    range_end = 25
+    default = 5
 
 
 class GameDifficulty(Choice):
@@ -390,6 +406,8 @@ mzm_option_groups = [
 @dataclass
 class MZMOptions(PerGameCommonOptions):
     goal: Goal
+    metroid_dna_available: MetroidDNAAvailable
+    metroid_dna_required: MetroidDNARequired
     game_difficulty: GameDifficulty
     remote_items: RemoteItems
     death_link: DeathLink

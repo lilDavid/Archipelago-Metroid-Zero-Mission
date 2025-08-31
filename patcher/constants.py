@@ -23,6 +23,7 @@ class Event(IntEnum):
     ESCAPED_CHOZODIA = 0x4B
     DEOREM_KILLED = 0x4F
     RUINS_TEST_PASSED = 0x50
+    METROID_DNA_ACQUIRED = 0x51
 
     def block_number(self) -> int:
         return self // 32
@@ -43,6 +44,7 @@ class ItemType(IntEnum):
     BEAM = 5
     MAJOR = 6
     CUSTOM = 7
+    METROID_DNA = 8
 
 
 PIXEL_SIZE = 4

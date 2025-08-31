@@ -95,8 +95,10 @@ def main():
         stream.write(ap_logo_gfx[1024:])
 
     (item_sprites / "reserve_tank.pal").unlink()
-
+    (item_sprites / "metroid_dna.pal").unlink()
     (data_dir / "pause_screen/warp.pal").unlink()
+    for file in data_dir.glob("pause_screen/dna*.pal"):
+        file.unlink()
 
 if __name__ == "__main__":
     main()

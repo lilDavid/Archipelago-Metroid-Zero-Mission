@@ -391,7 +391,7 @@ class MZMClient(BizHawkClient):
                 read32(ZMConstants.gIncomingMessage),
                 read8(ZMConstants.gDifficulty),
                 read(ZMConstants.gEquipment, struct.calcsize("<HHBB6xBxB")),
-                read(ZMConstants.gRandoEquipment, struct.calcsize("<B")),
+                read(ZMConstants.gRandoEquipment, struct.calcsize("<BB")),
             ]))
         except bizhawk.RequestFailedError:
             return
@@ -402,7 +402,7 @@ class MZMClient(BizHawkClient):
 
         gDifficulty = next_int(read_result)
         energy, missiles, supers, powerbombs, beams, majors = struct.unpack("<HHBB6xBxB", next(read_result))
-        customs, = struct.unpack("<B", next(read_result))
+        customs, metroid_dna = struct.unpack("<BB", next(read_result))
 
         # Energy tanks
         item = item_data_table["Energy Tank"]
@@ -475,6 +475,25 @@ class MZMClient(BizHawkClient):
                 message = make_item_message(
                     "Power Bomb Tanks received.",
                     f"Power Bomb capacity increased by {ZMConstants.sTankIncreaseAmount[gDifficulty].power_bomb * to_receive}."
+                )
+            await self.send_message_and_item(client_ctx, item.game_data._replace(bits=to_receive), message,
+                                             to_receive == 1 and most_recent.player == client_ctx.slot)
+            return
+
+        # Metroid DNA
+        item = item_data_table["Metroid DNA"]
+        current_tanks = metroid_dna
+        network_tanks, most_recent = self.count_received_item(client_ctx, item)
+        to_receive = network_tanks - current_tanks
+        if to_receive > 0:
+            if to_receive == 1:
+                message = (self.make_received_message(client_ctx, f"Metroid DNA {network_tanks}", most_recent)
+                           if most_recent.player != client_ctx.slot or most_recent.location <= 0
+                           else None)
+            else:
+                message = make_item_message(
+                    "Metroid DNA received.",
+                    f"{to_receive} samples acquired."
                 )
             await self.send_message_and_item(client_ctx, item.game_data._replace(bits=to_receive), message,
                                              to_receive == 1 and most_recent.player == client_ctx.slot)

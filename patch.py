@@ -59,6 +59,7 @@ def get_base_rom_path(file_name: str = "") -> Path:
 goal_texts = {
     Goal.option_mecha_ridley: "Infiltrate and destroy\nthe Space Pirates' mother ship.",
     Goal.option_bosses: "Exterminate all Metroid\norganisms and defeat Mother Brain.",
+    Goal.option_metroid_dna: "Locate Metroid DNA\nsamples and destroy the mother ship.",
 }
 
 
@@ -127,6 +128,7 @@ def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
         "reveal_hidden_blocks": bool(world.options.reveal_hidden_blocks),
         "skip_tourian_opening_cutscenes": bool(world.options.skip_tourian_opening_cutscenes),
         "elevator_speed": world.options.elevator_speed.value,
+        "metroid_dna_required": world.options.metroid_dna_required.value,
     }
     data["config"] = config
 
