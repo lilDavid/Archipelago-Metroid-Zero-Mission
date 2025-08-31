@@ -1373,14 +1373,33 @@ def norfair_lower_right_shaft():
 
 # This region only contains the Lower Right Shaft By Hi-Jump item, and serves a pathfinding purpose
 def norfair_lower_right_shaft_to_lrs_by_hijump():
-    return any(
-        CanIBJ,
-        CanHiGrip,
-        all(
-            SpaceJump,
-            PowerGrip
+    return all(
+        any(
+            CanIBJ,
+            CanHiGrip,
+            all(
+                SpaceJump,
+                PowerGrip
+            ),
+            Trick("Norfair Right Shaft Get-Around Walljump")
         ),
-        Trick("Norfair Right Shaft Get-Around Walljump")
+        any(  # escape
+            CanIBJ,
+            all(
+                PowerGrip,
+                any(
+                    SpaceJump,
+                    CanWallJump
+                )
+            ),
+            all(
+                CanBallCannon,
+                any(
+                    Missiles,
+                    CanVertical
+                )
+            )
+        )
     )
 
 
