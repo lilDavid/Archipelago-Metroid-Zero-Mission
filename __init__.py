@@ -258,7 +258,7 @@ class MZMWorld(World):
     def fill_slot_data(self) -> Dict[str, Any]:
         return {
             "goal": self.options.goal.value,
-            "metroid_dna_required": self.options.metroid_dna_required,
+            "metroid_dna_required": self.options.metroid_dna_required.value,
             "game_difficulty": self.options.game_difficulty.value,
             "unknown_items_usable": self.options.fully_powered_suit.to_slot_data(),
             "walljumps": self.options.walljumps.value,
