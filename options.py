@@ -242,7 +242,6 @@ class TricksDenied(OptionSet):
     valid_keys = all_tricks
 
 
-# TODO: disable or keep?
 class TrickyShinesparks(Toggle):
     """
     If enabled, logic will include long, difficult, and/or unintuitive Shinesparks as valid methods of collecting
