@@ -249,7 +249,8 @@ class TrickyShinesparks(Toggle):
     items or traversing areas that normally would not require an advanced Shinespark to collect.
 
     This has no effect on long Shinespark puzzles which are the intended way of collecting an item, such as the long
-    Shinespark chain in Chozodia near the Chozo Ghost room.
+    Shinespark chain in Chozodia near the Chozo Ghost room. If you do not want to do those either, exclude the location
+    group "Shinespark Puzzles".
     """
     display_name = "Tricky Shinesparks"
 
