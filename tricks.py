@@ -56,16 +56,16 @@ tricks_normal = {
             Missiles,
             any(
                 CanIBJ,
+                SpaceJump,
+                CanHiGrip,
+                IceBeam,
                 all(
-                    PowerGrip,
-                    CanBombTunnelBlock,
-                    any(
-                        SpaceJump,
-                        HiJump,
-                        IceBeam
-                    )
+                    NormalLogic,
+                    CanBallspark
                 )
             ),
+            CanBombTunnelBlock,
+            CanEnterHighMorphTunnel
         ),
 
     # Not quite a trick, but a rando-exclusive path.
@@ -493,6 +493,22 @@ tricky_shinesparks = {
             any(
                 NormalMode,
                 ScrewAttack  # Hard mode adds extra enemies to the hardest room for this spark
+            )
+        ),
+
+    # Charge in Zebbo Nest, re-store in the map room just before the door, enter the door and walljump up the right wall
+    # then land on the platform and spark up
+    # This is super niche and likely only matters if hazard runs are all off or with a Ridley start location
+    "Ridley Left Shaft Climb Tricky Spark":
+        all(
+            SpeedBooster,
+            CanWallJump,
+            any(
+                PowerGrip,
+                all(
+                    HiJump,
+                    CanBallspark
+                )
             )
         ),
 

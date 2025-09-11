@@ -1741,13 +1741,15 @@ def ridley_right_shaft_to_left_shaft():
         CanIBJ,
         all(
             SpaceJump,
-            PowerGrip
+            any(
+                PowerGrip,
+                all(
+                    NormalLogic,
+                    CanBallspark
+                )
+            ),
         ),
-        all(
-            PowerGrip,
-            CanWallJump,
-            CanTrickySparks
-        )
+        Trick("Ridley Left Shaft Climb Tricky Spark")
     )
 
 
