@@ -81,7 +81,7 @@ norfair_location_table = {
     "Norfair Big Room": LocationData("Norfair Right Shaft", 48),
     "Norfair Behind Top Chozo Statue": LocationData("Norfair Behind Ice Beam", 49),
     "Norfair Larva Ceiling": LocationData("Norfair Bottom", 50),
-    "Norfair Right Shaft Near Hi-Jump": LocationData("Norfair Lower Right Shaft", 51),
+    "Norfair Right Shaft Near Hi-Jump": LocationData("Norfair LRS By Hi-Jump", 51),
     "Norfair Right Shaft Bottom": LocationData("Norfair Bottom", 52)
 }
 
