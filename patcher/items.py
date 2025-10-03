@@ -22,7 +22,7 @@ item_data_table = {
     "Energy Tank":        ItemData(ItemType.ENERGY_TANK,         1,      1, Sprite.EnergyTank,       None,                               0x87),
     "Missile Tank":       ItemData(ItemType.MISSILE_TANK,        2,      1, Sprite.MissileTank,      None,                SOUND_ARMING_WEAPON),
     "Super Missile Tank": ItemData(ItemType.SUPER_MISSILE_TANK,  4,      1, Sprite.SuperMissileTank, None,                SOUND_ARMING_WEAPON),
-    "Power Bomb Tank":    ItemData(ItemType.POWER_BOMB_TANK,     6,      1, Sprite.PowerBombTank,    None,                SOUND_ARMING_WEAPON),  # PBs don't say "acquired" in vanilla for some reason
+    "Power Bomb Tank":    ItemData(ItemType.POWER_BOMB_TANK,     6,      1, Sprite.PowerBombTank,    None,                SOUND_ARMING_WEAPON),
 
     "Long Beam":          ItemData(ItemType.BEAM,                8, 1 << 0, Sprite.LongBeam,         None,                               0xC9),
     "Charge Beam":        ItemData(ItemType.BEAM,                9, 1 << 4, Sprite.ChargeBeam,       None,                               0xF0),
@@ -40,7 +40,7 @@ item_data_table = {
     "Space Jump":         ItemData(ItemType.MAJOR,              20, 1 << 2, Sprite.SpaceJump,        "Space Jump",                       0x6B),
     "Power Grip":         ItemData(ItemType.MAJOR,              21, 1 << 7, Sprite.PowerGrip,        None,                               0x7B),
 
-    "Fully Powered Suit": ItemData(ItemType.CUSTOM,             32, 1 << 7, Sprite.GravitySuit,      None,                              0x1D3),  # TODO: Custom sprite
+    "Fully Powered Suit": ItemData(ItemType.CUSTOM,             32, 1 << 7, Sprite.FullyPoweredSuit, None,                              0x1D3),
     "Wall Jump":          ItemData(ItemType.CUSTOM,              0, 1 << 0, Sprite.WallJump,         "Wall Jump",                        0x76),
     "Spring Ball":        ItemData(ItemType.CUSTOM,              0, 1 << 1, Sprite.SpringBall,       "Spring Ball",                      0x70),
 

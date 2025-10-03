@@ -28,6 +28,8 @@ class Sprite(StrEnum):
     SpaceJump = "Space Jump"
     PowerGrip = "Power Grip"
     Nothing = "Nothing"
+    FullyPoweredSuit = "Fully Powered Suit"
+    MetroidDNA = "Metroid DNA"
     ItemSphere = "Item Sphere"
     APLogo = "AP Logo"
     APLogoProgression = "AP Progression"
@@ -40,7 +42,6 @@ class Sprite(StrEnum):
     WallJump = "Wall Jump"
     PowerBeam = "Power Beam"
     SpiderBall = "Spider Ball"
-    MetroidDNA = "Metroid DNA"
 
 
 builtin_sprite_pointers: Mapping[Sprite, int] = {
@@ -73,6 +74,8 @@ sprite_imports: Mapping[Sprite, tuple[str | int, str | int]] = {
     Sprite.SpaceJump: ("space_jump.gfx", "space_jump.pal"),
     Sprite.Nothing: ("nothing.gfx", "nothing.pal"),
     Sprite.ItemSphere: ("item_sphere.gfx", "item_sphere.pal"),
+    Sprite.FullyPoweredSuit: ("fully_powered_suit.gfx", "fully_powered_suit.pal"),
+    Sprite.MetroidDNA: ("metroid_dna.gfx", get_symbol("sCommonTilesPal")),
     Sprite.APLogo: ("ap_logo.gfx", "ap_logo.pal"),
     Sprite.APLogoProgression: ("ap_logo_progression.gfx", "ap_logo.pal"),
     Sprite.APLogoUseful: ("ap_logo_useful.gfx", "ap_logo.pal"),
@@ -84,7 +87,6 @@ sprite_imports: Mapping[Sprite, tuple[str | int, str | int]] = {
     Sprite.WallJump: (get_symbol("sRandoHiJumpGfx"), "wall_jump.pal"),
     Sprite.PowerBeam: ("power_beam.gfx", "power_beam.pal"),
     Sprite.SpiderBall: ("spider_ball.gfx", "spider_ball.pal"),
-    Sprite.MetroidDNA: ("metroid_dna.gfx", get_symbol("sCommonTilesPal")),
 }
 
 
