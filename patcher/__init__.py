@@ -120,6 +120,7 @@ def apply_basepatch(rom: bytes) -> bytes:
 
 def write_seed_config(rom: LocalRom, patch: PatchJson):
     config = patch["config"]
+    goal = config.get("goal", "vanilla")
     seed_info = (
         patch.get("player_name", "").encode("utf-8")[:64],
         patch.get("seed_name", "").encode("utf-8")[:64],
@@ -136,11 +137,10 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
         config.get("skip_tourian_opening_cutscenes", False),
         2 * PIXEL_SIZE * config.get("elevator_speed", 1),
 
-        config.get("metroid_dna_required", 0),
+        config.get("metroid_dna_required", 5) if goal == "metroid_dna" else 0,
     )
     rom.write(get_rom_address("sRandoSeed"), struct.pack("<64s64s12B", *seed_info))
 
-    goal = config.get("goal", "vanilla")
     if goal != "vanilla":
         if goal == "bosses":
             event = Event.MOTHER_BRAIN_KILLED

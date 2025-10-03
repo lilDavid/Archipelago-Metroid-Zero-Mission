@@ -128,8 +128,9 @@ def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
         "reveal_hidden_blocks": bool(world.options.reveal_hidden_blocks),
         "skip_tourian_opening_cutscenes": bool(world.options.skip_tourian_opening_cutscenes),
         "elevator_speed": world.options.elevator_speed.value,
-        "metroid_dna_required": world.options.metroid_dna_required.value,
     }
+    if world.options.goal.value == Goal.option_metroid_dna:
+        config["metroid_dna_required"] = world.options.metroid_dna_required.value
     data["config"] = config
 
     locations = []
