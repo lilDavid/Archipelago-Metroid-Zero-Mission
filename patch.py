@@ -14,7 +14,6 @@ from worlds.Files import APPatchExtension, APProcedurePatch
 
 from .items import item_data_table, tank_data_table, major_item_data_table
 from .locations import full_location_table as location_table
-from .metadata import APWORLD_VERSION
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal, LayoutPatches
 from .patcher import MD5_US, patch_rom
 from .item_sprites import Sprite, get_zero_mission_sprite, unknown_item_alt_sprites
@@ -170,10 +169,11 @@ def write_json_data(world: MZMWorld, patch: MZMProcedurePatch):
 
     text = {"Story": {}}
 
-    world_version = f" / APworld {APWORLD_VERSION}" if APWORLD_VERSION is not None else ""
+    ap_version = Utils.version_tuple.as_simple_string()
+    world_version = world.world_version.as_simple_string()
     text["Story"]["Intro"] = (f"AP {multiworld.seed_name}\n"
                               f"P{player} - {world.player_name}\n"
-                              f"Version {Utils.version_tuple.as_simple_string()}{world_version}\n"
+                              f"AP {ap_version} / World version: {world_version}\n"
                               "\n"
                               f"YOUR MISSION: {goal_texts[world.options.goal.value]}")
 
