@@ -30,6 +30,14 @@ EXCLUDE = [
 ]
 
 
+def clean_build_path(path: Path):
+    assert path == BUILD_PATH or BUILD_PATH in path.parents, path
+    try:
+        shutil.rmtree(path)
+    except FileNotFoundError:
+        pass
+
+
 def get_files():
     files: set[Path] = set()
     for pattern in FILES:
@@ -78,7 +86,7 @@ def generate_template():
         game: str = json.load(file)["game"]
     template = templates / f"{game}.yaml"
     template.rename(BUILD_PATH / f"{template.name.replace(" ", "_")}")
-    shutil.rmtree(templates)
+    clean_build_path(templates)
 
 
 if __name__ == "__main__":
@@ -89,6 +97,6 @@ if __name__ == "__main__":
     ap_path = args.path or os.getenv("AP_SOURCE_PATH") or os.getenv("AP_PATH") or os.getcwd()
     sys.path.append(ap_path)
 
-    shutil.rmtree(BUILD_PATH)
+    clean_build_path(BUILD_PATH)
     build_apworld()
     generate_template()
