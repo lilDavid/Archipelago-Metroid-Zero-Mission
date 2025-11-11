@@ -281,14 +281,11 @@ tricks_advanced = {
         ),
 
     # Climb into the tunnel of crumble blocks, then repeatedly jump up and quickly grip the next one
-    "Kraid Quad Ball Cannon Crumble Grip":
+    "Kraid Quad Ball Cannon Crumble Grip Hi-Jump":
         all(
             Missiles,
             PowerGrip,
-            any(
-                HiJump,
-                SpaceJump
-            )
+            HiJump
         ),
 
     # Use a spaceboost to break one of the bomb blocks leading down to the Unknown Item Statue, saving a PB
@@ -435,6 +432,14 @@ tricks_ludicrous = {
         all(
             Bomb,
             CanHorizontalIBJ
+        ),
+
+    # Same as the version with Hi-Jump, but requires much more precision to control Space Jumps and the timing is harder
+    "Kraid Quad Ball Cannon Crumble Grip Space Jump":
+        all(
+            Missiles,
+            PowerGrip,
+            SpaceJump
         ),
 
     # Set up a clip into the floor to get a speed boost to the right with less space

@@ -216,7 +216,8 @@ def set_location_rules(world: MZMWorld, locations):
                     Missiles
                 ),
                 Trick("Kraid Quad Ball Cannon No Bombs"),
-                Trick("Kraid Quad Ball Cannon Crumble Grip"),
+                Trick("Kraid Quad Ball Cannon Crumble Grip Hi-Jump"),
+                Trick("Kraid Quad Ball Cannon Crumble Grip Space Jump")
             ),
             "Kraid Unknown Item Statue": all(
                 any(
