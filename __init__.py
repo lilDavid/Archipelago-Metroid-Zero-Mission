@@ -59,7 +59,7 @@ class MZMWorld(World):
     new areas, items, enemies, and story! Logic based on Metroid: Zero Mission Randomizer by Biosp4rk and Dragonfangs,
     used with permission.
     """
-    game: str = "Metroid Zero Mission"
+    game: str = "Metroid: Zero Mission"
     options_dataclass = MZMOptions
     options: MZMOptions
     topology_present = True
@@ -245,7 +245,7 @@ class MZMWorld(World):
             multiworld.random.shuffle(locations)
             fill_restrictive(multiworld, all_state, locations, items,
                              single_player_placement=True, lock=True, allow_partial=False, allow_excluded=True,
-                             name='Metroid Zero Mission Early Morph Balls')
+                             name='Metroid: Zero Mission Early Morph Balls')
 
     def generate_output(self, output_directory: str):
         output_path = Path(output_directory)

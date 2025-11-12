@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 class MZMPatchExtensions(APPatchExtension):
-    game = "Metroid Zero Mission"
+    game = "Metroid: Zero Mission"
 
     @staticmethod
     def apply_json(caller: APProcedurePatch, rom: bytes, file_name: str) -> bytes:
@@ -31,7 +31,7 @@ class MZMPatchExtensions(APPatchExtension):
 
 
 class MZMProcedurePatch(APProcedurePatch):
-    game = "Metroid Zero Mission"
+    game = "Metroid: Zero Mission"
     hash = MD5_US
     patch_file_ending = ".apmzm"
     result_file_ending = ".gba"

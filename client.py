@@ -171,7 +171,7 @@ class ZMConstants:
 
 
 class MZMClient(BizHawkClient):
-    game = "Metroid Zero Mission"
+    game = "Metroid: Zero Mission"
     system = "GBA"
     patch_suffix = ".apmzm"
 
