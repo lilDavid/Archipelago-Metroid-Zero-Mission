@@ -257,8 +257,7 @@ class TrickyShinesparks(Toggle):
 class LayoutPatches(Choice):
     """
     Slightly modify the layout of some rooms to reduce softlocks.
-    NOTE: You can warp to the starting room from any save station or Samus' ship by holding L+R while selecting "No"
-    when asked to save.
+    NOTE: You can warp to the starting room from anywhere by pressing L on the map screen.
     """
     display_name = "Layout Patches"
     option_false = 0
@@ -270,9 +269,8 @@ class LayoutPatches(Choice):
 class SelectedPatches(OptionSet):
     """
     If Layout Patches is set to Choice, list of layout patches to apply.
-    The names of valid layout patches can be found in the patcher here:
+    The names and descriptions of valid layout patches can be found in the patcher here:
     https://github.com/lilDavid/Archipelago-Metroid-Zero-Mission/blob/main/patcher/layout_patches.py
-    Descriptions can be found in the apply_layout_patches function below that.
     """
     display_name = "Selected Layout Patches"
     valid_keys = LAYOUT_PATCH_MAPPING.keys()
