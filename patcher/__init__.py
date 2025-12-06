@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import StrEnum
 import hashlib
 import logging
 import pkgutil
@@ -23,13 +24,23 @@ MD5_US = "ebbce58109988b6da61ebb06c7a432d5"
 MD5_US_VC = "e23c14997c2ea4f11e5996908e577125"
 
 
+class MessageGroup(StrEnum):
+    LOCATION = "Location"
+    MESSAGE = "Message"
+    FILE_SCREEN = "FileScreen"
+    DESCRIPTION = "Description"
+    STORY = "Story"
+
+
+LANGUAGE_ENGLISH = 2
+
 class PatchJson(TypedDict):
     player_name: NotRequired[str]
     seed_name: NotRequired[str]
     config: SeedConfig
     locations: list[Location]
     start_inventory: NotRequired[dict[str, int | bool]]
-    text: NotRequired[dict[str, dict[str, str]]]
+    text: NotRequired[dict[MessageGroup, dict[str, str]]]
     layout_patches: NotRequired[list[str] | Literal["all"]]
 
 
@@ -240,8 +251,8 @@ def write_metroid_dna_status_screen_patch(rom: LocalRom):
     rom.write(get_rom_address("sStatusScreenTilemap"), edited_tilemap)
 
     # Shift energy text position
-    rom.write(get_rom_address("sStatusScreenGroupsData", 5 * 5 + 2), bytes([2, 5]))
-    rom.write(get_rom_address("sStatusScreenGroupsData", 5 * 6 + 2), bytes([7, 10]))
+    rom.write(get_rom_address("sStatusScreenGroupsPositions", 5 * 5 + 2), bytes([2, 5]))
+    rom.write(get_rom_address("sStatusScreenGroupsPositions", 5 * 6 + 2), bytes([7, 10]))
 
 
 def place_items(rom: LocalRom, locations: list[Location]):
@@ -343,10 +354,15 @@ def write_start_inventory(rom: LocalRom, start_inventory: dict[str, int | bool])
     )
 
 
+def get_message_table_address(rom: LocalRom, group: MessageGroup) -> int:
+    data_table, = rom.read(get_rom_address(f"s{group}TextPointers") + 4 * LANGUAGE_ENGLISH, "<I")
+    return data_table
+
+
 def write_warp_to_start_cosmetics(rom: LocalRom):
     menu_names = rom.decompress_lzss(get_rom_address("sMenuNamesEnglishGfx"))
     edited_menu_names = lz10.compress(menu_names[:0x20] +
-                                      pkgutil.get_data(__name__, f"data/pause_screen/warp.gfx") +
+                                      pkgutil.get_data(__name__, "data/pause_screen/warp.gfx") +
                                       menu_names[0x80:])
     assert len(edited_menu_names) <= len(menu_names)
     rom.write(get_rom_address("sMenuNamesEnglishGfx"), edited_menu_names)
@@ -362,18 +378,19 @@ def write_warp_to_start_cosmetics(rom: LocalRom):
     line_1_ptr = rom.append(line_1.to_bytes())
     line_2_ptr = rom.append(line_2.to_bytes())
     rom.write(
-        get_rom_address(f"sEnglishTextPointers_Message", 4 * 36),
+        get_rom_address(get_message_table_address(rom, MessageGroup.MESSAGE), 4 * 36),
         struct.pack("<II", line_1_ptr, line_2_ptr)
     )
 
 
 def write_text(rom: LocalRom, text: dict[str, dict[str, str]]):
     for group, messages in text.items():
+        data_table = get_message_table_address(rom, group)
         for name, message in messages.items():
             array_index = TEXT_INDICES[group][name]
             encoded_message = Message(message).append(TERMINATOR_CHAR)
             text_address = rom.append(encoded_message.to_bytes())
             rom.write(
-                get_rom_address(f"sEnglishTextPointers_{group}", 4 * array_index),
+                get_rom_address(data_table, 4 * array_index),
                 struct.pack("<I", text_address)
             )
