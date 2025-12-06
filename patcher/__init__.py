@@ -157,7 +157,7 @@ def write_seed_config(rom: LocalRom, patch: PatchJson):
         rom.write(get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * Area.CHOZODIA), struct.pack("<H", 16))
 
     if config.get("chozodia_requires_mother_brain", False):
-        rom.write(get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * Area.TOURIAN), struct.pack("<H", 4))
+        rom.write(get_rom_address("sNumberOfHatchLockEventsPerArea", 2 * Area.CRATERIA), struct.pack("<H", 4))
 
     if config.get("reveal_maps"):
         rom.write(get_rom_address("sMinimapTilesPal"), pkgutil.get_data(__name__, "data/pause_screen/revealed_map_tile.pal"))
