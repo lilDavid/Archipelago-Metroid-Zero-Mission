@@ -17,6 +17,7 @@ from .items import ItemData, item_data_table, major_item_data_table
 from .locations import (brinstar_location_table, kraid_location_table, norfair_location_table,
                         ridley_location_table, tourian_location_table, crateria_location_table,
                         chozodia_location_table)
+from .options import FullyPoweredSuit
 from .patcher.constants import Event, ItemType
 from .patcher.items import ItemData as ZMItemData
 from .patcher.symbols import get_symbol
@@ -178,8 +179,6 @@ class MZMClient(BizHawkClient):
     local_checked_locations: Set[int]
     local_set_events: Dict[Event, bool]
     local_area: int
-
-    ignore_locals_written: bool
 
     rom_slot_name: Optional[str]
 
@@ -522,6 +521,12 @@ class MZMClient(BizHawkClient):
             await self.send_message_and_item(client_ctx, game_data, message, item.player == client_ctx.slot)
             break
 
+        # Vanilla Fully Powered Suit
+        if (client_ctx.slot_data.get("unknown_items_usable") == FullyPoweredSuit.option_ruins_test
+            and self.local_set_events[Event.RUINS_TEST_PASSED]
+            and not acquired_majors[item_data_table["Fully Powered Suit"].code]):
+            await self.send_message_and_item(client_ctx, item_data_table["Fully Powered Suit"].game_data, None, False)
+
     async def game_watcher(self, client_ctx: BizHawkClientContext) -> None:
         if self.dc_pending:
             await client_ctx.disconnect()
@@ -536,9 +541,8 @@ class MZMClient(BizHawkClient):
 
         bizhawk_ctx = client_ctx.bizhawk_ctx
 
-        if not self.ignore_locals_written and client_ctx.slot_data.get("remote_items"):
+        if client_ctx.slot_data.get("remote_items"):
             await bizhawk.write(bizhawk_ctx, [write8(get_symbol("gIgnoreLocalItems"), True)])
-            self.ignore_locals_written = True
 
         try:
             read_result = iter(await bizhawk.read(bizhawk_ctx, [
