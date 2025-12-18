@@ -16,6 +16,7 @@ from .items import item_data_table, tank_data_table, major_item_data_table
 from .locations import full_location_table as location_table
 from .options import ChozodiaAccess, DisplayNonLocalItems, Goal, LayoutPatches
 from .patcher import MD5_US, patch_rom
+from .patcher.text import LINE_WIDTH, SPACE, Message, get_width_of_encoded_character
 from .item_sprites import Sprite, get_zero_mission_sprite, unknown_item_alt_sprites
 
 if TYPE_CHECKING:
@@ -88,18 +89,25 @@ def get_item_sprite(location: Location, world: MZMWorld) -> str:
     return sprite
 
 
+space_width = get_width_of_encoded_character(SPACE)
+
 def split_text(text: str):
     lines = [""]
     i = 0
+    width = 0
     while i < len(text):
         next_space = text.find(" ", i)
         if next_space == -1:
             next_space = len(text)
-        if len(lines[-1]) + next_space - i <= 40:
-            lines[-1] = f"{lines[-1]}{text[i:next_space]} "
+        next_word = text[i:next_space]
+        next_word_width = Message(next_word).display_width()
+        if width + space_width + next_word_width <= LINE_WIDTH:
+            lines[-1] = f"{lines[-1]}{next_word} "
+            width += space_width + next_word_width
         else:
             lines[-1] = lines[-1][:-1]
             lines.append(text[i:next_space] + " ")
+            width = next_word_width
         i = next_space + 1
     lines[-1] = lines[-1][:-1]
     return lines
