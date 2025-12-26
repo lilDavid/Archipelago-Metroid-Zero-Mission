@@ -165,7 +165,7 @@ tricks_normal = {
 
     # Get in the morph tunnel to Norfair Behind Lower Super Missile Door - Left using a well-timed enemy freeze
     # from the center platform, then a precise jump or balljump off the enemy
-    "Norfair Behind Super Door Left Enemy Freeze":
+    "Norfair Behind Lower Super Missile Door - Left Enemy Freeze":
         all(
             CanReachLocation("Norfair Behind Lower Super Missile Door - Right"),
             IceBeam,
@@ -221,6 +221,11 @@ tricks_advanced = {
             CanSpringBall
         ),
 
+    # Enter a morph tunnel one tile below a ceiling using a frame-perfect midair morph with Space Jump
+    # Applicable for Kraid left shaft access and Norfair Behind Super Door Left
+    "Rising Midair Morph With Space Jump":
+        SpaceJump,
+
     # Dislodge a Zoomer with a Super Missile then freeze it along the wall to grip, springball, or bomb jump up
     "Brinstar Ripper Climb Zoomer Freeze":
         all(
@@ -263,10 +268,6 @@ tricks_advanced = {
     # Climb up the right shaft of Kraid using hi-balljumps into the divots in the walls
     "Kraid Right Shaft Balljump Climb":
         CanHiSpringBall,
-
-    # Get into the high morph tunnel leading to the left shaft of Kraid with a space jump into very tight midair morph
-    "Kraid Left Shaft Access Space Jump Only":
-        SpaceJump,
 
     # Access Kraid's left shaft without ziplines by using some precise grips and jump extends. Harder than it sounds!
     "Acid Worm Skip Grip Only":
@@ -342,6 +343,19 @@ tricks_advanced = {
         all(
             IceBeam,
             HiJump
+        ),
+
+    # Freeze the flying enemy in a position where its unfreezing will knock back morphed Samus into the tunnel
+    "Norfair Behind Lower Super Missile Door - Left Damage Boost":
+        all(
+            IceBeam,
+            any(
+                SpaceJump,
+                all(
+                    GravitySuit,
+                    CanHiWallJump
+                )
+            )
         ),
 
     # Use Long Beam to destroy the top row of blocks, then place bombs along the top of the other row to clear out

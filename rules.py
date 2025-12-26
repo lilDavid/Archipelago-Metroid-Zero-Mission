@@ -453,7 +453,9 @@ def set_location_rules(world: MZMWorld, locations):
                         CanHiGrip,
                         CanWallJump
                     ),
-                    Trick("Norfair Behind Super Door Left Enemy Freeze"),
+                    Trick("Norfair Behind Lower Super Missile Door - Left Enemy Freeze"),
+                    Trick("Norfair Behind Lower Super Missile Door - Left Damage Boost"),
+                    Trick("Rising Midair Morph With Space Jump"),
                     all(
                         HazardRuns,
                         Trick("Balljump to IBJ From Acid"),
@@ -1236,7 +1238,7 @@ def kraid_left_shaft_access():
                 NormalLogic,
                 CanHiSpringBall
             ),
-            Trick("Kraid Left Shaft Access Space Jump Only")
+            Trick("Rising Midair Morph With Space Jump")
         ),
         CanBallJump,
         CanBombTunnelBlock,
