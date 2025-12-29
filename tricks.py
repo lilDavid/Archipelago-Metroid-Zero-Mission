@@ -796,3 +796,17 @@ hazard_runs_minimal = {
 
 all_tricks = {**tricks_normal, **tricks_advanced, **tricks_ludicrous, **tricky_shinesparks,
               **hazard_runs_normal, **hazard_runs_minimal}
+
+# These are the names of groups that can be entered in your yaml for tricks_allowed or tricks_denied as shorthand.
+# TODO more groups?
+trick_groups = {
+    "Intended Sequence Breaks": [
+        "Norfair-Ridley Shortcut",
+        "Kraid-Norfair Shortcut",
+        "Ridley Right Shaft Shortcut",
+        "Chozo Ghost Access Reverse",
+        "Mecha Ridley Hall PB Skip",
+    ],
+    "Tricky Shinesparks": tricky_shinesparks.keys(),
+    "Ludicrous Tricks": tricks_ludicrous.keys(),
+}

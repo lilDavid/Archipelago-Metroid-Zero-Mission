@@ -10,7 +10,7 @@ from Options import (
 )
 
 from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
-from .tricks import all_tricks
+from .tricks import all_tricks, trick_groups
 
 
 class Goal(Choice):
@@ -225,21 +225,23 @@ class WalljumpsInLogic(Removed):
 class TricksAllowed(OptionSet):
     """
     List of paths/tricks/hazard runs to always allow in logic, regardless of logic difficulty setting.
-    The names of valid tricks can be found in the tricks.py file here:
+    The names of valid tricks and trick groups can be found in the tricks.py file here:
     https://github.com/lilDavid/Archipelago-Metroid-Zero-Mission/blob/main/tricks.py
     """
     display_name = "Trick Allow List"
     valid_keys = all_tricks
+    valid_keys.update(trick_groups)
 
 
 class TricksDenied(OptionSet):
     """
     List of paths/tricks/hazard runs to never allow in logic, regardless of logic difficulty setting.
-    The names of valid tricks can be found in the tricks.py file here:
+    The names of valid tricks and trick groups can be found in the tricks.py file here:
     https://github.com/lilDavid/Archipelago-Metroid-Zero-Mission/blob/main/tricks.py
     """
     display_name = "Trick Deny List"
     valid_keys = all_tricks
+    valid_keys.update(trick_groups)
 
 
 class TrickyShinesparks(Toggle):

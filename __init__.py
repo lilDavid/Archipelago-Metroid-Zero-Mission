@@ -19,7 +19,8 @@ from .patcher import MD5_US, MD5_US_VC
 from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
 from .regions import create_regions_and_connections
 from .rules import set_location_rules
-from .tricks import tricks_normal, tricks_advanced, tricky_shinesparks, hazard_runs_normal, hazard_runs_minimal
+from .tricks import tricks_normal, tricks_advanced, tricky_shinesparks, hazard_runs_normal, hazard_runs_minimal, \
+    trick_groups
 
 
 class MZMSettings(settings.Group):
@@ -121,10 +122,19 @@ class MZMWorld(World):
             self.trick_allow_list.extend(tricky_shinesparks.keys())
 
         for allowed_trick in self.options.tricks_allowed.value:
-            self.trick_allow_list.append(allowed_trick)
+            if allowed_trick in trick_groups:
+                for trick_name in trick_groups[allowed_trick]:
+                    self.trick_allow_list.append(trick_name)
+            else:
+                self.trick_allow_list.append(allowed_trick)
+
         for denied_trick in self.options.tricks_denied.value:
             # If a player has put the same trick in both allow and deny, the trick will not be used
-            if denied_trick in self.trick_allow_list:
+            if denied_trick in trick_groups:
+                for trick_name in trick_groups[denied_trick]:
+                    if trick_name in self.trick_allow_list:
+                        self.trick_allow_list.remove(trick_name)
+            elif denied_trick in self.trick_allow_list:
                 self.trick_allow_list.remove(denied_trick)
 
         if "Morph Ball" in self.options.start_inventory_from_pool:
