@@ -779,7 +779,7 @@ def set_location_rules(world: MZMWorld, locations):
                 PowerBombs,
                 any(
                     GravitySuit,
-                    CanReachEntrance("Brinstar -> Crateria Ballcannon")  # Room load weirdness
+                    CanReachEntrance("Crateria Left -> Landing Site")
                 )
             ),
             "Crateria Moat": None,
@@ -1175,16 +1175,11 @@ def brinstar_top_to_varia():
     )
 
 
-# this works for now. it's kind of tricky, cause all you need just to get there is PBs and bombs,
-# but to actually do anything (including get to ship) you need IBJ/speed/sj. it only checks for speed
-# for now since the only thing you'd potentially need this entrance for is Landing Site Ballspark
-# (this assumption changes if/when entrance/elevator rando happens)
 def brinstar_crateria_ballcannon():
     return all(
          PowerBombs,
          CanBallCannon,
          CanVerticalWall,
-         SpeedBooster
      )
 
 
@@ -1782,6 +1777,21 @@ def tourian_to_chozodia():
     )
 
 
+# Getting across the acid pits in post-MB Tourian
+# Left of MB is not in this region because it requires building speed before the acid pits
+def tourian_to_escape_shaft():
+    return all(
+        MotherBrainBoss,
+        ChozoGhostBoss,
+        any(
+            SpaceJump,
+            SpeedBooster,
+            Trick("Tourian Acid Dive - Normal"),
+            Trick("Tourian Acid Dive - Minimal")
+        )
+    )
+
+
 # From elevator to above the Unknown Item block by the Chozo statue
 def crateria_lower_to_crateria_upper_right():
     return any(
@@ -1885,6 +1895,25 @@ def crateria_upper_to_chozo_ruins():
             MotherBrainBoss,
             Requirement.setting_is("chozodia_access", 0)
         )
+    )
+
+
+def crateria_left_to_landing_site():
+    return any(
+        SpeedBooster,
+        CanFly,
+        all(
+            NormalLogic,
+            CanHiWallJump
+        )
+    )
+
+
+def crateria_to_tourian():
+    return all(
+        MotherBrainBoss,
+        ChozoGhostBoss,
+        SuperMissiles
     )
 
 

@@ -644,6 +644,34 @@ hazard_runs_normal = {
             PlasmaBeam,
             Energy(199)
         ),
+    "Tourian Acid Dive - Normal":
+        any(
+            all(
+                any(
+                    CanWallJump,
+                    CanHiGrip
+                ),
+                Energy(449)
+            ),
+            all(
+                VariaSuit,
+                any(
+                    CanWallJump,
+                    CanHiGrip
+                ),
+                Energy(249)
+            ),
+            # This acid still damages Samus even with Gravity Suit
+            all(
+                GravitySuit,
+                any(
+                    CanWallJump,
+                    PowerGrip,
+                    HiJump,
+                    CanIBJ
+                )
+            )
+        ),
     # This is for collecting the item and getting out
     "Chozodia Lava Dive Item - Normal":
         all(
@@ -769,6 +797,34 @@ hazard_runs_minimal = {
             Energy(149),
             MissileCount(6),
             PlasmaBeam
+        ),
+    "Tourian Acid Dive - Minimal":
+        any(
+            all(
+                any(
+                    CanWallJump,
+                    CanHiGrip
+                ),
+                Energy(249)
+            ),
+            all(
+                VariaSuit,
+                any(
+                    CanWallJump,
+                    CanHiGrip
+                ),
+                Energy(149)
+            ),
+            # This acid still damages Samus even with Gravity Suit
+            all(
+                GravitySuit,
+                any(
+                    CanWallJump,
+                    PowerGrip,
+                    HiJump,
+                    CanIBJ
+                )
+            )
         ),
     # This is for collecting the item and getting out
     "Chozodia Lava Dive Item - Minimal":
