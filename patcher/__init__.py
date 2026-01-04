@@ -11,6 +11,7 @@ import bsdiff4
 
 from . import lz10
 from .backgrounds import fix_crateria_door_locks, patch_chozodia_spotlight, write_item_clipdata_and_gfx
+from .connections import apply_connections
 from .constants import RC_COUNT, PIXEL_SIZE, Area, Event, ItemType
 from .items import item_data_table
 from .layout_patches import apply_layout_patches
@@ -39,6 +40,7 @@ class PatchJson(TypedDict):
     seed_name: NotRequired[str]
     config: SeedConfig
     locations: list[Location]
+    connections: NotRequired[dict[str, str]]
     start_inventory: NotRequired[dict[str, int | bool]]
     text: NotRequired[dict[MessageGroup, dict[str, str]]]
     layout_patches: NotRequired[list[str] | Literal["all"]]
@@ -107,6 +109,8 @@ def patch_rom(data: bytes, patch: PatchJson) -> bytes:
     patch_chozodia_spotlight(rom)
     fix_crateria_door_locks(rom)
     apply_layout_patches(rom, patch.get("layout_patches", []))
+    if patch.get("connections"):
+        apply_connections(rom, patch["connections"])
 
     write_warp_to_start_cosmetics(rom)
 
