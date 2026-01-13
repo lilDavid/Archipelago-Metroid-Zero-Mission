@@ -634,18 +634,19 @@ def set_location_rules(world: MZMWorld, locations):
     ridley_central = {
             "Ridley Upper Ball Cannon Puzzle": all(
                 any(
-                    CanHiSpringBall,
                     CanIBJ,
                     all(
                         PowerGrip,
                         any(
                             CanWallJump,
                             SpaceJump,
-                            all(  # A well-placed balljump and well-timed unmorph will grab the ledge
-                                NormalLogic,
-                                CanBallJump
-                            )
+                            PowerBombs,
+                            NormalLogic
                         )
+                    ),
+                    all(
+                        CanHiSpringBall,
+                        NormalLogic
                     )
                 ),
                 any(
@@ -672,6 +673,7 @@ def set_location_rules(world: MZMWorld, locations):
                         any(
                             HiJump,
                             SpaceJump,
+                            PowerGrip,
                             CanWallJump
                         )
                     )
@@ -1287,7 +1289,13 @@ def norfair_right_shaft_access():
 def norfair_upper_right_shaft():
     return any(
         CanVerticalWall,
-        IceBeam
+        all(
+            IceBeam,
+            any(
+                NormalLogic,
+                HardMode
+            )
+        )
     )
 
 
