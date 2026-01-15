@@ -853,11 +853,11 @@ def set_location_rules(world: MZMWorld, locations):
                         NormalLogic
                     ),
                     all(  # Skips both but still only PBs
-                        Trick("Chozo Ghost Access Reverse"),
                         any(
                             ScrewAttack,
                             WaveBeam
                         ),
+                        CanFlyWall,
                         any(
                             PowerBombCount(5),
                             all(
@@ -894,7 +894,7 @@ def set_location_rules(world: MZMWorld, locations):
                             NormalLogic  # Skipping the screw attack wall with the missile tunnel
                         )
                     ),
-                    Trick("Chozo Ghost Access Reverse"),
+                    CanFlyWall,  # Access up through the long shaft
                 )
             ),
             "Chozodia Chozo Ghost Area Underwater": all(
@@ -1968,7 +1968,7 @@ def chozo_ruins_to_ruins_test():
                 CanFlyWall,
                 MissileCount(3),
                 Missiles,
-                Trick("Chozo Ghost Access Reverse")
+                CanFlyWall
             ),
             all(  # Skips everything possible, but still only PBs
                 CanFlyWall,
@@ -1979,7 +1979,7 @@ def chozo_ruins_to_ruins_test():
                 Missiles,
                 PowerBombCount(4),  # technically should be 3 on Normal, but Normal can't have 3 max without having 4
                 NormalLogic,
-                Trick("Chozo Ghost Access Reverse")
+                CanFlyWall
             )
         ),
         CanVerticalWall,

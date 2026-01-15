@@ -68,11 +68,6 @@ tricks_normal = {
             CanEnterHighMorphTunnel
         ),
 
-    # Not quite a trick, but a rando-exclusive path.
-    # Climb up a tall shaft in the Chozo Ruins to access the Chozo Ghost area from the right side instead of the left
-    "Chozo Ghost Access Reverse":
-        CanFlyWall,
-
     # Less a trick, more a secret path.
     # An invisible tunnel in the ceiling of a room by the cockpit allows you to go around the Power Bomb blocks
     # that otherwise block your path to Mecha Ridley
@@ -860,7 +855,6 @@ trick_groups = {
         "Norfair-Ridley Shortcut",
         "Kraid-Norfair Shortcut",
         "Ridley Right Shaft Shortcut",
-        "Chozo Ghost Access Reverse",
         "Mecha Ridley Hall PB Skip",
     ],
     "Tricky Shinesparks": tricky_shinesparks.keys(),
