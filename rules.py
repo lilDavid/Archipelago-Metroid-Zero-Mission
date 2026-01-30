@@ -1476,7 +1476,11 @@ def norfair_lower_right_shaft_to_lower_norfair():
                 )
             ),
             all(
-                CanSingleBombBlock,
+                any(
+                    Bomb,
+                    PowerBombCount(2),  # One PB is needed to get to this room, then another to clear the runway
+                    ScrewAttack
+                ),
                 SpeedBooster
             )
         )
