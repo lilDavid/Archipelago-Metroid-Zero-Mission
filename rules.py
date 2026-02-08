@@ -309,7 +309,8 @@ def set_location_rules(world: MZMWorld, locations):
     norfair_upper_right = {
             "Norfair Ice Beam": all(
                 any(
-                    CanFly,
+                    SpaceJump,
+                    CanHorizontalIBJ,
                     PowerGrip,
                     all(
                         HazardRuns,
@@ -1307,6 +1308,19 @@ def norfair_behind_ice_beam():
             WaveBeam
         ),
         MorphBall,
+        any(  # Climbing the ripper shaft and getting to the statue
+            SpaceJump,
+            CanHorizontalIBJ,
+            CanWallJump,  # TODO if the Chozo statues ever stand up, this WallJump rule needs to change for Hard
+            all(
+                IceBeam,
+                any(
+                    NormalMode,
+                    CanVertical,
+                    Trick("Behind Ice Beam Shaft Hard Mode Enemy Freeze")
+                )
+            )
+        ),
         any(
             all(
                 PowerGrip,
@@ -1320,11 +1334,6 @@ def norfair_behind_ice_beam():
             all(
                 IceBeam,
                 CanHiSpringBall,
-                any(
-                    NormalMode,
-                    CanWallJump,
-                    Trick("Behind Ice Beam Shaft Hard Mode Enemy Freeze")
-                )
             )
         )
     )
