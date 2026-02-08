@@ -2120,8 +2120,13 @@ def chozodia_tube_to_mothership_central():
         ChozodiaCombat,
         any(
             CanFly,
-            CanHiWallJump,
-            Trick("Chozodia Pirates Enemy Freezes")
+            all(
+                CanWallJump,
+                any(
+                    HiJump,
+                    Trick("Chozodia Pirates Enemy Freezes")
+                )
+            )
         )
     )
 
