@@ -12,15 +12,33 @@ from worlds.AutoWorld import WebWorld, World
 from .client import MZMClient as MZMClient  # Fix unused import warning
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, location_count, mzm_location_name_groups
-from .options import FullyPoweredSuit, Goal, LayoutPatches, MZMOptions, MorphBallPlacement, SpringBall, mzm_option_groups, \
-    CombatLogicDifficulty, GameDifficulty, WallJumps, LogicDifficulty, HazardRuns
+from .options import (
+    FullyPoweredSuit,
+    Goal,
+    LayoutPatches,
+    MZMOptions,
+    MorphBallPlacement,
+    SpringBall,
+    mzm_option_groups,
+    CombatLogicDifficulty,
+    GameDifficulty,
+    WallJumps,
+    LogicDifficulty,
+    HazardRuns,
+)
 from .patch import MZMProcedurePatch, write_json_data
 from .patcher import MD5_US, MD5_US_VC
 from .patcher.layout_patches import LAYOUT_PATCH_MAPPING
 from .regions import create_regions_and_connections
 from .rules import set_location_rules
-from .tricks import tricks_normal, tricks_advanced, tricky_shinesparks, hazard_runs_normal, hazard_runs_minimal, \
-    trick_groups
+from .tricks import (
+    tricks_normal,
+    tricks_advanced,
+    tricky_shinesparks,
+    hazard_runs_normal,
+    hazard_runs_minimal,
+    trick_groups,
+)
 
 
 class MZMSettings(settings.Group):
@@ -105,37 +123,41 @@ class MZMWorld(World):
         else:
             self.enabled_layout_patches = []
 
-        if self.options.logic_difficulty.value == LogicDifficulty.option_normal:
-            self.trick_allow_list = list(tricks_normal.keys())
-        elif self.options.logic_difficulty.value == LogicDifficulty.option_advanced:
-            self.trick_allow_list = list(tricks_normal.keys())
-            self.trick_allow_list.extend(tricks_advanced.keys())
-        else:
-            self.trick_allow_list = []
+        allowed_tricks = set()
 
-        if self.options.hazard_runs == HazardRuns.option_normal:
-            self.trick_allow_list.extend(hazard_runs_normal.keys())
-        elif self.options.hazard_runs == HazardRuns.option_minimal:
-            self.trick_allow_list.extend(hazard_runs_minimal.keys())
+        match self.options.logic_difficulty.value:
+            case LogicDifficulty.option_normal:
+                allowed_tricks.update(tricks_normal.keys())
+            case LogicDifficulty.option_advanced:
+                allowed_tricks.update(tricks_normal.keys())
+                allowed_tricks.update(tricks_advanced.keys())
+
+        match self.options.hazard_runs.value:
+            case HazardRuns.option_normal:
+                allowed_tricks.update(hazard_runs_normal.keys())
+            case HazardRuns.option_minimal:
+                allowed_tricks.update(hazard_runs_minimal.keys())
 
         if self.options.tricky_shinesparks.value:
-            self.trick_allow_list.extend(tricky_shinesparks.keys())
+            allowed_tricks.update(tricky_shinesparks.keys())
 
         for allowed_trick in self.options.tricks_allowed.value:
             if allowed_trick in trick_groups:
-                for trick_name in trick_groups[allowed_trick]:
-                    self.trick_allow_list.append(trick_name)
+                allowed_tricks.update(trick_groups[allowed_trick])
             else:
-                self.trick_allow_list.append(allowed_trick)
+                allowed_tricks.add(allowed_trick)
 
+        denied_tricks = set()
         for denied_trick in self.options.tricks_denied.value:
-            # If a player has put the same trick in both allow and deny, the trick will not be used
             if denied_trick in trick_groups:
-                for trick_name in trick_groups[denied_trick]:
-                    if trick_name in self.trick_allow_list:
-                        self.trick_allow_list.remove(trick_name)
+                denied_tricks.update(trick_groups[denied_trick])
             elif denied_trick in self.trick_allow_list:
-                self.trick_allow_list.remove(denied_trick)
+                denied_tricks.add(denied_trick)
+        # If a player has put the same trick in both allow and deny, the trick will be out of logic but shown in UT
+        denied_tricks.intersection_update(allowed_tricks)
+        allowed_tricks.difference_update(denied_tricks)
+
+        self.trick_allow_list = sorted(allowed_tricks)
 
         if "Morph Ball" in self.options.start_inventory_from_pool:
             self.options.morph_ball = MorphBallPlacement(MorphBallPlacement.option_normal)
