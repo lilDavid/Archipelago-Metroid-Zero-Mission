@@ -1,15 +1,15 @@
 import itertools
 import typing
 from pathlib import Path
-from collections import Counter
 from typing import Any, ClassVar, Dict, List, Optional
 import settings
 
 from BaseClasses import CollectionState, Item, ItemClassification, MultiWorld, Tutorial
 from Fill import fill_restrictive
+from Options import Option
 from worlds.AutoWorld import WebWorld, World
 
-from .client import MZMClient
+from .client import MZMClient as MZMClient  # Fix unused import warning
 from .items import item_data_table, major_item_data_table, mzm_item_name_groups, MZMItem
 from .locations import full_location_table, location_count, mzm_location_name_groups
 from .options import FullyPoweredSuit, Goal, LayoutPatches, MZMOptions, MorphBallPlacement, SpringBall, mzm_option_groups, \
@@ -271,7 +271,8 @@ class MZMWorld(World):
             "goal": self.options.goal.value,
             "metroid_dna_required": self.options.metroid_dna_required.value,
             "game_difficulty": self.options.game_difficulty.value,
-            "unknown_items_usable": self.options.fully_powered_suit.to_slot_data(),
+            "unknown_items_usable": self.options.fully_powered_suit.to_slot_data(),  # Backwards compatibility
+            "fully_powered_suit": self.options.fully_powered_suit.value,
             "walljumps": self.options.walljumps.value,
             "spring_ball": self.options.spring_ball.value,
             "layout_patches": self.options.layout_patches.value,
@@ -340,3 +341,36 @@ class MZMWorld(World):
         assert location.address is None
         location.place_locked_item(item)
         location.show_in_spoiler = True
+
+    # UT integration
+
+    ut_can_gen_without_yaml = True
+
+    def is_universal_tracker(self):
+        return hasattr(self.multiworld, "generation_is_fake")
+
+    def interpret_slot_data(self, slot_data: dict[str, Any]):
+        def set_option(option_name: str, slot_data_key: str | None = None):
+            if slot_data_key is None:
+                slot_data_key = option_name
+            option: Option | None = getattr(self.options, option_name, None)
+            value = slot_data.get(slot_data_key)
+            if option is not None and value is not None:
+                setattr(self.options, option_name, option.from_any(value))
+
+        set_option("goal")
+        set_option("metroid_dna_required")
+        set_option("game_difficulty")
+        set_option("fully_powered_suit")
+        set_option("walljumps")
+        set_option("layout_patches")
+        set_option("enabled_layout_patches", "selected_patches")
+        set_option("logic_difficulty")
+        set_option("combat_logic_difficulty")
+        set_option("ibj_in_logic")
+        set_option("hazard_runs")
+        set_option("tricks_allowed")
+        set_option("tricks_denied")
+        set_option("tricky_shinesparks")
+        set_option("chozodia_access")
+
