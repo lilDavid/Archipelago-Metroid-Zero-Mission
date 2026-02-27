@@ -1,3 +1,4 @@
+from enum import StrEnum
 import itertools
 import typing
 from pathlib import Path
@@ -39,6 +40,7 @@ from .tricks import (
     hazard_runs_normal,
     hazard_runs_minimal,
     trick_groups,
+    all_tricks
 )
 
 
@@ -55,8 +57,23 @@ class MZMSettings(settings.Group):
         Set it to true to have the operating system default program open the rom
         Alternatively, set it to a path to a program to open the .gba file with
         """
+
+    class TrackerSettings(settings.Group):
+        class TrickLogic(StrEnum):
+            """
+            Controls what tricks will show as Glitched accessible in Universal Tracker.
+            Set this to "next_level" to show locations reachable with tricks set one
+            level above the selected difficulty. Set it to "all" to show locations
+            reachable with any tricks that aren't already in logic.
+            """
+            NEXT_LEVEL = "next_level"
+            ALL = "all"
+
+        show_tricks: TrickLogic = TrickLogic.NEXT_LEVEL
+
     rom_file: RomFile = RomFile(RomFile.copy_to)
     rom_start: typing.Union[RomStart, bool] = True
+    universal_tracker_setings: TrackerSettings = TrackerSettings()
 
 class MZMWeb(WebWorld):
     theme = "ice"
@@ -126,7 +143,10 @@ class MZMWorld(World):
             self.enabled_layout_patches = []
 
         allowed_tricks = set()
-        sequence_break_tricks = set()
+        if self.settings.universal_tracker_setings.show_tricks == MZMSettings.TrackerSettings.TrickLogic.ALL:
+            sequence_break_tricks = set(all_tricks.keys())
+        else:
+            sequence_break_tricks = set()
 
         match self.options.logic_difficulty.value:
             case LogicDifficulty.option_simple:
