@@ -52,11 +52,14 @@ class Requirement(NamedTuple):
             if (
                 not world.is_universal_tracker()
                 or not state.has(world.glitches_item_name, world.player)
-                or (
-                    setting in normal_difficulty_sequence_breaks
-                    and world.options.logic_difficulty.value < 1  # Normal
-                )
             ):
+                return in_logic
+
+            from . import MZMSettings
+
+            if world.settings.universal_tracker_setings.show_tricks == MZMSettings.TrackerSettings.TrickLogic.ALL:
+                return True
+            if setting in normal_difficulty_sequence_breaks and world.options.logic_difficulty.value < 1:
                 return in_logic
             return getattr(world.options, setting) >= value - 1
 
