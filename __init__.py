@@ -34,6 +34,7 @@ from .rules import set_location_rules
 from .tricks import (
     tricks_normal,
     tricks_advanced,
+    tricks_ludicrous,
     tricky_shinesparks,
     hazard_runs_normal,
     hazard_runs_minimal,
@@ -101,6 +102,7 @@ class MZMWorld(World):
 
     enabled_layout_patches: list[str]
     trick_allow_list: list[str]
+    sequence_break_tricks: list[str]
 
     junk_fill_items: list[str]
     junk_fill_cdf: list[int]
@@ -124,17 +126,28 @@ class MZMWorld(World):
             self.enabled_layout_patches = []
 
         allowed_tricks = set()
+        sequence_break_tricks = set()
 
         match self.options.logic_difficulty.value:
+            case LogicDifficulty.option_simple:
+                sequence_break_tricks.update(tricks_normal.keys())
             case LogicDifficulty.option_normal:
                 allowed_tricks.update(tricks_normal.keys())
+                sequence_break_tricks.update(tricks_advanced.keys())
+                sequence_break_tricks.update(tricky_shinesparks.keys())
             case LogicDifficulty.option_advanced:
                 allowed_tricks.update(tricks_normal.keys())
                 allowed_tricks.update(tricks_advanced.keys())
+                sequence_break_tricks.update(tricky_shinesparks.keys())
+                sequence_break_tricks.update(tricks_ludicrous.keys())
 
         match self.options.hazard_runs.value:
+            case HazardRuns.option_disabled:
+                if self.options.logic_difficulty.value != LogicDifficulty.option_simple:
+                    sequence_break_tricks.update(hazard_runs_normal.keys())
             case HazardRuns.option_normal:
                 allowed_tricks.update(hazard_runs_normal.keys())
+                sequence_break_tricks.update(hazard_runs_minimal.keys())
             case HazardRuns.option_minimal:
                 allowed_tricks.update(hazard_runs_minimal.keys())
 
@@ -151,13 +164,19 @@ class MZMWorld(World):
         for denied_trick in self.options.tricks_denied.value:
             if denied_trick in trick_groups:
                 denied_tricks.update(trick_groups[denied_trick])
-            elif denied_trick in self.trick_allow_list:
+            else:
                 denied_tricks.add(denied_trick)
+
         # If a player has put the same trick in both allow and deny, the trick will be out of logic but shown in UT
-        denied_tricks.intersection_update(allowed_tricks)
+        # If the trick is only denied, then remove it from sequence break logic
+        denied_allowed_tricks = denied_tricks.intersection(allowed_tricks)
         allowed_tricks.difference_update(denied_tricks)
+        sequence_break_tricks.difference_update(allowed_tricks)
+        sequence_break_tricks.difference_update(denied_tricks)
+        sequence_break_tricks.update(denied_allowed_tricks)
 
         self.trick_allow_list = sorted(allowed_tricks)
+        self.sequence_break_tricks = sorted(sequence_break_tricks)
 
         if "Morph Ball" in self.options.start_inventory_from_pool:
             self.options.morph_ball = MorphBallPlacement(MorphBallPlacement.option_normal)
@@ -315,6 +334,9 @@ class MZMWorld(World):
         return self.multiworld.random.choices(self.junk_fill_items, cum_weights=self.junk_fill_cdf)[0]
 
     def create_item(self, name: str, force_classification: Optional[ItemClassification] = None) -> MZMItem:
+        if self.is_universal_tracker() and name == self.glitches_item_name:
+            return MZMItem(name, ItemClassification.progression, None, self.player)
+
         return MZMItem(name,
                        force_classification if force_classification is not None else item_data_table[name].progression,
                        self.item_name_to_id[name],
@@ -367,6 +389,7 @@ class MZMWorld(World):
     # UT integration
 
     ut_can_gen_without_yaml = True
+    glitches_item_name = "SEQUENCE BREAKS"
 
     def is_universal_tracker(self):
         return hasattr(self.multiworld, "generation_is_fake")
