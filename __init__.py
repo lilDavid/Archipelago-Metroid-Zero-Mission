@@ -429,6 +429,7 @@ class MZMWorld(World):
         set_option("game_difficulty")
         set_option("fully_powered_suit")
         set_option("walljumps")
+        set_option("spring_ball")
         set_option("layout_patches")
         set_option("enabled_layout_patches", "selected_patches")
         set_option("logic_difficulty")
