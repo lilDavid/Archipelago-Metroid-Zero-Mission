@@ -129,11 +129,13 @@ class MZMWorld(World):
         self.locked_items = []
         self.pre_fill_items = []
         self.removed_items = []
+        if not self.options.junk_fill_weights.value:
+            self.options.junk_fill_weights.value = self.options.junk_fill_weights.default
         self.junk_fill_items = list(self.options.junk_fill_weights.value.keys())
         self.junk_fill_cdf = list(itertools.accumulate(self.options.junk_fill_weights.value.values()))
 
         if self.options.metroid_dna_available.value < self.options.metroid_dna_required.value:
-            self.options.metroid_dna_available = self.options.metroid_dna_required
+            self.options.metroid_dna_available.value = self.options.metroid_dna_required.value
 
         if self.options.layout_patches.value == LayoutPatches.option_true:
             self.enabled_layout_patches = list(LAYOUT_PATCH_MAPPING.keys())
@@ -352,7 +354,7 @@ class MZMWorld(World):
         }
 
     def get_filler_item_name(self) -> str:
-        return self.multiworld.random.choices(self.junk_fill_items, cum_weights=self.junk_fill_cdf)[0]
+        return self.random.choices(self.junk_fill_items, cum_weights=self.junk_fill_cdf)[0]
 
     def create_item(self, name: str, force_classification: Optional[ItemClassification] = None) -> MZMItem:
         if self.is_universal_tracker() and name == self.glitches_item_name:

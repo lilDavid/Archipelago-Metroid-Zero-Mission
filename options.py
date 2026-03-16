@@ -341,6 +341,7 @@ class JunkFillWeights(ItemDict):
     """
     Specify the distribution of extra capacity expansions that should be used to fill vacancies in the pool.
     This option only has any effect if there are unfilled locations, e.g. when some items are removed.
+    If no weights are provided, the defaults will be used.
     """
     display_name = "Junk Fill Weights"
     visibility = Visibility.template | Visibility.complex_ui | Visibility.spoiler
