@@ -432,11 +432,11 @@ class MZMWorld(World):
             return
         slot_data: dict[str, Any] = re_gen_passthrough[self.game]
 
-        def set_option(option_name: str, slot_data_key: str | None = None):
-            if slot_data_key is None:
-                slot_data_key = option_name
+        def set_option(option_name: str):
+            if option_name is None:
+                option_name = option_name
             option: Option | None = getattr(self.options, option_name, None)
-            value = slot_data.get(slot_data_key)
+            value = slot_data.get(option_name)
             if option is not None and value is not None:
                 setattr(self.options, option_name, option.from_any(value))
 
@@ -447,7 +447,7 @@ class MZMWorld(World):
         set_option("walljumps")
         set_option("spring_ball")
         set_option("layout_patches")
-        set_option("enabled_layout_patches", "selected_patches")
+        set_option("selected_patches")
         set_option("logic_difficulty")
         set_option("combat_logic_difficulty")
         set_option("ibj_in_logic")
