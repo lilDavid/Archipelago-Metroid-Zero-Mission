@@ -22,9 +22,9 @@ class Goal(Choice):
     Metroid DNA: The door to Mecha Ridley is locked until you find enough Metroid DNA.
     """
     display_name = "goal"
-    option_mecha_ridley = "vanilla"
-    option_bosses = "bosses"
-    option_metroid_dna = "metroid_dna"
+    option_mecha_ridley = 0
+    option_bosses = 1
+    option_metroid_dna = 2
     default = option_metroid_dna
 
 
@@ -57,9 +57,9 @@ class GameDifficulty(Choice):
     logic and hazard runs more lenient if you play on Normal.
     """
     display_name = "Game Difficulty"
-    option_normal = "normal"
-    option_hard = "hard"
-    option_either = "either"
+    option_normal = 0
+    option_hard = 1
+    option_either = 2
     default = option_either
 
 
