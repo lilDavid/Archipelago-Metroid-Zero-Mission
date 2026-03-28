@@ -125,6 +125,9 @@ class MZMWorld(World):
     junk_fill_cdf: list[int]
 
     def generate_early(self):
+        if self.is_universal_tracker():
+            self.set_options_from_slot_data()
+
         self.starting_items = []
         self.locked_items = []
         self.pre_fill_items = []
@@ -418,7 +421,17 @@ class MZMWorld(World):
     def is_universal_tracker(self):
         return hasattr(self.multiworld, "generation_is_fake")
 
-    def interpret_slot_data(self, slot_data: dict[str, Any]):
+    @staticmethod
+    def interpret_slot_data(slot_data: dict[str, Any]):
+        # Trigger a re-gen instead
+        return slot_data
+
+    def set_options_from_slot_data(self):
+        re_gen_passthrough = getattr(self.multiworld, "re_gen_passthrough", {})
+        if not re_gen_passthrough or self.game not in re_gen_passthrough:
+            return
+        slot_data: dict[str, Any] = re_gen_passthrough[self.game]
+
         def set_option(option_name: str, slot_data_key: str | None = None):
             if slot_data_key is None:
                 slot_data_key = option_name
