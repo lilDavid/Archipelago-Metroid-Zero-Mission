@@ -1,0 +1,15 @@
+.idea
+.vscode
+
+.venv*
+.code-workspace
+
+build/
+tools/
+
+test/
+patcher/data/**/*.png
+README.md
+
+*.gba
+*.apmzm

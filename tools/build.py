@@ -5,29 +5,17 @@ import json
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import sys
-import zipfile
 
 
 WORLD_NAME = "mzm"
-
 WORLD_PATH = Path(__file__).parents[1]
+with open(WORLD_PATH / "archipelago.json", "r", encoding="utf-8") as file:
+    GAME_NAME: str = json.load(file)["game"]
+
 BUILD_PATH = WORLD_PATH / "build"
-
-
-FILES = [
-    "LICENSE",
-    "patcher",
-    "*.py",
-]
-
-EXCLUDE = [
-    "**/__pycache__",
-    "**/__MACOSX",
-    "**/.DS_STORE",
-    "patcher/data/**/*.png",
-    "patcher/data/**/*.md",
-]
+ap_path: Path
 
 
 def clean_build_path():
@@ -36,55 +24,27 @@ def clean_build_path():
         shutil.rmtree(child, ignore_errors=True)
 
 
-def get_files():
-    files: set[Path] = set()
-    for pattern in FILES:
-        for path in WORLD_PATH.glob(pattern):
-            if path.is_dir():
-                files.update(path.rglob("*"))
-            else:
-                files.add(path)
-    for pattern in EXCLUDE:
-        for path in WORLD_PATH.glob(pattern):
-            if path.is_dir():
-                files.difference_update(path.rglob("*"))
-            try:
-                files.remove(path)
-            except KeyError:
-                pass
-    return files
+def call_ap_component(component: str, *args: str):
+    cmd = [sys.executable, "Launcher.py", component]
+    if args:
+        cmd += ["--", *args]
+    subprocess.check_call(cmd, cwd=ap_path)
 
 
 def build_apworld():
-    from worlds.Files import APWorldContainer
+    call_ap_component("Build APWorlds", GAME_NAME)
+    apworld_name = f"{WORLD_NAME}.apworld"
+    shutil.copy(ap_path.joinpath("build", "apworlds", apworld_name), BUILD_PATH / apworld_name)
 
-    with open(WORLD_PATH / "archipelago.json", "r", encoding="utf-8") as file:
-        manifest: dict = json.load(file)
-    zip_path = BUILD_PATH / f"{WORLD_NAME}.apworld"
-    container = APWorldContainer(str(zip_path))
-    container.game = manifest["game"]
-    manifest.update(container.get_manifest())
 
-    zip_path = BUILD_PATH / f"{WORLD_NAME}.apworld"
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as apworld:
-        for path in get_files():
-            relative_path = f"{WORLD_NAME}/{path.relative_to(WORLD_PATH)}"
-            apworld.write(path, relative_path)
-        apworld.writestr(f"{WORLD_NAME}/archipelago.json", json.dumps(manifest))
+def get_file_safe_name(name: str) -> str:
+    return "".join(c for c in name if c not in '<>:"/\\|?*')
 
 
 def generate_template():
-    import Options
-    import Utils
-
-    templates = (BUILD_PATH / "templates")
-    templates.mkdir(exist_ok=True)
-    Options.generate_yaml_templates(templates, generate_hidden=False)
-    with open(WORLD_PATH / "archipelago.json", "r", encoding="utf-8") as file:
-        game: str = json.load(file)["game"]
-    template = templates / f"{Utils.get_file_safe_name(game)}.yaml"
-    template.rename(BUILD_PATH / f"{template.name.replace(' ', '_')}")
-    shutil.rmtree(templates, ignore_errors=True)
+    call_ap_component("Generate Template Options", "--skip_open_folder")
+    template_name = f"{get_file_safe_name(GAME_NAME)}.yaml"
+    shutil.copy(ap_path.joinpath("Players", "Templates", template_name), BUILD_PATH / template_name.replace(" ", "_"))
 
 
 if __name__ == "__main__":
@@ -92,8 +52,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--path", default=None, help="Path to your Archipelago source code")
     args = parser.parse_args()
 
-    ap_path = args.path or os.getenv("AP_SOURCE_PATH") or os.getenv("AP_PATH") or os.getcwd()
-    sys.path.append(ap_path)
+    ap_path = Path(args.path or os.getenv("AP_SOURCE_PATH") or os.getenv("AP_PATH") or os.getcwd())
 
     clean_build_path()
     build_apworld()
