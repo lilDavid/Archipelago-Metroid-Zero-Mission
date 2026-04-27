@@ -176,8 +176,11 @@ compatible_games: Mapping[str, Mapping[str, str]] = {
     "Super Metroid Map Rando": {
         "ETank": Sprite.EnergyTank,
         "Missile": Sprite.MissileTank,
+        "ProgMissile": Sprite.MissileTank,
         "Super": Sprite.SuperMissileTank,
+        "ProgSuper": Sprite.SuperMissileTank,
         "PowerBomb": Sprite.PowerBombTank,
+        "ProgPowerBomb": Sprite.PowerBombTank,
         "Bombs": Sprite.Bomb,
         "Charge": Sprite.ChargeBeam,
         "Ice": Sprite.IceBeam,
