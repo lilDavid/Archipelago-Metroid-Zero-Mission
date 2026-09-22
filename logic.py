@@ -336,6 +336,30 @@ KraidCombat = any(
         EnergyTanks(2)
     )
 )
+KiruGiruLarvaCombat = all(
+    any(
+        PowerBombCount(2),
+        MissileCount(20),
+        SuperMissileCount(12),
+        all(
+            NormalCombat,
+            any(
+                MissileTanks(1),
+                SuperMissileCount(9),  # Minimum number of Supers to traverse the room before and beat the boss
+                all(
+                    SuperMissileCount(6),
+                    PowerBombs
+                )
+            )
+        )
+    ),
+    # QOL for the fight
+    any(
+        IceBeam,
+        SpaceJump,
+        NormalLogic  # You can hit the vines without any items, it's just a little tricky
+    )
+)
 RidleyCombat = any(
     MinimalCombat,
     all(
@@ -344,7 +368,10 @@ RidleyCombat = any(
         EnergyTanks(3),
     ),
     all(
-        VariaSuit,
+        any(
+            VariaSuit,
+            GravitySuit
+        ),
         MissileTanks(8),
         SuperMissileTanks(2),
         EnergyTanks(4)
@@ -424,7 +451,12 @@ MechaRidleyCombat = any(
         NormalCombat,
         SuperMissileTanks(3),
         MissileTanks(4),
-        EnergyTanks(4)
+        EnergyTanks(4),
+        any(
+            PlasmaBeam,
+            ScrewAttack,
+            SuperMissileCount(8)
+        )
     ),
     all(
         any(

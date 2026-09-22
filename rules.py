@@ -1652,26 +1652,16 @@ def bottom_norfair_to_right_shaft():
 
 
 def bottom_norfair_to_ridley():
-    return any(
-        PowerBombs,
-        all(
-            any(
-                MissileCount(20),
-                SuperMissileCount(8),
-                all(
-                    NormalCombat,
-                    any(
-                        MissileTanks(1),
-                        SuperMissileCount(6),
-                    )
-                )
-            ),
-            any(
-                IceBeam,
-                SpaceJump,
-                NormalLogic  # You can hit the vines without any items, it's just a little tricky
+    return all(
+        # Traversing the tunnel
+        any(
+            CanBombTunnelBlock,
+            all(
+                ScrewAttack,
+                NormalLogic  # You can break the block with Screw Attack, but if you're slow you get softlocked
             )
-        )
+        ),
+        KiruGiruLarvaCombat
     )
 
 
